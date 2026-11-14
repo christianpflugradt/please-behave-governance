@@ -4,6 +4,7 @@ description = "AGENTS.md gives coding agents clear, actionable guidance"
 blocking = false
 
 [review]
+include_content = false
 provider = "gemini-flash"
 prompt = "prompt.md"
 

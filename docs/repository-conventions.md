@@ -99,7 +99,7 @@ When the Check blocks, shorten `AGENTS.md` instead of raising the limit.
 The bundle requires a root `AGENTS.md`: the review names it as context, so `please sync` fails
 without it. The advisory `agents-quality` Review runs only at `check` and only when `AGENTS.md` changed
 (`review.trigger`), so an unchanged file never causes a model call. It supplies the whole
-file as context, excludes the Git diff and evaluates it against the rubric embedded in the
+file once, as context (`include_content = false`), sends no change set and evaluates it against the rubric embedded in the
 [prompt](../rules/reviews/agents-quality/prompt.md): contradictions, ambiguous precedence,
 unexecutable or unverifiable instructions and unsafe directions. Optional improvements do
 not cause FAIL. It needs its own provider import, `providers/gemini-flash`, besides
