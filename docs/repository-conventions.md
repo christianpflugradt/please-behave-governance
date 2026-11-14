@@ -221,10 +221,10 @@ is advisory: wording FAIL and provider ERROR do not prevent a commit, while
 deterministic syntax failures still block. Model judgment quality is not claimed
 to be established.
 
-Please Behave sends only the header as review evidence, without body, diff,
-source files or HEAD. Findings use `source: "commit-header"`, `path: null`,
-`line: 1`; the CLI validates IDs, evidence and header stability. It rejects file
-citations and incomplete verdicts. No comparison with the actual change occurs.
+Please Behave sends the whole commit message with line numbers and, because the Review sets
+`include_content = false`, no content of the staged files and no change set. The prompt limits the
+judgment to the header. The CLI validates cited lines and message stability. No comparison with
+the actual change occurs.
 These rules do not inspect commit ranges or PR titles. The Review runs only at
 `commit-msg`, not in CI `check`, pre-push or release readiness. Only the deterministic `agents-size` and `editorconfig` Checks run at `pre-commit` and `check`.
 

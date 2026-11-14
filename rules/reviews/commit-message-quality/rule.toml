@@ -4,7 +4,7 @@ description = "Commit summaries are specific, English and imperative"
 blocking = false
 
 [review]
-input = "commit-header"
+include_content = false
 provider = "gemini-flash-lite"
 prompt = "prompt.md"
 
