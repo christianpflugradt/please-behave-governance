@@ -1,4 +1,4 @@
-"""Translate the Please Behave v1 adapter protocol to Gemini structured JSON.
+"""Translate the Please Behave v3 adapter protocol to Gemini structured JSON.
 
 Built for the unstable free tier: up to five attempts that alternate between the
 configured models after short, slowly growing waits. There is no overall deadline.
@@ -19,6 +19,7 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 LIMIT = 65536
 DELAYS = (10, 20, 30, 45)  # Waits between the five attempts.
 RETRYABLE = (429, 500, 502, 503, 504)
+VERDICTS = ("PASS", "FAIL")
 REQUEST_TIMEOUT = 600
 
 
@@ -62,10 +63,10 @@ def unwrap(raw):
             if not isinstance(part, dict) or part.get("thought") or not isinstance(part.get("text"), str):
                 raise ValueError()
             text.append(part["text"])
-        verdict = json.loads("".join(text), object_pairs_hook=unique_object)
-        if not isinstance(verdict, dict) or set(verdict) != {"reviews"} or not isinstance(verdict["reviews"], list):
+        document = json.loads("".join(text), object_pairs_hook=unique_object)
+        if not isinstance(document, dict) or document.get("verdict") not in VERDICTS:
             raise ValueError()
-        return verdict["reviews"]
+        return document.pop("verdict"), document
     except (ValueError, KeyError, IndexError, TypeError, AttributeError):
         raise ProviderError("Gemini returned an invalid or incomplete structured response.") from None
 
@@ -142,12 +143,20 @@ def run(prompt, models, schema):
         time.sleep(DELAYS[number])
 
 
+def with_verdict(schema):
+    """The request's response schema plus the verdict, which the adapter turns into the exit status."""
+    verdict = {"type": "string", "enum": list(VERDICTS),
+               "description": "PASS when the criteria are met; FAIL when they are not or PASS cannot be established"}
+    return {**schema, "properties": {**schema.get("properties", {}), "verdict": verdict},
+            "required": [*schema.get("required", []), "verdict"]}
+
+
 def review(request):
-    if not isinstance(request, dict) or type(request.get("protocol_version")) is not int or request["protocol_version"] != 1:
-        raise ProviderError("Unsupported adapter protocol; expected version 1.")
+    if not isinstance(request, dict) or type(request.get("protocol_version")) is not int or request["protocol_version"] != 3:
+        raise ProviderError("Unsupported adapter protocol; expected version 3.")
     reviews = request.get("reviews")
-    if not isinstance(reviews, list) or not reviews or not all(isinstance(item, dict) for item in reviews):
-        raise ProviderError("Invalid adapter review list.")
+    if not isinstance(reviews, list) or len(reviews) != 1 or not isinstance(reviews[0], dict):
+        raise ProviderError("Invalid adapter review list; expected exactly one review.")
     if not isinstance(request.get("prompt"), str) or not isinstance(request.get("response_schema"), dict):
         raise ProviderError("Missing prepared prompt or response schema.")
     if not all(isinstance(item.get("parameters"), dict) for item in reviews):
@@ -160,7 +169,8 @@ def review(request):
         raise ProviderError("The models setting must list nonblank comma-separated model names.")
     if any(not isinstance(item.get("id"), str) or not item["id"] for item in reviews):
         raise ProviderError("Invalid adapter review identity.")
-    return {"protocol_version": 1, "reviews": run(request["prompt"], models, request["response_schema"])}
+    status, document = run(request["prompt"], models, with_verdict(request["response_schema"]))
+    return (0 if status == "PASS" else 1), {"protocol_version": 3, **document}
 
 
 def fail(message, detail=""):
@@ -172,7 +182,9 @@ def fail(message, detail=""):
 def main():
     try:
         request = json.load(sys.stdin, object_pairs_hook=unique_object)
-        sys.stdout.write(json.dumps(review(request)))
+        code, response = review(request)
+        sys.stdout.write(json.dumps(response))
+        sys.exit(code)
     except ProviderError as error:
         fail(str(error), error.detail)
     except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:

@@ -14,7 +14,8 @@ spec = importlib.util.spec_from_file_location("gemini_flash", ROOT / "providers/
 gemini = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gemini)
 
-VERDICT = {"reviews": [{"id": "quality", "status": "PASS", "reason": "Clear guidance", "findings": []}]}
+VERDICT = {"verdict": "PASS", "reason": "Clear guidance", "findings": []}
+RESPONSE = {"protocol_version": 3, "reason": "Clear guidance", "findings": []}
 SUCCESS = json.dumps({"candidates": [{"finishReason": "STOP", "content": {"parts": [{"text": json.dumps(VERDICT)}]}}]}).encode()
 
 
@@ -31,7 +32,7 @@ class FlashTests(unittest.TestCase):
         start.start()
         key.start()
         self.addCleanup(patch.stopall)
-        self.request = {"protocol_version": 1, "prompt": "AGENTS.md text", "response_schema": {"type": "object"},
+        self.request = {"protocol_version": 3, "prompt": "AGENTS.md text", "response_schema": {"type": "object"},
                         "reviews": [{"id": "quality", "parameters": {"models": "model-a, model-b"}}]}
 
     def opener(self, *outcomes):
@@ -57,15 +58,15 @@ class FlashTests(unittest.TestCase):
         with patch.object(gemini, "build_opener", return_value=opener):
             return gemini.review(request or self.request)
 
-    def test_success_returns_the_reviews_without_waiting(self):
+    def test_success_returns_the_response_and_exit_status_without_waiting(self):
         opener = self.opener(SUCCESS)
-        self.assertEqual(self.review(opener), {"protocol_version": 1, **VERDICT})
+        self.assertEqual(self.review(opener), (0, RESPONSE))
         self.assertEqual(opener.calls, ["model-a"])
         self.sleep.assert_not_called()
 
     def test_retries_alternate_models_with_growing_waits(self):
         opener = self.opener(http_error(503), http_error(429), SUCCESS)
-        self.assertEqual(self.review(opener)["reviews"], VERDICT["reviews"])
+        self.assertEqual(self.review(opener), (0, RESPONSE))
         self.assertEqual(opener.calls, ["model-a", "model-b", "model-a"])
         self.assertEqual([call.args[0] for call in self.sleep.call_args_list], [10, 20])
 
@@ -102,6 +103,28 @@ class FlashTests(unittest.TestCase):
             gemini.main()
         self.assertEqual(exited.exception.code, 2)
         self.assertEqual(stderr.getvalue(), f"Gemini returned HTTP 400.\n{body}\n")
+
+    def test_fail_exits_with_status_1_and_an_unknown_verdict_is_an_error(self):
+        fail = json.dumps({"candidates": [{"finishReason": "STOP", "content": {"parts": [
+            {"text": json.dumps({**VERDICT, "verdict": "FAIL"})}]}}]}).encode()
+        self.assertEqual(self.review(self.opener(fail))[0], 1)
+        stdout = io.StringIO()
+        with patch.object(gemini, "build_opener", return_value=self.opener(fail)), patch.object(sys, "stdin", io.StringIO(json.dumps(self.request))), \
+                patch.object(sys, "stdout", stdout), self.assertRaises(SystemExit) as exited:
+            gemini.main()
+        self.assertEqual((exited.exception.code, json.loads(stdout.getvalue())), (1, RESPONSE))
+        unknown = json.dumps({"candidates": [{"finishReason": "STOP", "content": {"parts": [
+            {"text": json.dumps({**VERDICT, "verdict": "ERROR"})}]}}]}).encode()
+        with self.assertRaises(gemini.ProviderError):
+            self.review(self.opener(unknown))
+
+    def test_the_verdict_is_requested_from_gemini_through_the_schema(self):
+        opener = self.opener(SUCCESS)
+        self.review(opener)
+        sent = json.loads(opener.open.call_args.args[0].data)["generationConfig"]["responseJsonSchema"]
+        self.assertEqual(sent, gemini.with_verdict(self.request["response_schema"]))
+        self.assertEqual(sent["required"], ["verdict"])
+        self.assertEqual(sent["properties"]["verdict"]["enum"], ["PASS", "FAIL"])
 
     def test_malformed_response_is_an_error_not_a_retry(self):
         opener = self.opener(b"{}")

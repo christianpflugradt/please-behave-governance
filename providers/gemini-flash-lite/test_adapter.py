@@ -21,10 +21,15 @@ class GeminiTests(unittest.TestCase):
         sleep = patch.object(gemini.time, "sleep")
         self.sleep = sleep.start()
         self.addCleanup(sleep.stop)
-        self.verdict = {"reviews": [{"id": "quality", "status": "PASS", "reason": "Specific imperative summary",
-            "findings": [{"source": "commit-header", "path": None, "line": 1, "message": "The action and target are specific."}]}]}
-        self.request = {"protocol_version": 1, "prompt": "Captured header only", "response_schema": {"type": "object"},
+        self.verdict = {"verdict": "PASS", "reason": "Specific imperative summary",
+            "findings": [{"path": None, "line": 1, "message": "The action and target are specific."}]}
+        self.request = {"protocol_version": 3, "prompt": "Captured header only", "response_schema": {"type": "object"},
             "reviews": [{"id": "quality", "parameters": {"model": "gemini-3.5-flash-lite"}}]}
+
+    def expected(self, code=0, verdict=None):
+        document = dict(verdict or self.verdict)
+        document.pop("verdict")
+        return code, {"protocol_version": 3, **document}
 
     def envelope(self, verdict=None):
         return {"candidates": [{"finishReason": "STOP", "content": {"parts": [{"text": json.dumps(verdict or self.verdict)}]}}]}
@@ -41,25 +46,43 @@ class GeminiTests(unittest.TestCase):
         opener = self.response(json.dumps(self.envelope()).encode())
         with patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"), patch.object(gemini, "build_opener", return_value=opener):
             result = gemini.review(self.request)
-        self.assertEqual(result, {"protocol_version": 1, **self.verdict})
+        self.assertEqual(result, self.expected())
         sent = opener.open.call_args.args[0]
         self.assertEqual(sent.full_url, "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent")
         self.assertEqual(opener.open.call_args.kwargs, {"timeout": 20})
         payload = json.loads(sent.data)
         self.assertEqual(payload["contents"], [{"role": "user", "parts": [{"text": self.request["prompt"]}]}])
-        self.assertEqual(payload["generationConfig"]["responseJsonSchema"], self.request["response_schema"])
+        schema = payload["generationConfig"]["responseJsonSchema"]
+        self.assertEqual(schema, gemini.with_verdict(self.request["response_schema"]))
+        self.assertEqual(schema["properties"]["verdict"]["enum"], ["PASS", "FAIL"])
+        self.assertEqual(schema["required"], ["verdict"])
+        self.assertEqual(self.request["response_schema"], {"type": "object"})
         self.assertEqual(payload["generationConfig"]["responseMimeType"], "application/json")
         self.assertEqual(sent.get_header("X-goog-api-key"), "synthetic-key")
         self.assertNotIn("tools", payload)
         self.assertNotIn("synthetic-key", str(payload))
 
-    def test_pass_fail_and_error_are_preserved_for_local_validation(self):
-        for status in ("PASS", "FAIL", "ERROR"):
+    def test_pass_and_fail_map_to_the_exit_status_and_anything_else_is_an_error(self):
+        for status, code in (("PASS", 0), ("FAIL", 1)):
             verdict = deepcopy(self.verdict)
-            verdict["reviews"][0]["status"] = status
+            verdict["verdict"] = status
             opener = self.response(json.dumps(self.envelope(verdict)).encode())
             with patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"), patch.object(gemini, "build_opener", return_value=opener):
-                self.assertEqual(gemini.review(self.request), {"protocol_version": 1, **verdict})
+                self.assertEqual(gemini.review(self.request), self.expected(code, verdict))
+            stdout = io.StringIO()
+            with patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"), patch.object(gemini, "build_opener", return_value=opener), \
+                    patch.object(sys, "stdin", io.StringIO(json.dumps(self.request))), patch.object(sys, "stdout", stdout), \
+                    self.assertRaises(SystemExit) as exited:
+                gemini.main()
+            self.assertEqual(exited.exception.code, code)
+            self.assertEqual(json.loads(stdout.getvalue()), self.expected(code, verdict)[1])
+        for bad in ("ERROR", "pass", None):
+            verdict = deepcopy(self.verdict)
+            verdict["verdict"] = bad
+            opener = self.response(json.dumps(self.envelope(verdict)).encode())
+            with self.subTest(verdict=bad), patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"), \
+                    patch.object(gemini, "build_opener", return_value=opener), self.assertRaises(gemini.ProviderError):
+                gemini.review(self.request)
 
     def test_missing_credentials_http_errors_timeouts_and_redirects_never_pass(self):
         with patch.dict(os.environ, {}, clear=True), patch.object(gemini, "build_opener") as opener:
@@ -93,7 +116,8 @@ class GeminiTests(unittest.TestCase):
                           lambda e: e["candidates"][0]["content"].update(parts=[]),
                           lambda e: e["candidates"][0]["content"]["parts"][0].update(thought=True),
                           lambda e: e["candidates"][0]["content"]["parts"][0].update(text='```json\n{}\n```'),
-                          lambda e: e["candidates"][0]["content"]["parts"][0].update(text='{"reviews":[],"reviews":[]}')):
+                          lambda e: e["candidates"][0]["content"]["parts"][0].update(text='{"reason":"x","findings":[]}'),
+                          lambda e: e["candidates"][0]["content"]["parts"][0].update(text='{"verdict":"PASS","verdict":"FAIL"}')):
             envelope = self.envelope()
             transform(envelope)
             malformed.append(json.dumps(envelope).encode())
@@ -136,13 +160,13 @@ class GeminiTests(unittest.TestCase):
         opener.open.side_effect = [HTTPError("https://example.invalid", 503, "private", {}, io.BytesIO()),
                                    TimeoutError(), response]
         with patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"), patch.object(gemini, "build_opener", return_value=opener):
-            self.assertEqual(gemini.review(self.request), {"protocol_version": 1, **self.verdict})
+            self.assertEqual(gemini.review(self.request), self.expected())
         self.assertEqual(opener.open.call_count, 3)
         self.assertEqual([call.args for call in self.sleep.call_args_list], [(1,), (3,)])
 
     def test_invalid_requests_and_mixed_models_never_call_provider(self):
         invalid = []
-        for version in (True, 0, 2):
+        for version in (True, 0, 1, 2):
             request = deepcopy(self.request)
             request["protocol_version"] = version
             invalid.append(request)
