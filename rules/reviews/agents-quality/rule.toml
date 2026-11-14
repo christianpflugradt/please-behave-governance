@@ -6,7 +6,6 @@ blocking = false
 [review]
 provider = "gemini-flash"
 prompt = "prompt.md"
-include_diff = false
 
 [review.parameters]
 models = "gemini-3.8-flash,gemini-3.6-flash"
