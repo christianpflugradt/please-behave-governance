@@ -1,4 +1,4 @@
-"""Require the prepare task in the root mise.toml."""
+"""Require the setup task in the root mise.toml."""
 import json
 from pathlib import Path
 import stat
@@ -52,7 +52,7 @@ def read_file(selected, name):
 
 TARGET = "mise.toml"
 TOOLS = []
-TASKS = ["prepare"]
+TASKS = ["setup"]
 
 
 def runnable(task):

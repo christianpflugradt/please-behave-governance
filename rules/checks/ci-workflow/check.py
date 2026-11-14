@@ -181,7 +181,7 @@ def violations(document):
              lambda s: uses(s, "actions/checkout") and flag(with_value(s, "persist-credentials")) == "false"),
             ("jdx/mise-action without install_args",
              lambda s: uses(s, "jdx/mise-action") and with_value(s, "install_args") is None),
-            ("run: mise run prepare", lambda s: runs(s, "mise run prepare")),
+            ("run: mise run setup", lambda s: runs(s, "mise run setup")),
             ("please-behave/action with execution-point: check, install: false and sync: true",
              lambda s: please_behave(s, "check")
              and flag(with_value(s, "install")) == "false"

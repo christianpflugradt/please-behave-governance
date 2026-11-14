@@ -1,8 +1,0 @@
-id = "mise-prepare"
-name = "Mise prepare task"
-description = "mise.toml defines a prepare task"
-enabled = true
-
-[check]
-command = "python3 @rule/check.py @context"
-timeout_seconds = 30

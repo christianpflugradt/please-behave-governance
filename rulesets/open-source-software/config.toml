@@ -6,6 +6,6 @@ rules = [
   "rules/checks/workflow-syntax",
   "rules/checks/ci-workflow",
   "rules/checks/shell-scripts",
-  "rules/checks/mise-prepare",
+  "rules/checks/mise-setup",
   { id = "rules/checks/npm-audit", run_at = ["check"] },
 ]

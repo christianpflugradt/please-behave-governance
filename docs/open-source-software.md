@@ -1,7 +1,7 @@
 # Open-source software
 
 The `rulesets/open-source-software` set includes the blocking `license`,
-`workflow-syntax`, `ci-workflow`, `mise-prepare` and `shell-scripts` checks at `check` and `pre-push` and the `npm-audit` check at `check`.
+`workflow-syntax`, `ci-workflow`, `mise-setup` and `shell-scripts` checks at `check` and `pre-push` and the `npm-audit` check at `check`.
 The [quality assurance checks](#quality-assurance) follow the license section.
 The `license` check It compares the target file byte-for-byte with the regular,
 nonhidden files in `rules/checks/license/licenses/`. The included references are
@@ -44,17 +44,17 @@ ERROR (2).
   `package-lock.json` and fails on high or critical advisories. No lockfile means PASS. It runs
   only at `check` because it needs network access; registry or parsing problems return ERROR.
 
-- `mise-prepare` requires a `prepare` task in the root `mise.toml` (same rules as the
+- `mise-setup` requires a `setup` task in the root `mise.toml` (same rules as the
   [Mise baseline](repository-conventions.md#mise-baseline); it needs Python 3.11+). The task
   fetches the locked dependencies that offline Git hooks and CI need, such as `npm ci`, so that
-  `mise install` followed by `mise prepare` sets up a checkout. It is not specific to CI.
+  `mise install` followed by `mise setup` sets up a checkout. It is not specific to CI.
 
 - `ci-workflow` requires `.github/workflows/ci.yml` to follow the shared structure:
   - `name: CI`, triggered by `push` to `main` and by `pull_request`; further triggers are allowed.
   - Top-level `permissions` are exactly `contents: read`.
   - A job with the id `check` that sets `timeout-minutes` and contains, in this order, with other
     steps allowed in between: `actions/checkout` with `persist-credentials: false`,
-    `jdx/mise-action` without `install_args`, `run: mise run prepare`, and `please-behave/action`
+    `jdx/mise-action` without `install_args`, `run: mise run setup`, and `please-behave/action`
     with `execution-point: check`, `install: 'false'` and `sync: 'true'`.
   - Every job sets `timeout-minutes`, and every `uses` of a remote action or workflow is pinned to a full commit SHA.
 

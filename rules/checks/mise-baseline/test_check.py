@@ -28,7 +28,7 @@ run = "cargo fmt"
 [tasks.verify]
 run = "echo not implemented"
 
-[tasks."ci:prepare"]
+[tasks."ci:setup"]
 run = ["npm ci"]
 '''
 

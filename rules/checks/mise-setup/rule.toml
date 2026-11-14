@@ -1,0 +1,8 @@
+id = "mise-setup"
+name = "Mise setup task"
+description = "mise.toml defines a setup task"
+enabled = true
+
+[check]
+command = "python3 @rule/check.py @context"
+timeout_seconds = 30
