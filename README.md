@@ -8,7 +8,7 @@ that apply to a repository; each bundle adds to the others.
 | Ruleset path | Repository group | Execution points | Current rules |
 | --- | --- | --- | --- |
 | `rulesets/repository-conventions` | Every repository, public or private, software or otherwise | `pre-commit`, `check`; `commit-msg` for commit rules | `AGENTS.md` size limit, EditorConfig baseline, Conventional Commit syntax and advisory header wording, mise governor pin with `format` and `verify` tasks |
-| `rulesets/open-source-software` | Open-source software | `check`, `pre-push` | Approved license, `setup` task, CI workflow structure |
+| `rulesets/open-source-software` | Open-source software | `check`, `pre-push` | Approved license, `setup` task, CI and Statistics workflow structure |
 | `rulesets/releasable-open-source-software` | Releasable open-source software | `check`, `pre-push` | Semantic Release baseline, `release` task, Release workflow structure |
 | `rulesets/security` | Repositories adopting the security policy | `check`, `pre-push` | Sensitive filenames and secret scanning |
 

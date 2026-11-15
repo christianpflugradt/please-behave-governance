@@ -1,7 +1,7 @@
 # Open-source software
 
 The `rulesets/open-source-software` set includes the blocking `license`,
-`workflow-syntax`, `ci-workflow`, `mise-setup` and `shell-scripts` checks at `check` and `pre-push` and the `npm-audit` check at `check`.
+`workflow-syntax`, `ci-workflow`, `statistics-workflow`, `mise-setup` and `shell-scripts` checks at `check` and `pre-push` and the `npm-audit` check at `check`.
 The [quality assurance checks](#quality-assurance) follow the license section.
 The `license` check It compares the target file byte-for-byte with the regular,
 nonhidden files in `rules/checks/license/licenses/`. The included references are
@@ -62,7 +62,19 @@ ERROR (2).
   repository's own. The rule checks structure only; it does not verify that CI ran or passed.
   It needs `yq` (v4) on `PATH` and Python 3.9+, and a missing tool or invalid YAML returns ERROR.
 
-Requirements: Git, and Python 3.9+ for `shell-scripts`, `npm-audit` and `ci-workflow`, plus the tools named above.
+- `statistics-workflow` passes when `.github/workflows/statistics.yml` does not exist. Otherwise the workflow follows
+  the shared structure for sending statistics to a central repository:
+  - `name: Statistics`, triggered by `push` to `main` and by `workflow_dispatch`, never by `pull_request` or `pull_request_target`.
+  - Top-level `permissions` are exactly `contents: read`, and no job grants a write permission.
+  - At least one job `collect` or `collect-<name>` calculates the statistics. A job `publish` needs every such job, runs only on
+    `refs/heads/main` and is the only job that uses `secrets.STATISTICS_TOKEN`.
+  - Every `actions/checkout` sets `persist-credentials: false`, every job sets `timeout-minutes`, and every `uses` of a remote
+    action or workflow is pinned to a full commit SHA.
+
+  What the jobs calculate, the scripts they call, runners and the receiving repository are the repository's own. The rule
+  checks structure only. It needs `yq` (v4) on `PATH` and Python 3.9+, and a missing tool or invalid YAML returns ERROR.
+
+Requirements: Git, and Python 3.9+ for `shell-scripts`, `npm-audit`, `ci-workflow` and `statistics-workflow`, plus the tools named above.
 
 Pin a full commit hash for reproducible imports. Run `please sync` to resolve
 the import and install the managed pre-push hook. Exact matching enforces the

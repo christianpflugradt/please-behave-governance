@@ -1,0 +1,8 @@
+id = "statistics-workflow"
+name = "Statistics workflow"
+description = "The Statistics workflow, when present, follows the shared standard structure"
+enabled = true
+
+[check]
+command = "python3 @rule/check.py @context"
+timeout_seconds = 60
