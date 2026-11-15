@@ -3,6 +3,7 @@
 Built for the unstable free tier: up to five attempts that alternate between the
 configured models after short, slowly growing waits. There is no overall deadline.
 """
+
 import errno
 import http.client
 import json
@@ -75,18 +76,25 @@ def transient(error):
     reason = error.reason if isinstance(error, URLError) else error
     return not isinstance(reason, ssl.SSLError) and (
         isinstance(reason, (TimeoutError, ConnectionError, http.client.RemoteDisconnected))
-        or isinstance(reason, socket.gaierror) and reason.errno == socket.EAI_AGAIN
-        or getattr(reason, "errno", None) in (errno.ECONNRESET, errno.ECONNREFUSED, errno.ENETUNREACH, errno.EHOSTUNREACH))
+        or isinstance(reason, socket.gaierror)
+        and reason.errno == socket.EAI_AGAIN
+        or getattr(reason, "errno", None) in (errno.ECONNRESET, errno.ECONNREFUSED, errno.ENETUNREACH, errno.EHOSTUNREACH)
+    )
 
 
 def attempt(opener, key, model, prompt, schema):
-    payload = json.dumps({
-        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-        "generationConfig": {"responseMimeType": "application/json", "responseJsonSchema": schema, "maxOutputTokens": 8192},
-    }).encode()
+    payload = json.dumps(
+        {
+            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+            "generationConfig": {"responseMimeType": "application/json", "responseJsonSchema": schema, "maxOutputTokens": 8192},
+        }
+    ).encode()
     request = Request(
         f"https://generativelanguage.googleapis.com/v1beta/models/{quote(model, safe='')}:generateContent",
-        data=payload, headers={"Content-Type": "application/json", "x-goog-api-key": key}, method="POST")
+        data=payload,
+        headers={"Content-Type": "application/json", "x-goog-api-key": key},
+        method="POST",
+    )
     with opener.open(request, timeout=REQUEST_TIMEOUT) as response:
         if not 200 <= response.status < 300:
             raise ProviderError("Gemini returned an unsuccessful HTTP response.")
@@ -145,10 +153,16 @@ def run(prompt, models, schema):
 
 def with_verdict(schema):
     """The request's response schema plus the verdict, which the adapter turns into the exit status."""
-    verdict = {"type": "string", "enum": list(VERDICTS),
-               "description": "PASS when the criteria are met; FAIL when they are not or PASS cannot be established"}
-    return {**schema, "properties": {**schema.get("properties", {}), "verdict": verdict},
-            "required": [*schema.get("required", []), "verdict"]}
+    verdict = {
+        "type": "string",
+        "enum": list(VERDICTS),
+        "description": "PASS when the criteria are met; FAIL when they are not or PASS cannot be established",
+    }
+    return {
+        **schema,
+        "properties": {**schema.get("properties", {}), "verdict": verdict},
+        "required": [*schema.get("required", []), "verdict"],
+    }
 
 
 def review(request):

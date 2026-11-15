@@ -1,4 +1,5 @@
 """Semantic Release baseline: configuration shape, package pins, snapshots and technical failures."""
+
 import copy
 import importlib.util
 import json
@@ -9,10 +10,12 @@ import sys
 import tempfile
 import unittest
 
+
 def write_context(directory, point, **fields):
     path = Path(directory) / f"context-{point}.json"
     path.write_text(json.dumps(dict(execution_point=point, **fields)))
     return str(path)
+
 
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "rules/checks/semantic-release/check.py"
@@ -26,12 +29,25 @@ PLUGIN = "./.github/scripts/semantic-release-plugin.mjs"
 
 def baseline():
     return {
-        "branches": ["main"], "tagFormat": TAG,
+        "branches": ["main"],
+        "tagFormat": TAG,
         "plugins": [
-            [mod.ANALYZER, {"preset": "conventionalcommits", "parserOpts": copy.deepcopy(mod.PARSER_OPTS),
-                            "releaseRules": copy.deepcopy(mod.RELEASE_RULES)}],
-            [mod.NOTES, {"preset": "conventionalcommits", "parserOpts": copy.deepcopy(mod.PARSER_OPTS),
-                         "presetConfig": {"types": copy.deepcopy(mod.NOTE_TYPES)}}],
+            [
+                mod.ANALYZER,
+                {
+                    "preset": "conventionalcommits",
+                    "parserOpts": copy.deepcopy(mod.PARSER_OPTS),
+                    "releaseRules": copy.deepcopy(mod.RELEASE_RULES),
+                },
+            ],
+            [
+                mod.NOTES,
+                {
+                    "preset": "conventionalcommits",
+                    "parserOpts": copy.deepcopy(mod.PARSER_OPTS),
+                    "presetConfig": {"types": copy.deepcopy(mod.NOTE_TYPES)},
+                },
+            ],
             PLUGIN,
             [mod.GITHUB, {"successComment": False, "failComment": False, "releasedLabels": False}],
         ],
@@ -39,8 +55,7 @@ def baseline():
 
 
 def package():
-    return {"private": True, "engines": {"node": ">=24.10.0 <27"},
-            "devDependencies": {name: "1.2.3" for name in mod.DEPENDENCIES}}
+    return {"private": True, "engines": {"node": ">=24.10.0 <27"}, "devDependencies": {name: "1.2.3" for name in mod.DEPENDENCIES}}
 
 
 def lock(manifest=None):
@@ -110,13 +125,13 @@ class ConfigTests(unittest.TestCase):
             config = baseline()
             change(config)
             return config
+
         cases = {
             "extra option": edit(lambda c: c.update(dryRun=True)),
             "branches": edit(lambda c: c.update(branches=["main", "next"])),
             "repository url": edit(lambda c: c.update(repositoryUrl="https://example.org/x.git")),
             "added type": edit(lambda c: c["plugins"][0][1]["releaseRules"].append({"type": "major", "release": "major"})),
-            "changed level": edit(lambda c: c["plugins"][0][1]["releaseRules"].__setitem__(
-                5, {"type": "chore", "release": False})),
+            "changed level": edit(lambda c: c["plugins"][0][1]["releaseRules"].__setitem__(5, {"type": "chore", "release": False})),
             "removed type": edit(lambda c: c["plugins"][1][1]["presetConfig"]["types"].pop()),
             "renamed section": edit(lambda c: c["plugins"][1][1]["presetConfig"]["types"][3].update(section="Deps")),
             "parser": edit(lambda c: c["plugins"][0][1]["parserOpts"].update(revertPattern="/x/")),
@@ -150,6 +165,7 @@ class PackageTests(unittest.TestCase):
             manifest = package()
             change(manifest)
             return manifest
+
         cases = {
             "public": edit(lambda m: m.update(private=False)),
             "release key": edit(lambda m: m.update(release={})),
@@ -172,8 +188,12 @@ class CommandTests(unittest.TestCase):
         with tempfile.TemporaryDirectory(prefix="semantic-release-") as temporary:
             repo = Path(temporary) / "repo"
             repo.mkdir()
-            for args in (["init", "--quiet"], ["config", "user.name", "T"], ["config", "user.email", "t@example.invalid"],
-                         ["config", "commit.gpgsign", "false"]):
+            for args in (
+                ["init", "--quiet"],
+                ["config", "user.name", "T"],
+                ["config", "user.email", "t@example.invalid"],
+                ["config", "commit.gpgsign", "false"],
+            ):
                 subprocess.run(["git", *args], cwd=repo, check=True)
             for name, content in files.items():
                 (repo / name).parent.mkdir(parents=True, exist_ok=True)
@@ -183,12 +203,15 @@ class CommandTests(unittest.TestCase):
             for name, content in (worktree or {}).items():
                 (repo / name).write_text(content)
             context = write_context(temporary, point)
-            return subprocess.run([sys.executable, "-B", str(SCRIPT), context, tag], cwd=repo,
-                                  capture_output=True, text=True)
+            return subprocess.run([sys.executable, "-B", str(SCRIPT), context, tag], cwd=repo, capture_output=True, text=True)
 
     def files(self, **changes):
-        files = {"release.config.mjs": config_text(), "package.json": json.dumps(package()),
-                 "package-lock.json": json.dumps(lock()), PLUGIN[2:]: "export function verifyRelease() {}\n"}
+        files = {
+            "release.config.mjs": config_text(),
+            "package.json": json.dumps(package()),
+            "package-lock.json": json.dumps(lock()),
+            PLUGIN[2:]: "export function verifyRelease() {}\n",
+        }
         files.update(changes)
         return {name: content for name, content in files.items() if content is not None}
 

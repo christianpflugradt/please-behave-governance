@@ -1,4 +1,5 @@
 """Validate the commit-message check."""
+
 import json
 from pathlib import Path
 import os
@@ -6,10 +7,12 @@ import subprocess
 import sys
 import tempfile
 
+
 def write_context(directory, point, **fields):
     path = Path(directory) / f"context-{point}.json"
     path.write_text(json.dumps(dict(execution_point=point, **fields)))
     return str(path)
+
 
 ROOT = Path(__file__).resolve().parents[3]
 RULE = ROOT / "rules/checks/commit-message"
@@ -33,9 +36,21 @@ def script_tests(root):
 
     accepted = [f"{kind}: describe the change" for kind in (RULE / "commit-types.txt").read_text().splitlines()]
     accepted += ["feat(cli)!: change behavior", "fix!: change behavior", "docs: explain\n\nDetails."]
-    rejected = ["", "\nfeat: hidden", "feat:", "feat: ", "feat: \t", "feat:no space",
-                "unknown: change", "FEAT: change", "fix(other): change", "fix(): change",
-                "fix(cli: change", "fix(cli)): change", "fix(cli)!!: change"]
+    rejected = [
+        "",
+        "\nfeat: hidden",
+        "feat:",
+        "feat: ",
+        "feat: \t",
+        "feat:no space",
+        "unknown: change",
+        "FEAT: change",
+        "fix(other): change",
+        "fix(): change",
+        "fix(cli: change",
+        "fix(cli)): change",
+        "fix(cli)!!: change",
+    ]
     for code, messages in [(0, accepted), (1, rejected)]:
         for text in messages:
             message.write_text(text)

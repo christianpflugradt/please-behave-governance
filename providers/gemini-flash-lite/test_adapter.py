@@ -1,4 +1,5 @@
 """Offline Gemini transport tests and fixtures for published-governor integration."""
+
 from copy import deepcopy
 import importlib.util
 import io
@@ -21,10 +22,17 @@ class GeminiTests(unittest.TestCase):
         sleep = patch.object(gemini.time, "sleep")
         self.sleep = sleep.start()
         self.addCleanup(sleep.stop)
-        self.verdict = {"verdict": "PASS", "reason": "Specific imperative summary",
-            "findings": [{"path": None, "line": 1, "message": "The action and target are specific."}]}
-        self.request = {"protocol_version": 1, "prompt": "Captured header only", "response_schema": {"type": "object"},
-            "reviews": [{"id": "quality", "parameters": {"model": "gemini-3.5-flash-lite"}}]}
+        self.verdict = {
+            "verdict": "PASS",
+            "reason": "Specific imperative summary",
+            "findings": [{"path": None, "line": 1, "message": "The action and target are specific."}],
+        }
+        self.request = {
+            "protocol_version": 1,
+            "prompt": "Captured header only",
+            "response_schema": {"type": "object"},
+            "reviews": [{"id": "quality", "parameters": {"model": "gemini-3.5-flash-lite"}}],
+        }
 
     def expected(self, code=0, verdict=None):
         document = dict(verdict or self.verdict)
@@ -70,9 +78,13 @@ class GeminiTests(unittest.TestCase):
             with patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"), patch.object(gemini, "build_opener", return_value=opener):
                 self.assertEqual(gemini.review(self.request), self.expected(code, verdict))
             stdout = io.StringIO()
-            with patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"), patch.object(gemini, "build_opener", return_value=opener), \
-                    patch.object(sys, "stdin", io.StringIO(json.dumps(self.request))), patch.object(sys, "stdout", stdout), \
-                    self.assertRaises(SystemExit) as exited:
+            with (
+                patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"),
+                patch.object(gemini, "build_opener", return_value=opener),
+                patch.object(sys, "stdin", io.StringIO(json.dumps(self.request))),
+                patch.object(sys, "stdout", stdout),
+                self.assertRaises(SystemExit) as exited,
+            ):
                 gemini.main()
             self.assertEqual(exited.exception.code, code)
             self.assertEqual(json.loads(stdout.getvalue()), self.expected(code, verdict)[1])
@@ -80,8 +92,12 @@ class GeminiTests(unittest.TestCase):
             verdict = deepcopy(self.verdict)
             verdict["verdict"] = bad
             opener = self.response(json.dumps(self.envelope(verdict)).encode())
-            with self.subTest(verdict=bad), patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"), \
-                    patch.object(gemini, "build_opener", return_value=opener), self.assertRaises(gemini.ProviderError):
+            with (
+                self.subTest(verdict=bad),
+                patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"),
+                patch.object(gemini, "build_opener", return_value=opener),
+                self.assertRaises(gemini.ProviderError),
+            ):
                 gemini.review(self.request)
 
     def test_missing_credentials_http_errors_timeouts_and_redirects_never_pass(self):
@@ -89,8 +105,9 @@ class GeminiTests(unittest.TestCase):
             with self.assertRaisesRegex(gemini.ProviderError, "GEMINI_API_KEY"):
                 gemini.review(self.request)
             opener.assert_not_called()
-        for error in [HTTPError("https://example.invalid", code, "reason", {}, io.BytesIO(b"original-body"))
-                      for code in (302, 401, 429, 500)]:
+        for error in [
+            HTTPError("https://example.invalid", code, "reason", {}, io.BytesIO(b"original-body")) for code in (302, 401, 429, 500)
+        ]:
             opener = MagicMock()
             opener.open.side_effect = error
             with patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"), patch.object(gemini, "build_opener", return_value=opener):
@@ -109,21 +126,30 @@ class GeminiTests(unittest.TestCase):
         self.assertIsNone(gemini.NoRedirect().redirect_request(None, None, 302, "", {}, "https://example.invalid"))
 
     def test_malformed_blocked_truncated_duplicate_and_oversized_responses_are_errors(self):
-        malformed = [b"not JSON", b"x" * (gemini.LIMIT + 1),
-            b'{"candidates":[],"candidates":[]}', json.dumps({"promptFeedback": {"blockReason": "SAFETY"}}).encode()]
-        for transform in (lambda e: e["candidates"][0].update(finishReason="MAX_TOKENS"),
-                          lambda e: e["candidates"].append(e["candidates"][0]),
-                          lambda e: e["candidates"][0]["content"].update(parts=[]),
-                          lambda e: e["candidates"][0]["content"]["parts"][0].update(thought=True),
-                          lambda e: e["candidates"][0]["content"]["parts"][0].update(text='```json\n{}\n```'),
-                          lambda e: e["candidates"][0]["content"]["parts"][0].update(text='{"reason":"x","findings":[]}'),
-                          lambda e: e["candidates"][0]["content"]["parts"][0].update(text='{"verdict":"PASS","verdict":"FAIL"}')):
+        malformed = [
+            b"not JSON",
+            b"x" * (gemini.LIMIT + 1),
+            b'{"candidates":[],"candidates":[]}',
+            json.dumps({"promptFeedback": {"blockReason": "SAFETY"}}).encode(),
+        ]
+        for transform in (
+            lambda e: e["candidates"][0].update(finishReason="MAX_TOKENS"),
+            lambda e: e["candidates"].append(e["candidates"][0]),
+            lambda e: e["candidates"][0]["content"].update(parts=[]),
+            lambda e: e["candidates"][0]["content"]["parts"][0].update(thought=True),
+            lambda e: e["candidates"][0]["content"]["parts"][0].update(text="```json\n{}\n```"),
+            lambda e: e["candidates"][0]["content"]["parts"][0].update(text='{"reason":"x","findings":[]}'),
+            lambda e: e["candidates"][0]["content"]["parts"][0].update(text='{"verdict":"PASS","verdict":"FAIL"}'),
+        ):
             envelope = self.envelope()
             transform(envelope)
             malformed.append(json.dumps(envelope).encode())
         for raw in malformed:
-            with self.subTest(raw=raw[:60]), patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"), \
-                    patch.object(gemini, "build_opener", return_value=self.response(raw)):
+            with (
+                self.subTest(raw=raw[:60]),
+                patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"),
+                patch.object(gemini, "build_opener", return_value=self.response(raw)),
+            ):
                 with self.assertRaises(gemini.ProviderError):
                     gemini.review(self.request)
 
@@ -143,9 +169,13 @@ class GeminiTests(unittest.TestCase):
         opener = MagicMock()
         opener.open.side_effect = HTTPError("https://example.invalid", 400, "reason", {}, io.BytesIO(body.encode()))
         stderr = io.StringIO()
-        with patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"), patch.object(gemini, "build_opener", return_value=opener), \
-                patch.object(sys, "stdin", io.StringIO(json.dumps(self.request))), patch.object(sys, "stderr", stderr), \
-                self.assertRaises(SystemExit) as exited:
+        with (
+            patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"),
+            patch.object(gemini, "build_opener", return_value=opener),
+            patch.object(sys, "stdin", io.StringIO(json.dumps(self.request))),
+            patch.object(sys, "stderr", stderr),
+            self.assertRaises(SystemExit) as exited,
+        ):
             gemini.main()
         self.assertEqual(exited.exception.code, 2)
         self.assertEqual(stderr.getvalue(), f"Gemini returned HTTP 400.\n{body}\n")
@@ -157,8 +187,7 @@ class GeminiTests(unittest.TestCase):
         response.read.return_value = json.dumps(self.envelope()).encode()
         response.__enter__.return_value = response
         opener = MagicMock()
-        opener.open.side_effect = [HTTPError("https://example.invalid", 503, "private", {}, io.BytesIO()),
-                                   TimeoutError(), response]
+        opener.open.side_effect = [HTTPError("https://example.invalid", 503, "private", {}, io.BytesIO()), TimeoutError(), response]
         with patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"), patch.object(gemini, "build_opener", return_value=opener):
             self.assertEqual(gemini.review(self.request), self.expected())
         self.assertEqual(opener.open.call_count, 3)

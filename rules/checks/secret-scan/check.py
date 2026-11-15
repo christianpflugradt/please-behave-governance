@@ -1,4 +1,5 @@
 """Scan the working tree or HEAD contents with Gitleaks, without Git history."""
+
 import json
 import os
 from pathlib import Path
@@ -88,8 +89,7 @@ def findings_from(report, status):
         raise RuntimeError(f"gitleaks failed (exit {status}); check the tool and scanner configuration")
     findings = json.loads(report.read_text())
     if not isinstance(findings, list) or any(
-        not isinstance(item, dict) or not all(isinstance(item.get(key), str) and item[key]
-                                             for key in ("File", "RuleID"))
+        not isinstance(item, dict) or not all(isinstance(item.get(key), str) and item[key] for key in ("File", "RuleID"))
         for item in findings
     ):
         raise ValueError("invalid Gitleaks findings report")
@@ -118,12 +118,26 @@ def main():
             populate_commit(snapshot)
         # Use scanner configuration from the selected snapshot, including its
         # .gitleaksignore, rather than files from the caller's working tree.
-        env = {key: value for key, value in os.environ.items()
-               if key not in ("GITLEAKS_CONFIG", "GITLEAKS_CONFIG_TOML")}
+        env = {key: value for key, value in os.environ.items() if key not in ("GITLEAKS_CONFIG", "GITLEAKS_CONFIG_TOML")}
         result = subprocess.run(
-            [scanner, "dir", "--no-banner", "--redact", "--exit-code", str(LEAK_EXIT),
-             "--report-format", "json", "--report-path", str(report), "."],
-            cwd=snapshot, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            [
+                scanner,
+                "dir",
+                "--no-banner",
+                "--redact",
+                "--exit-code",
+                str(LEAK_EXIT),
+                "--report-format",
+                "json",
+                "--report-path",
+                str(report),
+                ".",
+            ],
+            cwd=snapshot,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
         findings = findings_from(report, result.returncode)
         for finding in findings:
             print(f"FAIL: {ascii(finding['File'])}: {ascii(finding['RuleID'])}")

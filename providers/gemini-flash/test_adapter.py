@@ -1,4 +1,5 @@
 """Offline tests for the model-alternating, retrying Gemini Flash adapter."""
+
 import importlib.util
 import io
 import json
@@ -32,8 +33,12 @@ class FlashTests(unittest.TestCase):
         start.start()
         key.start()
         self.addCleanup(patch.stopall)
-        self.request = {"protocol_version": 1, "prompt": "AGENTS.md text", "response_schema": {"type": "object"},
-                        "reviews": [{"id": "quality", "parameters": {"models": "model-a, model-b"}}]}
+        self.request = {
+            "protocol_version": 1,
+            "prompt": "AGENTS.md text",
+            "response_schema": {"type": "object"},
+            "reviews": [{"id": "quality", "parameters": {"models": "model-a, model-b"}}],
+        }
 
     def opener(self, *outcomes):
         opener = MagicMock()
@@ -50,6 +55,7 @@ class FlashTests(unittest.TestCase):
             response.status = 200
             response.read.return_value = outcome
             return response
+
         opener.open.side_effect = open_
         opener.calls = calls
         return opener
@@ -98,23 +104,33 @@ class FlashTests(unittest.TestCase):
         body = '{"error": {"code": 400, "message": "Original Google message", "status": "INVALID_ARGUMENT"}}'
         opener = self.opener(HTTPError("https://example.invalid", 400, "reason", {}, io.BytesIO(body.encode())))
         stderr = io.StringIO()
-        with patch.object(gemini, "build_opener", return_value=opener), patch.object(sys, "stdin", io.StringIO(json.dumps(self.request))), \
-                patch.object(sys, "stderr", stderr), self.assertRaises(SystemExit) as exited:
+        with (
+            patch.object(gemini, "build_opener", return_value=opener),
+            patch.object(sys, "stdin", io.StringIO(json.dumps(self.request))),
+            patch.object(sys, "stderr", stderr),
+            self.assertRaises(SystemExit) as exited,
+        ):
             gemini.main()
         self.assertEqual(exited.exception.code, 2)
         self.assertEqual(stderr.getvalue(), f"Gemini returned HTTP 400.\n{body}\n")
 
     def test_fail_exits_with_status_1_and_an_unknown_verdict_is_an_error(self):
-        fail = json.dumps({"candidates": [{"finishReason": "STOP", "content": {"parts": [
-            {"text": json.dumps({**VERDICT, "verdict": "FAIL"})}]}}]}).encode()
+        fail = json.dumps(
+            {"candidates": [{"finishReason": "STOP", "content": {"parts": [{"text": json.dumps({**VERDICT, "verdict": "FAIL"})}]}}]}
+        ).encode()
         self.assertEqual(self.review(self.opener(fail))[0], 1)
         stdout = io.StringIO()
-        with patch.object(gemini, "build_opener", return_value=self.opener(fail)), patch.object(sys, "stdin", io.StringIO(json.dumps(self.request))), \
-                patch.object(sys, "stdout", stdout), self.assertRaises(SystemExit) as exited:
+        with (
+            patch.object(gemini, "build_opener", return_value=self.opener(fail)),
+            patch.object(sys, "stdin", io.StringIO(json.dumps(self.request))),
+            patch.object(sys, "stdout", stdout),
+            self.assertRaises(SystemExit) as exited,
+        ):
             gemini.main()
         self.assertEqual((exited.exception.code, json.loads(stdout.getvalue())), (1, RESPONSE))
-        unknown = json.dumps({"candidates": [{"finishReason": "STOP", "content": {"parts": [
-            {"text": json.dumps({**VERDICT, "verdict": "ERROR"})}]}}]}).encode()
+        unknown = json.dumps(
+            {"candidates": [{"finishReason": "STOP", "content": {"parts": [{"text": json.dumps({**VERDICT, "verdict": "ERROR"})}]}}]}
+        ).encode()
         with self.assertRaises(gemini.ProviderError):
             self.review(self.opener(unknown))
 

@@ -1,4 +1,5 @@
 """Run ShellCheck on all tracked *.sh files except zsh scripts; no scripts means PASS."""
+
 import os
 import subprocess
 import sys

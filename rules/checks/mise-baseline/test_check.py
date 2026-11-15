@@ -1,4 +1,5 @@
 """Tool and task detection, snapshots and technical failures of the mise baseline check."""
+
 import json
 import importlib.util
 from pathlib import Path
@@ -8,10 +9,12 @@ import tempfile
 import tomllib
 import unittest
 
+
 def write_context(directory, point, **fields):
     path = Path(directory) / f"context-{point}.json"
     path.write_text(json.dumps(dict(execution_point=point, **fields)))
     return str(path)
+
 
 SCRIPT = Path(__file__).resolve().parent / "check.py"
 spec = importlib.util.spec_from_file_location("mise_baseline", SCRIPT)
@@ -54,7 +57,7 @@ class DetectionTests(unittest.TestCase):
             VALID.replace('run = "cargo fmt"', 'run = ""'): 1,
             VALID.replace('run = "cargo fmt"', "description = 'x'"): 1,
             VALID.replace('run = "cargo fmt"', "run = []"): 1,
-            '[tools]\n[tasks]\n': 3,
+            "[tools]\n[tasks]\n": 3,
         }
         for text, count in cases.items():
             with self.subTest(text=text):
@@ -65,8 +68,12 @@ class CommandTests(unittest.TestCase):
     def run_check(self, point, content, commit=True):
         with tempfile.TemporaryDirectory(prefix="mise-tasks-") as temporary:
             repo = Path(temporary)
-            for args in (["init", "--quiet"], ["config", "user.name", "T"], ["config", "user.email", "t@example.invalid"],
-                         ["config", "commit.gpgsign", "false"]):
+            for args in (
+                ["init", "--quiet"],
+                ["config", "user.name", "T"],
+                ["config", "user.email", "t@example.invalid"],
+                ["config", "commit.gpgsign", "false"],
+            ):
                 subprocess.run(["git", *args], cwd=repo, check=True)
             if content is not None:
                 (repo / "mise.toml").write_text(content)
@@ -74,8 +81,7 @@ class CommandTests(unittest.TestCase):
             if commit:
                 subprocess.run(["git", "commit", "--quiet", "--allow-empty", "-m", "test: record"], cwd=repo, check=True)
             context = write_context(temporary, point)
-            return subprocess.run([sys.executable, "-B", str(SCRIPT), context], cwd=repo,
-                                  capture_output=True, text=True)
+            return subprocess.run([sys.executable, "-B", str(SCRIPT), context], cwd=repo, capture_output=True, text=True)
 
     def test_verdicts(self):
         for point in ("pre-commit", "check", "pre-push"):
@@ -91,8 +97,12 @@ class CommandTests(unittest.TestCase):
     def test_pre_push_reads_head_and_check_reads_working_tree(self):
         with tempfile.TemporaryDirectory(prefix="mise-tasks-") as temporary:
             repo = Path(temporary)
-            for args in (["init", "--quiet"], ["config", "user.name", "T"], ["config", "user.email", "t@example.invalid"],
-                         ["config", "commit.gpgsign", "false"]):
+            for args in (
+                ["init", "--quiet"],
+                ["config", "user.name", "T"],
+                ["config", "user.email", "t@example.invalid"],
+                ["config", "commit.gpgsign", "false"],
+            ):
                 subprocess.run(["git", *args], cwd=repo, check=True)
             (repo / "mise.toml").write_text(VALID)
             subprocess.run(["git", "add", "."], cwd=repo, check=True)
@@ -101,8 +111,9 @@ class CommandTests(unittest.TestCase):
             results = {}
             for point in ("check", "pre-push"):
                 context = write_context(temporary, point)
-                results[point] = subprocess.run([sys.executable, "-B", str(SCRIPT), context],
-                                                cwd=repo, capture_output=True, text=True).returncode
+                results[point] = subprocess.run(
+                    [sys.executable, "-B", str(SCRIPT), context], cwd=repo, capture_output=True, text=True
+                ).returncode
             self.assertEqual(results, {"check": 1, "pre-push": 0})
 
     def test_technical_failures_are_errors(self):

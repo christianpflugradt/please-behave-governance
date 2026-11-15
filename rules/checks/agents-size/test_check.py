@@ -1,4 +1,5 @@
 """Approximate token counting, limits, snapshots and technical failures."""
+
 import json
 import importlib.util
 import os
@@ -8,10 +9,12 @@ import sys
 import tempfile
 import unittest
 
+
 def write_context(directory, point, **fields):
     path = Path(directory) / f"context-{point}.json"
     path.write_text(json.dumps(dict(execution_point=point, **fields)))
     return str(path)
+
 
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "rules/checks/agents-size/check.py"
@@ -47,9 +50,14 @@ class RuleTests(unittest.TestCase):
         self.commit()
 
     def git(self, *args):
-        return subprocess.run(["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid",
-                               "-c", "commit.gpgsign=false", *args], cwd=self.repo,
-                              env=self.env, capture_output=True, text=True, check=True)
+        return subprocess.run(
+            ["git", "-c", "user.name=Test", "-c", "user.email=test@example.invalid", "-c", "commit.gpgsign=false", *args],
+            cwd=self.repo,
+            env=self.env,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
 
     def commit(self):
         self.git("add", ".")
@@ -59,8 +67,7 @@ class RuleTests(unittest.TestCase):
         arguments = [write_context(self.temp.name, point)]
         if limit is not None:
             arguments.append(limit)
-        result = subprocess.run([sys.executable, str(SCRIPT), *arguments], cwd=self.repo, env=self.env,
-                                capture_output=True, text=True)
+        result = subprocess.run([sys.executable, str(SCRIPT), *arguments], cwd=self.repo, env=self.env, capture_output=True, text=True)
         self.assertEqual(result.returncode, expected, result.stdout + result.stderr)
         return result
 

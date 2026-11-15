@@ -1,4 +1,5 @@
 """Require a root .editorconfig that states the shared baseline."""
+
 import json
 import stat
 import subprocess
@@ -29,8 +30,7 @@ def select_snapshot(point):
 def read_file(selected, name):
     """Return the bytes of a root file in the selected snapshot, or None when it is absent."""
     if selected == "head":
-        listed = subprocess.run(["git", "ls-tree", "-z", "HEAD", "--", f":(literal){name}"],
-                                capture_output=True, check=False)
+        listed = subprocess.run(["git", "ls-tree", "-z", "HEAD", "--", f":(literal){name}"], capture_output=True, check=False)
         if listed.returncode != 0:
             raise RuntimeError(listed.stderr.decode(errors="replace").strip())
         if not listed.stdout:
@@ -50,12 +50,19 @@ def read_file(selected, name):
         raise RuntimeError(f"{name} is not a regular file")
     return path.read_bytes()
 
+
 TARGET = ".editorconfig"
 # Section glob -> required properties. Other sections and properties are the repository's own.
 BASELINE = {
     None: {"root": "true"},
-    "*": {"charset": "utf-8", "end_of_line": "lf", "insert_final_newline": "true",
-          "trim_trailing_whitespace": "true", "indent_style": "space", "indent_size": "2"},
+    "*": {
+        "charset": "utf-8",
+        "end_of_line": "lf",
+        "insert_final_newline": "true",
+        "trim_trailing_whitespace": "true",
+        "indent_style": "space",
+        "indent_size": "2",
+    },
     "*.md": {"trim_trailing_whitespace": "false"},
     "Makefile": {"indent_style": "tab"},
 }

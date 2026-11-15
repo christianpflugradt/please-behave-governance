@@ -1,4 +1,5 @@
 """Require the shared structure of ci.yml; runners, matrices, timeouts' values and extra steps stay with consumers."""
+
 import json
 import re
 import stat
@@ -29,8 +30,7 @@ def select_snapshot(point):
 def read_file(selected, name):
     """Return the bytes of a root file in the selected snapshot, or None when it is absent."""
     if selected == "head":
-        listed = subprocess.run(["git", "ls-tree", "-z", "HEAD", "--", f":(literal){name}"],
-                                capture_output=True, check=False)
+        listed = subprocess.run(["git", "ls-tree", "-z", "HEAD", "--", f":(literal){name}"], capture_output=True, check=False)
         if listed.returncode != 0:
             raise RuntimeError(listed.stderr.decode(errors="replace").strip())
         if not listed.stdout:
@@ -49,6 +49,7 @@ def read_file(selected, name):
     if not stat.S_ISREG(mode):
         raise RuntimeError(f"{name} is not a regular file")
     return path.read_bytes()
+
 
 PINNED = re.compile(r"^[^@\s]+@[0-9a-f]{40}$")
 
@@ -176,17 +177,24 @@ def violations(document):
     if job is None:
         found.append("job check is missing")
     else:
-        found += expect_steps("check", job, [
-            ("actions/checkout with persist-credentials: false",
-             lambda s: uses(s, "actions/checkout") and flag(with_value(s, "persist-credentials")) == "false"),
-            ("jdx/mise-action without install_args",
-             lambda s: uses(s, "jdx/mise-action") and with_value(s, "install_args") is None),
-            ("run: mise run setup", lambda s: runs(s, "mise run setup")),
-            ("please-behave/action with execution-point: check, install: false and sync: true",
-             lambda s: please_behave(s, "check")
-             and flag(with_value(s, "install")) == "false"
-             and flag(with_value(s, "sync")) == "true"),
-        ])
+        found += expect_steps(
+            "check",
+            job,
+            [
+                (
+                    "actions/checkout with persist-credentials: false",
+                    lambda s: uses(s, "actions/checkout") and flag(with_value(s, "persist-credentials")) == "false",
+                ),
+                ("jdx/mise-action without install_args", lambda s: uses(s, "jdx/mise-action") and with_value(s, "install_args") is None),
+                ("run: mise run setup", lambda s: runs(s, "mise run setup")),
+                (
+                    "please-behave/action with execution-point: check, install: false and sync: true",
+                    lambda s: (
+                        please_behave(s, "check") and flag(with_value(s, "install")) == "false" and flag(with_value(s, "sync")) == "true"
+                    ),
+                ),
+            ],
+        )
     return found + common(document)
 
 

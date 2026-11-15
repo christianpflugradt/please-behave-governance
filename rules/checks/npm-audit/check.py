@@ -1,4 +1,5 @@
 """Audit each tracked package-lock.json for high and critical advisories; no lockfile means PASS."""
+
 import json
 import os
 import subprocess
@@ -8,8 +9,7 @@ LEVELS = ("high", "critical")
 
 
 def audit(directory):
-    result = subprocess.run(["npm", "audit", "--audit-level=high", "--json"], cwd=directory,
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = subprocess.run(["npm", "audit", "--audit-level=high", "--json"], cwd=directory, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     try:
         report = json.loads(result.stdout)
     except ValueError:
@@ -24,8 +24,11 @@ def main():
     listed = subprocess.run(["git", "ls-files", "-z"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if listed.returncode:
         raise RuntimeError("git ls-files failed")
-    locks = sorted(path for path in map(os.fsdecode, listed.stdout.split(b"\0"))
-                   if os.path.basename(path) == "package-lock.json" and os.path.isfile(path))
+    locks = sorted(
+        path
+        for path in map(os.fsdecode, listed.stdout.split(b"\0"))
+        if os.path.basename(path) == "package-lock.json" and os.path.isfile(path)
+    )
     if not locks:
         print("PASS: no package-lock.json to audit")
         return 0

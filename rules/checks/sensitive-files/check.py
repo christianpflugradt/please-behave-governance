@@ -1,4 +1,5 @@
 """Reject sensitive filenames without reading their contents."""
+
 import json
 import os
 from pathlib import PurePosixPath
@@ -28,8 +29,7 @@ def select_snapshot(point):
 
 def prohibited(path):
     name = PurePosixPath(path).name
-    environment = (name == ".env" or name.startswith(".env.")) and name not in (
-        ".env.example", ".env.sample", ".env.template")
+    environment = (name == ".env" or name.startswith(".env.")) and name not in (".env.example", ".env.sample", ".env.template")
     return environment or name.endswith(".tfstate") or ".tfstate." in name
 
 

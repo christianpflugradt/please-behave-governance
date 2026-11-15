@@ -1,4 +1,5 @@
 """Require the shared structure of release.yml; scripts, artifacts and candidate steps stay with consumers."""
+
 import json
 import re
 import stat
@@ -29,8 +30,7 @@ def select_snapshot(point):
 def read_file(selected, name):
     """Return the bytes of a root file in the selected snapshot, or None when it is absent."""
     if selected == "head":
-        listed = subprocess.run(["git", "ls-tree", "-z", "HEAD", "--", f":(literal){name}"],
-                                capture_output=True, check=False)
+        listed = subprocess.run(["git", "ls-tree", "-z", "HEAD", "--", f":(literal){name}"], capture_output=True, check=False)
         if listed.returncode != 0:
             raise RuntimeError(listed.stderr.decode(errors="replace").strip())
         if not listed.stdout:
@@ -49,6 +49,7 @@ def read_file(selected, name):
     if not stat.S_ISREG(mode):
         raise RuntimeError(f"{name} is not a regular file")
     return path.read_bytes()
+
 
 PINNED = re.compile(r"^[^@\s]+@[0-9a-f]{40}$")
 
@@ -153,6 +154,7 @@ def run(argv, name, violations):
     if not found:
         print(f"PASS: {target} follows the shared structure ({point})")
     return 1 if found else 0
+
 
 REQUIRED_JOBS = ("plan", "release-readiness", "release-candidate", "publish")
 REQUIRED_OUTPUTS = ("release", "version", "source_sha")

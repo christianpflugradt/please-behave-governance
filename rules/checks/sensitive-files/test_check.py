@@ -1,4 +1,5 @@
 """Filename policy boundaries."""
+
 import importlib.util
 from pathlib import Path
 import unittest
@@ -11,14 +12,30 @@ spec.loader.exec_module(mod)
 
 class SensitiveFilesTests(unittest.TestCase):
     def test_blocked(self):
-        for name in (".env", ".env.test", "nested/.env.production", "main.tfstate",
-                     "main.tfstate.backup", "nested/a.tfstate.copy", ".env.example.local"):
+        for name in (
+            ".env",
+            ".env.test",
+            "nested/.env.production",
+            "main.tfstate",
+            "main.tfstate.backup",
+            "nested/a.tfstate.copy",
+            ".env.example.local",
+        ):
             with self.subTest(name=name):
                 self.assertTrue(mod.prohibited(name))
 
     def test_allowed(self):
-        for name in (".env.example", "nested/.env.sample", ".env.template", ".environment.txt",
-                     "main.tfvars", ".npmrc", "server.pem", "server.key", "main.tfstateful"):
+        for name in (
+            ".env.example",
+            "nested/.env.sample",
+            ".env.template",
+            ".environment.txt",
+            "main.tfvars",
+            ".npmrc",
+            "server.pem",
+            "server.key",
+            "main.tfstateful",
+        ):
             with self.subTest(name=name):
                 self.assertFalse(mod.prohibited(name))
 

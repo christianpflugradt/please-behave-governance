@@ -1,4 +1,5 @@
 """Baseline detection, snapshots and technical failures of the editorconfig check."""
+
 import json
 import importlib.util
 from pathlib import Path
@@ -7,10 +8,12 @@ import sys
 import tempfile
 import unittest
 
+
 def write_context(directory, point, **fields):
     path = Path(directory) / f"context-{point}.json"
     path.write_text(json.dumps(dict(execution_point=point, **fields)))
     return str(path)
+
 
 ROOT = Path(__file__).resolve().parents[3]
 SCRIPT = ROOT / "rules/checks/editorconfig/check.py"
@@ -28,9 +31,11 @@ class BaselineTests(unittest.TestCase):
         self.assertEqual(mod.violations(extended), [])
 
     def test_case_comments_and_spacing_are_tolerated(self):
-        text = "; c\nROOT=True\n[*]\nCharset = UTF-8\nend_of_line=lf\ninsert_final_newline = true\n" \
-               "trim_trailing_whitespace = true\nindent_style = space\nindent_size = 2\n" \
-               "[*.md]\ntrim_trailing_whitespace = false\n[Makefile]\nindent_style = tab\n"
+        text = (
+            "; c\nROOT=True\n[*]\nCharset = UTF-8\nend_of_line=lf\ninsert_final_newline = true\n"
+            "trim_trailing_whitespace = true\nindent_style = space\nindent_size = 2\n"
+            "[*.md]\ntrim_trailing_whitespace = false\n[Makefile]\nindent_style = tab\n"
+        )
         self.assertEqual(mod.violations(text), [])
 
     def test_deviations_are_reported(self):
@@ -51,8 +56,12 @@ class CommandTests(unittest.TestCase):
     def run_check(self, point, content):
         with tempfile.TemporaryDirectory(prefix="editorconfig-") as temporary:
             repo = Path(temporary)
-            for args in (["init", "--quiet"], ["config", "user.name", "T"], ["config", "user.email", "t@example.invalid"],
-                         ["config", "commit.gpgsign", "false"]):
+            for args in (
+                ["init", "--quiet"],
+                ["config", "user.name", "T"],
+                ["config", "user.email", "t@example.invalid"],
+                ["config", "commit.gpgsign", "false"],
+            ):
                 subprocess.run(["git", *args], cwd=repo, check=True)
             if content is not None:
                 (repo / ".editorconfig").write_text(content)

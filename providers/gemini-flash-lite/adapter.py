@@ -1,4 +1,5 @@
 """Translate the Please Behave adapter protocol to Gemini structured JSON."""
+
 import errno
 import http.client
 import json
@@ -85,13 +86,18 @@ def run(prompt, model, schema):
     key = os.environ.get("GEMINI_API_KEY")
     if not key:
         raise ProviderError("Gemini requires GEMINI_API_KEY.")
-    payload = json.dumps({
-        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-        "generationConfig": {"responseMimeType": "application/json", "responseJsonSchema": schema, "maxOutputTokens": 2048},
-    }).encode()
+    payload = json.dumps(
+        {
+            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+            "generationConfig": {"responseMimeType": "application/json", "responseJsonSchema": schema, "maxOutputTokens": 2048},
+        }
+    ).encode()
     request = Request(
         f"https://generativelanguage.googleapis.com/v1beta/models/{quote(model, safe='')}:generateContent",
-        data=payload, headers={"Content-Type": "application/json", "x-goog-api-key": key}, method="POST")
+        data=payload,
+        headers={"Content-Type": "application/json", "x-goog-api-key": key},
+        method="POST",
+    )
     opener = build_opener(NoRedirect())
     for attempt in range(3):
         detail = ""
@@ -115,7 +121,8 @@ def run(prompt, model, schema):
             reason = error.reason if isinstance(error, URLError) else error
             transient = not isinstance(reason, ssl.SSLError) and (
                 isinstance(reason, (TimeoutError, ConnectionError, http.client.RemoteDisconnected))
-                or isinstance(reason, socket.gaierror) and reason.errno == socket.EAI_AGAIN
+                or isinstance(reason, socket.gaierror)
+                and reason.errno == socket.EAI_AGAIN
                 or getattr(reason, "errno", None) in (errno.ECONNRESET, errno.ECONNREFUSED, errno.ENETUNREACH, errno.EHOSTUNREACH)
             )
             if not transient:
@@ -131,10 +138,16 @@ def run(prompt, model, schema):
 
 def with_verdict(schema):
     """The request's response schema plus the verdict, which the adapter turns into the exit status."""
-    verdict = {"type": "string", "enum": list(VERDICTS),
-               "description": "PASS when the criteria are met; FAIL when they are not or PASS cannot be established"}
-    return {**schema, "properties": {**schema.get("properties", {}), "verdict": verdict},
-            "required": [*schema.get("required", []), "verdict"]}
+    verdict = {
+        "type": "string",
+        "enum": list(VERDICTS),
+        "description": "PASS when the criteria are met; FAIL when they are not or PASS cannot be established",
+    }
+    return {
+        **schema,
+        "properties": {**schema.get("properties", {}), "verdict": verdict},
+        "required": [*schema.get("required", []), "verdict"],
+    }
 
 
 def review(request):

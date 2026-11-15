@@ -1,4 +1,5 @@
 """Require the license file to match one of the approved reference licenses in the rule's licenses directory."""
+
 import json
 from pathlib import Path
 import stat
@@ -44,20 +45,19 @@ def main():
         refs = Path(licenses).resolve()
         if not refs.is_dir():
             return error("rule-local licenses directory is missing")
-        candidates = sorted(p for p in refs.iterdir()
-                            if not p.name.startswith(".") and stat.S_ISREG(p.lstat().st_mode))
+        candidates = sorted(p for p in refs.iterdir() if not p.name.startswith(".") and stat.S_ISREG(p.lstat().st_mode))
         if not candidates:
             return error("no reference licenses found")
         if selected == "head":
-            result = subprocess.run(["git", "ls-tree", "-z", "HEAD", "--", f":(literal){relative.as_posix()}"],
-                                    cwd=root, capture_output=True, check=False)
+            result = subprocess.run(
+                ["git", "ls-tree", "-z", "HEAD", "--", f":(literal){relative.as_posix()}"], cwd=root, capture_output=True, check=False
+            )
             if result.returncode != 0:
                 return error(result.stderr.decode(errors="replace").strip())
             if not result.stdout or result.stdout.split(b" ", 1)[0] not in (b"100644", b"100755"):
                 print(f"FAIL: {target} is missing from HEAD or not a regular file")
                 return 1
-            result = subprocess.run(["git", "show", f"HEAD:{relative.as_posix()}"],
-                                    cwd=root, capture_output=True, check=False)
+            result = subprocess.run(["git", "show", f"HEAD:{relative.as_posix()}"], cwd=root, capture_output=True, check=False)
             if result.returncode != 0:
                 return error(result.stderr.decode(errors="replace").strip())
             content = result.stdout

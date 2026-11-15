@@ -1,4 +1,5 @@
 """Require the shared Semantic Release baseline; project-specific release mechanics stay with consumers."""
+
 import stat
 import json
 from pathlib import Path, PurePosixPath
@@ -30,8 +31,7 @@ def select_snapshot(point):
 def read_file(selected, name):
     """Return the bytes of a root file in the selected snapshot, or None when it is absent."""
     if selected == "head":
-        listed = subprocess.run(["git", "ls-tree", "-z", "HEAD", "--", f":(literal){name}"],
-                                capture_output=True, check=False)
+        listed = subprocess.run(["git", "ls-tree", "-z", "HEAD", "--", f":(literal){name}"], capture_output=True, check=False)
         if listed.returncode != 0:
             raise RuntimeError(listed.stderr.decode(errors="replace").strip())
         if not listed.stdout:
@@ -51,12 +51,16 @@ def read_file(selected, name):
         raise RuntimeError(f"{name} is not a regular file")
     return path.read_bytes()
 
+
 CONFIG = "release.config.mjs"
 # Other places Semantic Release reads its configuration from; a second source makes the result ambiguous.
-OTHER_CONFIGS = [f".releaserc{suffix}" for suffix in ("", ".json", ".yaml", ".yml", ".js", ".cjs", ".mjs", ".ts")] + \
-                [f"release.config{suffix}" for suffix in (".js", ".cjs", ".ts")]
-PARSER_OPTS = {"revertPattern": r'/^revert(?:\([^)]+\))?!?:\s"?([\s\S]+?)"?\s*This reverts commit (\w*)\./i',
-               "revertCorrespondence": ["header", "hash"]}
+OTHER_CONFIGS = [f".releaserc{suffix}" for suffix in ("", ".json", ".yaml", ".yml", ".js", ".cjs", ".mjs", ".ts")] + [
+    f"release.config{suffix}" for suffix in (".js", ".cjs", ".ts")
+]
+PARSER_OPTS = {
+    "revertPattern": r'/^revert(?:\([^)]+\))?!?:\s"?([\s\S]+?)"?\s*This reverts commit (\w*)\./i',
+    "revertCorrespondence": ["header", "hash"],
+}
 ANALYZER = "@semantic-release/commit-analyzer"
 NOTES = "@semantic-release/release-notes-generator"
 GITHUB = "@semantic-release/github"
@@ -123,8 +127,7 @@ def config_violations(config, tag_format, exists):
         found.append('branches must be ["main"]')
     if config.get("tagFormat") != tag_format:
         found.append(f"tagFormat must be {tag_format}")
-    if "repositoryUrl" in config and not (isinstance(config["repositoryUrl"], str)
-                                          and REPOSITORY_URL.fullmatch(config["repositoryUrl"])):
+    if "repositoryUrl" in config and not (isinstance(config["repositoryUrl"], str) and REPOSITORY_URL.fullmatch(config["repositoryUrl"])):
         found.append("repositoryUrl must be a GitHub .git URL of the owning account")
     entries = config.get("plugins")
     if not isinstance(entries, list) or len(entries) < 3:
@@ -213,8 +216,14 @@ def evaluate(content):
     with tempfile.TemporaryDirectory(prefix="semantic-release-") as temporary:
         target = Path(temporary) / CONFIG
         target.write_bytes(content)
-        result = subprocess.run(["node", str(Path(__file__).with_name("evaluate.mjs")), str(target)],
-                                cwd=temporary, capture_output=True, text=True, timeout=30, check=False)
+        result = subprocess.run(
+            ["node", str(Path(__file__).with_name("evaluate.mjs")), str(target)],
+            cwd=temporary,
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
+        )
     if result.returncode == 1:
         return None, result.stderr.strip().splitlines()[:1] or ["unknown error"]
     if result.returncode != 0:

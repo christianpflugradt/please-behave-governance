@@ -1,4 +1,5 @@
 """Limit the approximate token count of the root AGENTS.md."""
+
 import json
 import stat
 import subprocess
@@ -30,8 +31,7 @@ def select_snapshot(point):
 def read_file(selected, name):
     """Return the bytes of a root file in the selected snapshot, or None when it is absent."""
     if selected == "head":
-        listed = subprocess.run(["git", "ls-tree", "-z", "HEAD", "--", f":(literal){name}"],
-                                capture_output=True, check=False)
+        listed = subprocess.run(["git", "ls-tree", "-z", "HEAD", "--", f":(literal){name}"], capture_output=True, check=False)
         if listed.returncode != 0:
             raise RuntimeError(listed.stderr.decode(errors="replace").strip())
         if not listed.stdout:
@@ -50,6 +50,7 @@ def read_file(selected, name):
     if not stat.S_ISREG(mode):
         raise RuntimeError(f"{name} is not a regular file")
     return path.read_bytes()
+
 
 TARGET = "AGENTS.md"
 

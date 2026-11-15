@@ -4,6 +4,7 @@ Exit codes: 0 = PASS, 1 = FAIL, 2 = ERROR.
 Invoked at commit-msg with the run context file and the scopes file as arguments.
 Only the header is validated; body and footer are not inspected.
 """
+
 import json
 from pathlib import Path
 import sys
