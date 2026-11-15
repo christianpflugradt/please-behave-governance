@@ -23,13 +23,13 @@ class GeminiTests(unittest.TestCase):
         self.addCleanup(sleep.stop)
         self.verdict = {"verdict": "PASS", "reason": "Specific imperative summary",
             "findings": [{"path": None, "line": 1, "message": "The action and target are specific."}]}
-        self.request = {"protocol_version": 3, "prompt": "Captured header only", "response_schema": {"type": "object"},
+        self.request = {"protocol_version": 1, "prompt": "Captured header only", "response_schema": {"type": "object"},
             "reviews": [{"id": "quality", "parameters": {"model": "gemini-3.5-flash-lite"}}]}
 
     def expected(self, code=0, verdict=None):
         document = dict(verdict or self.verdict)
         document.pop("verdict")
-        return code, {"protocol_version": 3, **document}
+        return code, {"protocol_version": 1, **document}
 
     def envelope(self, verdict=None):
         return {"candidates": [{"finishReason": "STOP", "content": {"parts": [{"text": json.dumps(verdict or self.verdict)}]}}]}
@@ -166,7 +166,7 @@ class GeminiTests(unittest.TestCase):
 
     def test_invalid_requests_and_mixed_models_never_call_provider(self):
         invalid = []
-        for version in (True, 0, 1, 2):
+        for version in (True, 0, 2, 3):
             request = deepcopy(self.request)
             request["protocol_version"] = version
             invalid.append(request)

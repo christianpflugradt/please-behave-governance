@@ -15,7 +15,7 @@ gemini = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(gemini)
 
 VERDICT = {"verdict": "PASS", "reason": "Clear guidance", "findings": []}
-RESPONSE = {"protocol_version": 3, "reason": "Clear guidance", "findings": []}
+RESPONSE = {"protocol_version": 1, "reason": "Clear guidance", "findings": []}
 SUCCESS = json.dumps({"candidates": [{"finishReason": "STOP", "content": {"parts": [{"text": json.dumps(VERDICT)}]}}]}).encode()
 
 
@@ -32,7 +32,7 @@ class FlashTests(unittest.TestCase):
         start.start()
         key.start()
         self.addCleanup(patch.stopall)
-        self.request = {"protocol_version": 3, "prompt": "AGENTS.md text", "response_schema": {"type": "object"},
+        self.request = {"protocol_version": 1, "prompt": "AGENTS.md text", "response_schema": {"type": "object"},
                         "reviews": [{"id": "quality", "parameters": {"models": "model-a, model-b"}}]}
 
     def opener(self, *outcomes):

@@ -1,4 +1,4 @@
-"""Translate the Please Behave v3 adapter protocol to Gemini structured JSON."""
+"""Translate the Please Behave adapter protocol to Gemini structured JSON."""
 import errno
 import http.client
 import json
@@ -138,8 +138,8 @@ def with_verdict(schema):
 
 
 def review(request):
-    if not isinstance(request, dict) or type(request.get("protocol_version")) is not int or request["protocol_version"] != 3:
-        raise ProviderError("Unsupported adapter protocol; expected version 3.")
+    if not isinstance(request, dict) or type(request.get("protocol_version")) is not int or request["protocol_version"] != 1:
+        raise ProviderError("Unsupported adapter protocol; expected version 1.")
     reviews = request.get("reviews")
     if not isinstance(reviews, list) or len(reviews) != 1 or not isinstance(reviews[0], dict):
         raise ProviderError("Invalid adapter review list; expected exactly one review.")
@@ -153,7 +153,7 @@ def review(request):
     if any(not isinstance(item.get("id"), str) or not item["id"] for item in reviews):
         raise ProviderError("Invalid adapter review identity.")
     status, document = run(request["prompt"], models[0], with_verdict(request["response_schema"]))
-    return (0 if status == "PASS" else 1), {"protocol_version": 3, **document}
+    return (0 if status == "PASS" else 1), {"protocol_version": 1, **document}
 
 
 def fail(message, detail=""):
