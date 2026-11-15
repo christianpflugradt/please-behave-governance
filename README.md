@@ -65,14 +65,12 @@ See complete import examples, parameters, evidence boundaries and limitations:
 
 ## Validation
 
-Tests cover single rule scripts or provider adapters only and live next to the code as
-`test_*.py`. They use temporary local Git repositories and mocked HTTP and must never
-call live providers or network APIs.
-
-```sh
-for test in $(find rules providers -name 'test_*.py'); do python3 -B "$test" || break; done
-```
-
-Skipped tests do not demonstrate successful validation. The repository currently
-has no configured validation hooks or CI workflow. See [AGENTS.md](AGENTS.md) for change
-boundaries and agent guidance.
+This repository is governed by Please Behave itself: `.please/config.toml` imports
+the `repository-conventions`, `security` and `open-source-software` bundles from this
+repository's own published revisions, as any consumer does. It is not releasable, so
+it imports no release bundle. Local Rules format Python with Ruff and run the unit
+tests, which live next to the code as `test_*.py`. They use temporary local Git
+repositories and mocked HTTP and must never call live providers or network APIs.
+Git hooks and the `CI` workflow are the validation gates; `mise run verify` gives quick
+diagnosis. The CI workflow needs the `GEMINI_API_KEY` repository secret for the advisory
+Reviews. See [AGENTS.md](AGENTS.md) for change boundaries and agent guidance.
