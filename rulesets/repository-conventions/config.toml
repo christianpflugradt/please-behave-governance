@@ -5,6 +5,7 @@ rules = [
   "rules/checks/agents-size",
   "rules/checks/editorconfig",
   "rules/checks/mise-baseline",
+  "rules/checks/renovate-baseline",
   { id = "rules/checks/commit-message", run_at = ["commit-msg"] },
   { id = "rules/reviews/commit-message-quality", run_at = ["commit-msg"] },
   { id = "rules/reviews/agents-quality", run_at = ["check"] },

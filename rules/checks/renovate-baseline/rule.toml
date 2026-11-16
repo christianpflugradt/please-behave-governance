@@ -1,0 +1,8 @@
+id = "renovate-baseline"
+name = "Renovate baseline"
+description = "renovate.json extends the governor preset, automerges non-major updates and applies the shared cooldowns"
+enabled = true
+
+[check]
+command = "python3 @rule/check.py @context"
+timeout_seconds = 30

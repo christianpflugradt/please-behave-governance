@@ -2,7 +2,7 @@
 
 The `rulesets/repository-conventions` set runs at `pre-commit` and `check`
 and keeps its two commit rules at `commit-msg` through per-reference overrides. It requires
-Please Behave 0.8.0 or later. It contains the `agents-size`, `editorconfig` and `mise-baseline` Checks, a deterministic
+Please Behave 0.8.0 or later. It contains the `agents-size`, `editorconfig`, `mise-baseline` and `renovate-baseline` Checks, a deterministic
 commit syntax Check, an advisory wording Review and an advisory `AGENTS.md` quality Review.
 
 ## EditorConfig baseline
@@ -75,6 +75,57 @@ run = "please run --at pre-push --checks-only --fail-fast"
   the last one before adding the task.
 
 The Check needs Python 3.11+ for `tomllib`. It takes no parameters.
+
+## Renovate baseline
+
+Every repository is supervised by [Renovate](https://docs.renovatebot.com/), software or not: the
+governor pin in `mise.toml` and the ruleset pins in `.please/config.toml` always give it something
+to update. The blocking `renovate-baseline` Check requires a root `renovate.json` that states the
+requirements below; `pre-commit` and `check` read the working tree. A missing or invalid JSON file,
+or any missing requirement, returns FAIL (1); an unreadable, non-UTF-8 or non-regular file returns
+ERROR (2).
+
+```json
+{
+  "extends": [
+    "github>christianpflugradt/please-behave-governance:renovate-governor"
+  ],
+  "platformAutomerge": false,
+  "minimumReleaseAge": "7 days",
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["major"],
+      "minimumReleaseAge": "14 days",
+      "matchPackageNames": ["!please-behave/cli"]
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "automerge": true
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "minimumReleaseAge": "14 days",
+      "matchPackageNames": ["!please-behave/cli"]
+    }
+  ]
+}
+```
+
+- `extends` contains the [governor preset](governor-updates.md), which keeps the governor and
+  the ruleset pins current.
+- `platformAutomerge` is `false`, so Renovate merges itself and no repository setting is needed.
+- The default `minimumReleaseAge` is at least 7 days. Major updates and GitHub Actions need an
+  entry with at least 14 days; an entry matches Actions through `matchManagers` with
+  `github-actions` or `matchFileNames` with `.github/**`. Ages are written in days or weeks.
+- An entry with `automerge` set to `true` covers at least `minor` and `patch` and not `major`, so
+  major updates stay manual. `pin` and `digest` are optional.
+
+Keep the `!please-behave/cli` exclusion on rules with a cooldown, as the
+[governor preset](governor-updates.md) explains. The Check inspects the file, not Renovate's merged
+configuration, so it cannot see a rule that another rule overrides. It does not verify that the
+Renovate app is installed or that branch protection allows the merge. Everything else, such as
+grouping, custom managers or `minimumReleaseAgeBehaviour`, is the repository's own. The Check needs
+no parameters.
 
 ## AGENTS.md size
 
@@ -226,7 +277,7 @@ Please Behave sends the whole commit message with line numbers and, because the 
 judgment to the header. The CLI validates cited lines and message stability. No comparison with
 the actual change occurs.
 These rules do not inspect commit ranges or PR titles. The Review runs only at
-`commit-msg`, not in CI `check`, pre-push or release readiness. Only the deterministic `agents-size` and `editorconfig` Checks run at `pre-commit` and `check`.
+`commit-msg`, not in CI `check`, pre-push or release readiness. Only the deterministic `agents-size`, `editorconfig`, `mise-baseline` and `renovate-baseline` Checks run at `pre-commit` and `check`.
 
 A direct `please run --at commit-msg` or offline preview has no Git message
 argument and cannot run this set. Use a real Git commit/amend after setup, then
