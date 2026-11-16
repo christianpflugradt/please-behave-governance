@@ -63,7 +63,20 @@ class BaselineTests(unittest.TestCase):
             "unsupported age": (changed(lambda c: c.update(minimumReleaseAge="a week")), 1),
             "no major rule": (changed(drop_rule("matchUpdateTypes", "major")), 1),
             "short major age": (changed(lambda c: rule(c, "matchUpdateTypes", "major").update(minimumReleaseAge="13 days")), 1),
+            "major delays cli": (
+                changed(lambda c: rule(c, "matchUpdateTypes", "major")["matchPackageNames"].remove("!please-behave/cli")),
+                1,
+            ),
+            "major delays action": (
+                changed(lambda c: rule(c, "matchUpdateTypes", "major")["matchPackageNames"].remove("!please-behave/action")),
+                1,
+            ),
             "no actions rule": (changed(drop_rule("matchManagers", "github-actions")), 1),
+            "actions delay action": (
+                changed(lambda c: rule(c, "matchManagers", "github-actions")["matchPackageNames"].remove("!please-behave/action")),
+                1,
+            ),
+            "actions delay cli": (changed(lambda c: rule(c, "matchManagers", "github-actions").pop("matchPackageNames")), 1),
             "no automerge": (changed(lambda c: rule(c, "matchUpdateTypes", "minor").update(automerge=False)), 1),
             "major automerge": (changed(lambda c: rule(c, "matchUpdateTypes", "minor")["matchUpdateTypes"].append("major")), 1),
             "patch missing": (changed(lambda c: rule(c, "matchUpdateTypes", "minor")["matchUpdateTypes"].remove("patch")), 1),

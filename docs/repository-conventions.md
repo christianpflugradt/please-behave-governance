@@ -96,7 +96,7 @@ ERROR (2).
     {
       "matchUpdateTypes": ["major"],
       "minimumReleaseAge": "14 days",
-      "matchPackageNames": ["!please-behave/cli"]
+      "matchPackageNames": ["!please-behave/cli", "!please-behave/action"]
     },
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
@@ -105,7 +105,7 @@ ERROR (2).
     {
       "matchManagers": ["github-actions"],
       "minimumReleaseAge": "14 days",
-      "matchPackageNames": ["!please-behave/cli"]
+      "matchPackageNames": ["!please-behave/cli", "!please-behave/action"]
     }
   ]
 }
@@ -117,11 +117,14 @@ ERROR (2).
 - The default `minimumReleaseAge` is at least 7 days. Major updates and GitHub Actions need an
   entry with at least 14 days; an entry matches Actions through `matchManagers` with
   `github-actions` or `matchFileNames` with `.github/**`. Ages are written in days or weeks.
+  Both entries must exclude `please-behave/cli` and `please-behave/action` with
+  `!please-behave/cli` and `!please-behave/action` in `matchPackageNames`: the governor preset
+  applies their updates immediately, and a later local rule would otherwise delay them.
 - An entry with `automerge` set to `true` covers at least `minor` and `patch` and not `major`, so
   major updates stay manual. `pin` and `digest` are optional.
 
-Keep the `!please-behave/cli` exclusion on rules with a cooldown, as the
-[governor preset](governor-updates.md) explains. The Check inspects the file, not Renovate's merged
+Keep the same exclusions on any other rule with a cooldown, as the
+[governor preset](governor-updates.md) explains; the Check inspects only the two entries above. It reads the file, not Renovate's merged
 configuration, so it cannot see a rule that another rule overrides. It does not verify that the
 Renovate app is installed or that branch protection allows the merge. Everything else, such as
 grouping, custom managers or `minimumReleaseAgeBehaviour`, is the repository's own. The Check needs
