@@ -46,8 +46,10 @@ class BaselineTests(unittest.TestCase):
         def mutate(config):
             config["minimumReleaseAge"] = "1 week"
             rule(config, "matchUpdateTypes", "major")["minimumReleaseAge"] = "2 weeks"
-            actions = {"matchFileNames": [".github/**"], "minimumReleaseAge": "14 days"}
-            config["packageRules"].append(actions)
+            rule(config, "matchManagers", "github-actions")["matchPackageNames"].insert(0, "!please-behave/cli")
+            config["packageRules"].append(
+                {"matchFileNames": [".github/**"], "minimumReleaseAge": "14 days", "matchPackageNames": ["!please-behave/action"]}
+            )
 
         self.assertEqual(mod.violations(changed(mutate)), [])
 
@@ -76,7 +78,7 @@ class BaselineTests(unittest.TestCase):
                 changed(lambda c: rule(c, "matchManagers", "github-actions")["matchPackageNames"].remove("!please-behave/action")),
                 1,
             ),
-            "actions delay cli": (changed(lambda c: rule(c, "matchManagers", "github-actions").pop("matchPackageNames")), 1),
+            "actions without exclusions": (changed(lambda c: rule(c, "matchManagers", "github-actions").pop("matchPackageNames")), 1),
             "no automerge": (changed(lambda c: rule(c, "matchUpdateTypes", "minor").update(automerge=False)), 1),
             "major automerge": (changed(lambda c: rule(c, "matchUpdateTypes", "minor")["matchUpdateTypes"].append("major")), 1),
             "patch missing": (changed(lambda c: rule(c, "matchUpdateTypes", "minor")["matchUpdateTypes"].remove("patch")), 1),

@@ -56,8 +56,10 @@ TARGET = "renovate.json"
 GOVERNOR = "github>christianpflugradt/please-behave-governance:renovate-governor"
 DEFAULT_DAYS = 7
 SLOW_DAYS = 14
-# Updates of these packages apply immediately through the governor preset; cooldown rules must not delay them.
-IMMEDIATE = ("please-behave/cli", "please-behave/action")
+# The governor preset applies updates of these packages immediately; cooldown rules must not delay them.
+# The governor is a mise tool and the action a GitHub Action, so a rule excludes only what it can match.
+GOVERNOR_PACKAGE = "please-behave/cli"
+ACTION_PACKAGE = "please-behave/action"
 
 
 def days(value):
@@ -74,9 +76,13 @@ def has(rule, key, value):
     return value in items(rule.get(key))
 
 
-def slow(rule):
-    """True when the rule delays updates for SLOW_DAYS without delaying the immediate packages."""
-    return days(rule.get("minimumReleaseAge")) >= SLOW_DAYS and all(has(rule, "matchPackageNames", f"!{name}") for name in IMMEDIATE)
+def slow(rule, *immediate):
+    """True when the rule delays updates for SLOW_DAYS without delaying the given immediate packages."""
+    return days(rule.get("minimumReleaseAge")) >= SLOW_DAYS and all(has(rule, "matchPackageNames", f"!{name}") for name in immediate)
+
+
+def exclusions(*names):
+    return " and ".join(f"!{name}" for name in names)
 
 
 def violations(config):
@@ -91,14 +97,17 @@ def violations(config):
     if days(config.get("minimumReleaseAge")) < DEFAULT_DAYS:
         found.append(f"requires a minimumReleaseAge of at least {DEFAULT_DAYS} days")
     rules = [rule for rule in items(config.get("packageRules")) if isinstance(rule, dict)]
-    excluded = " and ".join(f"!{name}" for name in IMMEDIATE)
-    if not any(has(r, "matchUpdateTypes", "major") and slow(r) for r in rules):
+    if not any(has(r, "matchUpdateTypes", "major") and slow(r, GOVERNOR_PACKAGE, ACTION_PACKAGE) for r in rules):
         found.append(
-            f"requires a packageRules entry for major updates with a minimumReleaseAge of at least {SLOW_DAYS} days and matchPackageNames {excluded}"
+            f"requires a packageRules entry for major updates with a minimumReleaseAge of at least {SLOW_DAYS} days "
+            f"and matchPackageNames {exclusions(GOVERNOR_PACKAGE, ACTION_PACKAGE)}"
         )
-    if not any((has(r, "matchManagers", "github-actions") or has(r, "matchFileNames", ".github/**")) and slow(r) for r in rules):
+    if not any(
+        (has(r, "matchManagers", "github-actions") or has(r, "matchFileNames", ".github/**")) and slow(r, ACTION_PACKAGE) for r in rules
+    ):
         found.append(
-            f"requires a packageRules entry for GitHub Actions with a minimumReleaseAge of at least {SLOW_DAYS} days and matchPackageNames {excluded}"
+            f"requires a packageRules entry for GitHub Actions with a minimumReleaseAge of at least {SLOW_DAYS} days "
+            f"and matchPackageNames {exclusions(ACTION_PACKAGE)}"
         )
     if not any(
         r.get("automerge") is True

@@ -22,9 +22,10 @@ a PR for each newer stable version, including major ones, and auto-merges it aft
 pass, without a cooldown.
 
 Local package rules are applied after preset rules. Exclude `please-behave/cli` and
-`please-behave/action` from any local cooldown or post-upgrade rule that would override
-these exceptions, using
-`"matchPackageNames": ["!please-behave/cli", "!please-behave/action"]`. Do not add a local governor
+`please-behave/action` from any local cooldown or post-upgrade rule that could match them and
+would override these exceptions, using
+`"matchPackageNames": ["!please-behave/cli", "!please-behave/action"]`. A rule limited to
+GitHub Actions needs only the action, a rule limited to mise only the governor. Do not add a local governor
 version extraction or auto-merge implementation. Workflows read the same mise
 entry and install that exact published binary before checks; `mise install`
 provides it locally through the GitHub backend with checksum and available
