@@ -14,7 +14,7 @@
     {
       "matchUpdateTypes": ["major"],
       "minimumReleaseAge": "14 days",
-      "matchPackageNames": ["!please-behave/cli"]
+      "matchPackageNames": ["!please-behave/cli", "!please-behave/action"]
     },
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
@@ -23,7 +23,7 @@
     {
       "matchManagers": ["github-actions"],
       "minimumReleaseAge": "14 days",
-      "matchPackageNames": ["!please-behave/cli"]
+      "matchPackageNames": ["!please-behave/cli", "!please-behave/action"]
     }
   ]
 }
