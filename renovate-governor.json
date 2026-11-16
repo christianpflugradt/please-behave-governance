@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "description": "Keep the published Please Behave governor and the pinned shared revisions current after successful CI.",
+  "description": "Keep the published Please Behave governor, the Please Behave action and the pinned shared revisions current after successful CI.",
   "customManagers": [
     {
       "customType": "regex",
@@ -20,6 +20,18 @@
       "matchPackageNames": ["please-behave/cli"],
       "matchManagers": ["mise"],
       "matchDatasources": ["github-releases"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": false,
+      "ignoreTests": false,
+      "ignoreUnstable": true,
+      "minimumReleaseAge": "0 days",
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "deps"
+    },
+    {
+      "matchPackageNames": ["please-behave/action"],
+      "matchManagers": ["github-actions"],
       "automerge": true,
       "automergeType": "pr",
       "platformAutomerge": false,

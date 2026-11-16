@@ -17,9 +17,14 @@ uses Renovate-managed PR auto-merge, requires passing checks and leaves ordinary
 dependency cooldowns to each project. Updates occur on Renovate's runs, so this
 does not promise an instantaneous update when a release is published.
 
-Local package rules are applied after preset rules. Exclude `please-behave/cli`
-from any local cooldown or post-upgrade rule that would override this exception,
-using `"matchPackageNames": ["!please-behave/cli"]`. Do not add a local governor
+The preset treats the `please-behave/action` GitHub Action like the governor: Renovate opens
+a PR for each newer stable version, including major ones, and auto-merges it after checks
+pass, without a cooldown.
+
+Local package rules are applied after preset rules. Exclude `please-behave/cli` and
+`please-behave/action` from any local cooldown or post-upgrade rule that would override
+these exceptions, using
+`"matchPackageNames": ["!please-behave/cli", "!please-behave/action"]`. Do not add a local governor
 version extraction or auto-merge implementation. Workflows read the same mise
 entry and install that exact published binary before checks; `mise install`
 provides it locally through the GitHub backend with checksum and available
