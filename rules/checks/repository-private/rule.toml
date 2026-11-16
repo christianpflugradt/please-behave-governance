@@ -1,0 +1,7 @@
+id = "repository-private"
+name = "Private repository"
+description = "The GitHub repository is private, so the private-repositories limits apply"
+
+[check]
+command = "python3 @rule/check.py"
+timeout_seconds = 60

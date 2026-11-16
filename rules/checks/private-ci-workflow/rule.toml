@@ -1,0 +1,12 @@
+id = "private-ci-workflow"
+name = "Private CI workflow"
+description = "The CI workflow runs on pull requests only and bounds the Actions minutes a private repository can use"
+
+[check]
+command = "python3 @rule/check.py @context @param/max_job_minutes"
+timeout_seconds = 60
+
+[parameters.max_job_minutes]
+type = "string"
+required = true
+description = "Largest allowed timeout-minutes of any job, as a positive integer"

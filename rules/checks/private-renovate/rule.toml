@@ -1,0 +1,8 @@
+id = "private-renovate"
+name = "Private Renovate rebase policy"
+description = "renovate.json rebases open PRs only on conflicts, except for the governor and ruleset pins"
+enabled = true
+
+[check]
+command = "python3 @rule/check.py @context"
+timeout_seconds = 30

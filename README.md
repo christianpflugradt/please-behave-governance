@@ -9,6 +9,7 @@ that apply to a repository; each bundle adds to the others.
 | --- | --- | --- | --- |
 | `rulesets/repository-conventions` | Every repository, public or private, software or otherwise | `pre-commit`, `check`; `commit-msg` for commit rules | `AGENTS.md` size limit, EditorConfig baseline, Conventional Commit syntax and advisory header wording, mise governor pin with `format` and `verify` tasks, Renovate baseline |
 | `rulesets/open-source-software` | Open-source software | `check`, `pre-push` | Approved license, `setup` task, CI and Statistics workflow structure |
+| `rulesets/private-repositories` | Private repositories on the free Actions minutes, instead of open-source software | `check`, `pre-push` | Pull-request-only CI with bounded jobs, Renovate rebase policy, private visibility |
 | `rulesets/releasable-open-source-software` | Releasable open-source software | `check`, `pre-push` | Semantic Release baseline, `release` task, Release workflow structure |
 | `rulesets/security` | Repositories adopting the security policy | `check`, `pre-push` | Sensitive filenames and secret scanning |
 
@@ -46,6 +47,7 @@ the Gemini operations themselves still require network access.
 | --- | --- | --- |
 | Repository conventions | `agents-size.max_tokens`; `commit-message.scopes_file`; independent `gemini-flash-lite` and `gemini-flash` provider imports | Python 3.9+ (3.11+ for the mise tasks check), Git and `GEMINI_API_KEY` for the wording and `AGENTS.md` reviews |
 | Open-source software | `license.target`, usually `LICENSE` | Python 3.9+ (3.11+ for the `setup` task check), Git, `actionlint`, ShellCheck, `yq`, npm; network and optionally `GITHUB_TOKEN` for `github-metadata` at `check` |
+| Private repositories | `private-ci-workflow.max_job_minutes` | Python 3.9+, Git, `actionlint`, `yq`; `GITHUB_REPOSITORY` and `GITHUB_TOKEN` for `repository-private` at `check` |
 | Releasable open-source software | `semantic-release.tag_format` | Python 3.11+, Git, Node 24+, `yq` |
 | Security | No required parameters at its assigned points | Python 3.9+, Git, Gitleaks v8 with `gitleaks dir` |
 
@@ -58,6 +60,7 @@ See complete import examples, parameters, evidence boundaries and limitations:
 
 - [Repository conventions and Gemini](docs/repository-conventions.md)
 - [Open-source software and license policy](docs/open-source-software.md)
+- [Private repositories and Actions minutes](docs/private-repositories.md)
 - [Semantic Release baseline](docs/releases.md)
 - [Security and scanner configuration](docs/security.md)
 - [Compatibility and path migration](docs/migration.md)
