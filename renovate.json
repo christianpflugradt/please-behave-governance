@@ -19,6 +19,11 @@
     {
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "automerge": true
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "minimumReleaseAge": "14 days",
+      "matchPackageNames": ["!please-behave/cli"]
     }
   ]
 }
