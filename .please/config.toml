@@ -3,7 +3,7 @@ project = "Please Behave Governance"
 [[imports]]
 git = "https://github.com/christianpflugradt/please-behave-governance.git"
 path = "rulesets/repository-conventions"
-ref = "de945913a50b65a75f74cdeb414c60fa18e1e845"
+ref = "f745d6511e06dfbe93aa28f6765388491c91fded"
 
 [imports.rule_parameters.agents-size]
 max_tokens = "1500"
@@ -14,12 +14,12 @@ scopes_file = ".please/commit-scopes.txt"
 [[imports]]
 git = "https://github.com/christianpflugradt/please-behave-governance.git"
 path = "rulesets/security"
-ref = "de945913a50b65a75f74cdeb414c60fa18e1e845"
+ref = "f745d6511e06dfbe93aa28f6765388491c91fded"
 
 [[imports]]
 git = "https://github.com/christianpflugradt/please-behave-governance.git"
 path = "rulesets/open-source-software"
-ref = "de945913a50b65a75f74cdeb414c60fa18e1e845"
+ref = "f745d6511e06dfbe93aa28f6765388491c91fded"
 
 [imports.rule_parameters.license]
 target = "LICENSE"
@@ -28,10 +28,10 @@ target = "LICENSE"
 id = "gemini-flash-lite"
 git = "https://github.com/christianpflugradt/please-behave-governance.git"
 path = "providers/gemini-flash-lite"
-ref = "de945913a50b65a75f74cdeb414c60fa18e1e845"
+ref = "f745d6511e06dfbe93aa28f6765388491c91fded"
 
 [[provider_imports]]
 id = "gemini-flash"
 git = "https://github.com/christianpflugradt/please-behave-governance.git"
 path = "providers/gemini-flash"
-ref = "de945913a50b65a75f74cdeb414c60fa18e1e845"
+ref = "f745d6511e06dfbe93aa28f6765388491c91fded"
