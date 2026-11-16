@@ -45,7 +45,7 @@ the Gemini operations themselves still require network access.
 | Bundle | Required consumer configuration | Tools and credentials |
 | --- | --- | --- |
 | Repository conventions | `agents-size.max_tokens`; `commit-message.scopes_file`; independent `gemini-flash-lite` and `gemini-flash` provider imports | Python 3.9+ (3.11+ for the mise tasks check), Git and `GEMINI_API_KEY` for the wording and `AGENTS.md` reviews |
-| Open-source software | `license.target`, usually `LICENSE` | Python 3.9+ (3.11+ for the `setup` task check), Git, `actionlint`, ShellCheck, `yq`, npm |
+| Open-source software | `license.target`, usually `LICENSE` | Python 3.9+ (3.11+ for the `setup` task check), Git, `actionlint`, ShellCheck, `yq`, npm; network and optionally `GITHUB_TOKEN` for `github-metadata` at `check` |
 | Releasable open-source software | `semantic-release.tag_format` | Python 3.11+, Git, Node 24+, `yq` |
 | Security | No required parameters at its assigned points | Python 3.9+, Git, Gitleaks v8 with `gitleaks dir` |
 

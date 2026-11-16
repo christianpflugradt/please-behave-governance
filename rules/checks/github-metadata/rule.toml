@@ -1,0 +1,7 @@
+id = "github-metadata"
+name = "GitHub repository metadata"
+description = "The GitHub repository has a description and a number of topics within the shared limits"
+
+[check]
+command = "python3 @rule/check.py"
+timeout_seconds = 60
