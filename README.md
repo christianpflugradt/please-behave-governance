@@ -51,6 +51,10 @@ the Gemini operations themselves still require network access.
 | Releasable open-source software | `semantic-release.tag_format` | Python 3.11+, Git, Node 24+, `yq` |
 | Security | No required parameters at its assigned points | Python 3.9+, Git, Gitleaks v8 with `gitleaks dir` |
 
+The Gemini adapters accept adapter protocol versions `0` and `1` and return the
+version supplied in the request. Existing version `1` governors remain compatible;
+no additional provider call is made for version negotiation.
+
 The wording and `AGENTS.md` quality Reviews are advisory; its FAIL and ERROR results remain visible without
 blocking commits. Deterministic checks are blocking. Security and license checks
 inspect the working tree at `check` and `HEAD` at `pre-push`, without Git history

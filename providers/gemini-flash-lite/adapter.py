@@ -151,8 +151,8 @@ def with_verdict(schema):
 
 
 def review(request):
-    if not isinstance(request, dict) or type(request.get("protocol_version")) is not int or request["protocol_version"] != 1:
-        raise ProviderError("Unsupported adapter protocol; expected version 1.")
+    if not isinstance(request, dict) or type(request.get("protocol_version")) is not int or request["protocol_version"] not in (0, 1):
+        raise ProviderError("Unsupported adapter protocol; expected version 0 or 1.")
     reviews = request.get("reviews")
     if not isinstance(reviews, list) or len(reviews) != 1 or not isinstance(reviews[0], dict):
         raise ProviderError("Invalid adapter review list; expected exactly one review.")
@@ -166,7 +166,7 @@ def review(request):
     if any(not isinstance(item.get("id"), str) or not item["id"] for item in reviews):
         raise ProviderError("Invalid adapter review identity.")
     status, document = run(request["prompt"], models[0], with_verdict(request["response_schema"]))
-    return (0 if status == "PASS" else 1), {"protocol_version": 1, **document}
+    return (0 if status == "PASS" else 1), {"protocol_version": request["protocol_version"], **document}
 
 
 def fail(message, detail=""):

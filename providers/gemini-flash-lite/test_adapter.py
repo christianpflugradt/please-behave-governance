@@ -50,6 +50,15 @@ class GeminiTests(unittest.TestCase):
         opener.open.return_value.__enter__.return_value = response
         return opener
 
+    def test_protocol_zero_and_one_preserve_the_request_version_without_extra_calls(self):
+        for version in (0, 1):
+            for status, code in (("PASS", 0), ("FAIL", 1)):
+                request = dict(self.request, protocol_version=version)
+                verdict = {"reason": "Version preserved", "findings": []}
+                with self.subTest(version=version, status=status), patch.object(gemini, "run", return_value=(status, verdict)) as run:
+                    self.assertEqual(gemini.review(request), (code, {"protocol_version": version, **verdict}))
+                    run.assert_called_once()
+
     def test_structured_schema_model_and_only_prepared_prompt_reach_gemini(self):
         opener = self.response(json.dumps(self.envelope()).encode())
         with patch.dict(os.environ, GEMINI_API_KEY="synthetic-key"), patch.object(gemini, "build_opener", return_value=opener):
@@ -195,7 +204,7 @@ class GeminiTests(unittest.TestCase):
 
     def test_invalid_requests_and_mixed_models_never_call_provider(self):
         invalid = []
-        for version in (True, 0, 2, 3):
+        for version in (True, False, -1, 2, 3, 1.0, "0", None):
             request = deepcopy(self.request)
             request["protocol_version"] = version
             invalid.append(request)

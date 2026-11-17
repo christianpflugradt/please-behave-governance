@@ -64,6 +64,22 @@ class FlashTests(unittest.TestCase):
         with patch.object(gemini, "build_opener", return_value=opener):
             return gemini.review(request or self.request)
 
+    def test_protocol_zero_and_one_preserve_the_request_version_without_extra_calls(self):
+        for version in (0, 1):
+            for status, code in (("PASS", 0), ("FAIL", 1)):
+                request = dict(self.request, protocol_version=version)
+                verdict = {"reason": "Version preserved", "findings": []}
+                with self.subTest(version=version, status=status), patch.object(gemini, "run", return_value=(status, verdict)) as run:
+                    self.assertEqual(gemini.review(request), (code, {"protocol_version": version, **verdict}))
+                    run.assert_called_once()
+
+    def test_unsupported_protocol_versions_never_call_provider(self):
+        with patch.object(gemini, "run") as run:
+            for version in (True, False, -1, 2, 1.0, "0", None):
+                with self.subTest(version=version), self.assertRaises(gemini.ProviderError):
+                    gemini.review(dict(self.request, protocol_version=version))
+            run.assert_not_called()
+
     def test_success_returns_the_response_and_exit_status_without_waiting(self):
         opener = self.opener(SUCCESS)
         self.assertEqual(self.review(opener), (0, RESPONSE))
