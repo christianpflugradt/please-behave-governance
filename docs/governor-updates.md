@@ -50,12 +50,18 @@ order within an entry.
 When changing a `ref` by hand, run `please sync --yes` before committing; until the new
 revision is validated, hooks reject it with "external import has no validated revision".
 
-## Content-aware tracking pilot
+## Content-aware tracking
 
-Only this repository opts into content-aware updates through its local
-`renovate.json`; the shared preset and other consumers retain the policy above.
-The inherited `main` dependency is disabled locally and replaced by separate
-dependencies tracking `updates/<import path>`. Runtime imports still use full
+To update only when imported package content changes, add
+`github>christianpflugradt/please-behave-governance:renovate-content-aware` after
+`github>christianpflugradt/please-behave-governance:renovate-governor` in the
+`extends` array of `renovate.json`. Keep both entries; the baseline remains the
+source of governor, Action and auto-merge policy. Consumers without the additional
+preset retain whole-repository tracking.
+
+The additional preset disables the inherited `main` dependency and replaces it
+with separate dependencies tracking `updates/<import path>`. Within each import,
+declare `git`, `path` and `ref` in that order. Runtime imports still use full
 commit SHAs, and Renovate groups their updates into one PR with the existing
 CI and auto-merge policy.
 
