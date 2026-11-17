@@ -49,3 +49,28 @@ order within an entry.
 
 When changing a `ref` by hand, run `please sync --yes` before committing; until the new
 revision is validated, hooks reject it with "external import has no validated revision".
+
+## Content-aware tracking pilot
+
+Only this repository opts into content-aware updates through its local
+`renovate.json`; the shared preset and other consumers retain the policy above.
+The inherited `main` dependency is disabled locally and replaced by separate
+dependencies tracking `updates/<import path>`. Runtime imports still use full
+commit SHAs, and Renovate groups their updates into one PR with the existing
+CI and auto-merge policy.
+
+After successful push CI on `main`, the `Update import tracking` workflow advances
+these branches to the tested source commit only when package content differs.
+A ruleset includes its directory and the complete directories of its referenced
+Rules; a provider includes its complete directory. Git blob identities, paths and
+file modes are compared, so additions, removals and executable changes count.
+Changes to `.please/`, documentation outside packages, tooling or unrelated
+packages do not advance a package branch. A pin-only merge therefore causes no
+further update. Branch initialization may cause one initial pin update.
+
+Tracking branches point into `main` history and are never force-pushed. Publication
+is serialized and atomic; late CI completions cannot roll branches backwards.
+Missing Rule definitions, divergent history and removed packages fail publication
+instead of silently treating missing content as unchanged. Package removal needs
+an explicit consumer migration and tracking-branch retirement. To retry
+publication, rerun CI for the source commit.

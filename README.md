@@ -74,6 +74,8 @@ repository's own published revisions, as any consumer does. It is not releasable
 it imports no release bundle. Local Rules format Python with Ruff and run the unit
 tests, which live next to the code as `test_*.py`. They use temporary local Git
 repositories and mocked HTTP and must never call live providers or network APIs.
+Workflow tooling and its offline tests live in `.github/scripts/` and run through
+the same test gate.
 Git hooks and the `CI` workflow are the validation gates; `mise run verify` gives quick
 diagnosis. The CI workflow needs the `GEMINI_API_KEY` repository secret for the advisory
 Reviews. See [AGENTS.md](AGENTS.md) for change boundaries and agent guidance.

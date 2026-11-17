@@ -1,4 +1,4 @@
-"""Run every test_*.py of the Rules and providers, each in its own interpreter."""
+"""Run Rule, provider and workflow-tooling tests, each in its own interpreter."""
 
 import subprocess
 import sys
@@ -6,7 +6,7 @@ from pathlib import Path
 
 
 def main():
-    tests = sorted(path for top in ("rules", "providers") for path in Path(top).rglob("test_*.py"))
+    tests = sorted(path for top in ("rules", "providers", ".github/scripts") for path in Path(top).rglob("test_*.py"))
     failed = [str(test) for test in tests if subprocess.run([sys.executable, "-B", str(test)]).returncode != 0]
     for test in failed:
         print(f"FAIL: {test}", file=sys.stderr)

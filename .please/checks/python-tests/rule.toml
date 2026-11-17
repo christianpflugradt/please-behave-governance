@@ -1,6 +1,6 @@
 id = "python-tests"
 name = "Python tests"
-description = "Unit tests of the Rules and provider adapters pass"
+description = "Unit tests of the Rules, provider adapters and workflow tooling pass"
 run_at = ["pre-push", "check"]
 
 [check]

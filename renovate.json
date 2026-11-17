@@ -24,6 +24,30 @@
       "matchManagers": ["github-actions"],
       "minimumReleaseAge": "14 days",
       "matchPackageNames": ["!please-behave/action"]
+    },
+    {
+      "description": "Replace the inherited whole-repository dependency locally to prevent self-update loops.",
+      "matchDatasources": ["git-refs"],
+      "matchDepNames": ["please-behave-governance"],
+      "enabled": false
+    },
+    {
+      "matchDatasources": ["git-refs"],
+      "matchDepNames": ["please-behave-governance/**"],
+      "groupName": "governance imports"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Pilot content-aware tracking for this repository only; keep git, path and ref in this order.",
+      "managerFilePatterns": ["/^\\.please/config\\.toml$/"],
+      "matchStrings": [
+        "git\\s*=\\s*\"(?<packageName>https://github\\.com/christianpflugradt/please-behave-governance\\.git)\"[^\\[]*?path\\s*=\\s*\"(?<importPath>(?:rulesets|providers)/[a-z0-9-]+)\"[^\\[]*?ref\\s*=\\s*\"(?<currentDigest>[0-9a-f]{40})\""
+      ],
+      "datasourceTemplate": "git-refs",
+      "depNameTemplate": "please-behave-governance/{{{importPath}}}",
+      "currentValueTemplate": "updates/{{{importPath}}}"
     }
   ]
 }
