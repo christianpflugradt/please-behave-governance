@@ -1,0 +1,13 @@
+# File names that declare dependencies, matched in every directory of the project.
+package.json
+Cargo.toml
+build.gradle
+build.gradle.kts
+pom.xml
+pyproject.toml
+requirements*.txt
+Pipfile
+go.mod
+Gemfile
+composer.json
+Package.swift

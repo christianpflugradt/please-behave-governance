@@ -3,6 +3,7 @@
 import copy
 import importlib.util
 from pathlib import Path
+import tempfile
 import unittest
 
 SCRIPT = Path(__file__).resolve().parent / "check.py"
@@ -37,10 +38,23 @@ class DependencyAuditWorkflowTests(unittest.TestCase):
         self.assertEqual(mod.violations(WORKFLOW), [])
 
     def test_schedule_must_be_one_daily_early_fixed_time_off_the_hour(self):
-        for cron in ("0 3 * * *", "17 5 * * *", "17 * * * *", "*/15 3 * * *", "17 3 * * 1", "17 3 1 * *", "17 3 *"):
+        for cron in (
+            "0 3 * * *",
+            "17 5 * * *",
+            "17 * * * *",
+            "*/15 3 * * *",
+            "17 3 * * 1,3",
+            "17 3 1 * *",
+            "17 3 * 6 1",
+            "17 3 * * MON",
+            "17 3 *",
+        ):
             self.assertTrue(changed(lambda d, c=cron: d["on"].update(schedule=[{"cron": c}])), cron)
         self.assertTrue(changed(lambda d: d["on"].update(schedule=[{"cron": "17 3 * * *"}, {"cron": "41 2 * * *"}])))
         self.assertTrue(changed(lambda d: d["on"].pop("schedule")))
+
+    def test_weekly_schedule_passes(self):
+        self.assertEqual(changed(lambda d: d["on"].update(schedule=[{"cron": "41 2 * * 1"}])), [])
 
     def test_dispatch_is_required_and_change_triggers_fail(self):
         self.assertTrue(changed(lambda d: d["on"].pop("workflow_dispatch")))
@@ -67,6 +81,23 @@ class DependencyAuditWorkflowTests(unittest.TestCase):
         self.assertTrue(changed(lambda d: d.update(name="Audit")))
         self.assertTrue(changed(lambda d: d["jobs"]["audit"].pop("timeout-minutes")))
         self.assertTrue(changed(lambda d: d["jobs"]["audit"]["steps"][0].update(uses="actions/checkout@v7")))
+
+
+class ManifestTests(unittest.TestCase):
+    PATTERNS = ["package.json", "requirements*.txt", "Cargo.toml"]
+
+    def test_manifests_are_found_in_every_directory_by_file_name(self):
+        paths = ["README.md", "app/api/package.json", "requirements-dev.txt", "docs/requirements.md", "Cargo.lock", "x/cargo.toml"]
+        self.assertEqual(mod.manifest_violations(paths, self.PATTERNS), ["app/api/package.json", "requirements-dev.txt"])
+
+    def test_no_manifest_is_clean(self):
+        self.assertEqual(mod.manifest_violations(["src/main.py", "notes.txt"], self.PATTERNS), [])
+
+    def test_patterns_ignore_comments_and_blank_lines(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "manifests.txt"
+            path.write_text("# comment\n\npackage.json\n  go.mod  \n", encoding="utf-8")
+            self.assertEqual(mod.read_patterns(path), ["package.json", "go.mod"])
 
 
 if __name__ == "__main__":

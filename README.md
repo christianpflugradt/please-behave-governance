@@ -49,7 +49,7 @@ the Gemini operations themselves still require network access.
 | Open-source software | `license.target`, usually `LICENSE` | Python 3.9+ (3.11+ for the `setup` task check), Git, `actionlint`, ShellCheck, `yq`; network and optionally `GITHUB_TOKEN` for `github-metadata` at `check` |
 | Private repositories | `private-ci-workflow.max_job_minutes` | Python 3.9+, Git, `actionlint`, `yq`; `GITHUB_REPOSITORY` and `GITHUB_TOKEN` for `repository-private` at `check` |
 | Releasable open-source software | `semantic-release.tag_format` | Python 3.11+, Git, Node 24+, `yq` |
-| Security | No required parameters at its assigned points | Python 3.9+, Git, `yq`, Gitleaks v8 with `gitleaks dir` |
+| Security | `dependency-audit-workflow.dependencies`, `audited` or `none` | Python 3.9+, Git, `yq`, Gitleaks v8 with `gitleaks dir` |
 
 The Gemini adapters accept adapter protocol versions `0` and `1` and return the
 version supplied in the request. Existing version `1` governors remain compatible;

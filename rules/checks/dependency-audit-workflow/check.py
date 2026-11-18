@@ -1,10 +1,12 @@
-"""Require the shared structure of dependency-audit.yml; scanners, reports and cache handling stay with consumers."""
+"""Require the shared structure of dependency-audit.yml, or no known dependency manifest when the repository declares none."""
 
+import fnmatch
 import json
+import os
 import re
 import stat
 import subprocess
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 import sys
 
 # Imported rule resources must remain immutable.
@@ -177,13 +179,13 @@ def grants_write(job):
 
 
 def schedule_violations(events):
-    """The audit runs once a day at a fixed early time, at a minute off the busy top of the hour."""
+    """The audit runs daily or weekly at a fixed early time, at a minute off the busy top of the hour."""
     entries = as_list(as_dict(events).get("schedule"))
     if len(entries) != 1:
         return ["must have exactly one schedule entry"]
     fields = str(as_dict(entries[0]).get("cron", "")).split()
-    if len(fields) != 5 or fields[2:] != ["*", "*", "*"]:
-        return ["schedule must be a daily cron: day of month, month and day of week are *"]
+    if len(fields) != 5 or fields[2:4] != ["*", "*"] or not (fields[4] == "*" or re.fullmatch(r"[0-7]", fields[4])):
+        return ["schedule must run daily or weekly: day of month and month are *, day of week is * or one weekday number"]
     minute, hour = fields[0], fields[1]
     if not (minute.isdigit() and hour.isdigit()):
         return ["schedule must use a fixed hour and minute"]
@@ -220,8 +222,48 @@ def violations(document):
     return found + common(document)
 
 
+def tracked_paths(selected):
+    """Paths of the selected snapshot in every directory."""
+    if selected == "head":
+        raw = subprocess.run(["git", "ls-tree", "-rz", "--name-only", "HEAD"], capture_output=True, check=False)
+    else:
+        raw = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"], capture_output=True, check=False)
+    if raw.returncode:
+        raise RuntimeError(f"git failed (exit {raw.returncode})")
+    paths = {os.fsdecode(path) for path in raw.stdout.split(b"\0") if path}
+    return sorted(path for path in paths if selected == "head" or os.path.lexists(path))
+
+
+def read_patterns(path):
+    lines = Path(path).read_text(encoding="utf-8").splitlines()
+    return [line.strip() for line in lines if line.strip() and not line.lstrip().startswith("#")]
+
+
+def manifest_violations(paths, patterns):
+    """Dependency manifests found anywhere in the project; matching is on the file name and case-sensitive."""
+    return [path for path in paths if any(fnmatch.fnmatchcase(PurePosixPath(path).name, pattern) for pattern in patterns)]
+
+
+def declared_none(context_file, patterns_file):
+    point = execution_point(context_file)
+    found = manifest_violations(tracked_paths(select_snapshot(point)), read_patterns(patterns_file))
+    for path in found:
+        print(
+            f"FAIL: dependencies is none, but {ascii(path)} declares dependencies; remove the declaration and add .github/workflows/dependency-audit.yml"
+        )
+    if not found:
+        print(f"PASS: no known dependency manifest ({point})")
+    return 1 if found else 0
+
+
 def main():
-    return run(sys.argv, "dependency-audit.yml", violations)
+    if len(sys.argv) != 4:
+        raise ValueError("expected arguments: context file, dependencies, manifests file")
+    if sys.argv[2] == "audited":
+        return run(sys.argv[:2], "dependency-audit.yml", violations)
+    if sys.argv[2] == "none":
+        return declared_none(sys.argv[1], sys.argv[3])
+    raise ValueError("dependencies must be audited or none")
 
 
 if __name__ == "__main__":
