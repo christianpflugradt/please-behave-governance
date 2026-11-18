@@ -1,16 +1,21 @@
 purpose: >-
   Make every remote action and reusable workflow in the repository's workflows refer to one exact, reviewed revision.
 problem: >-
-  A tag or branch of an action can be moved after it was reviewed. A workflow that
-  refers to one runs whatever the reference points to at that moment, with the
-  permissions and secrets of the workflow. Third-party code can thereby enter the
-  repository's automation unnoticed, in any workflow, not just in the shared ones.
+  A tag or branch of an action is a moving target. It can be moved after it was
+  reviewed, so a workflow that refers to it runs whatever the reference points to
+  at that moment, with the permissions and secrets of the workflow. This limits
+  reproducibility, because the same workflow can run different code on different
+  days. It also defeats the minimum release age that the Renovate baseline
+  requires, because an update then reaches the workflow without passing through a
+  waiting period, which exposes the repository to compromised packages in the
+  supply chain. This holds for every workflow, not just the shared ones.
 value: >-
-  Workflows run only code that was reviewed at an exact revision, and a change of
-  that code becomes a visible change of the repository.
+  Workflows run reproducibly and only code that was reviewed at an exact revision.
+  Every change of that code becomes a visible update that can wait for the minimum
+  release age, which reduces the risk of adopting a compromised version.
 conditions:
   - statement: Every uses of a remote action or reusable workflow in the files directly below .github/workflows ends in @ followed by a full 40-character commit SHA.
-    rationale: A full commit hash identifies exact content and cannot be moved, unlike a tag or branch.
+    rationale: A full commit hash identifies exact content and cannot be moved, unlike a tag or branch, so updates arrive as changes that Renovate can delay by the minimum release age.
   - statement: Local references starting with ./ are exempt.
     rationale: They are part of the repository itself and reviewed with it.
 success_criteria:
