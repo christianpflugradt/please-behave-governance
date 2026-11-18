@@ -34,7 +34,7 @@
 
 ## Structure and implementation
 
-- Put sets at `rulesets/<bundle>/config.toml`. Bundles follow repository attributes,
+- Put sets at `rulesets/<bundle>/ruleset.toml`. Bundles follow repository attributes,
   not execution points; their `run_at` values are declared in the set. Each set defines
   one declarative bundle with repository-relative Rule paths.
 - Keep Rule-specific code, prompts and reference data with `rule.toml` under

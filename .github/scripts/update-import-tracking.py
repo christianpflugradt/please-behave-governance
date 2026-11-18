@@ -29,9 +29,17 @@ def packages(root, revision):
     return sorted(
         str(Path(name).parent)
         for name in names
-        if (name.startswith("rulesets/") and name.endswith("/config.toml"))
+        if (name.startswith("rulesets/") and name.endswith("/ruleset.toml"))
         or (name.startswith("providers/") and name.endswith("/provider.toml"))
     )
+
+
+def definition(root, revision, package):
+    try:
+        return git(root, "show", f"{revision}:{package}/ruleset.toml")
+    except subprocess.CalledProcessError:
+        # Tracking branches published before the rename still point at config.toml.
+        return git(root, "show", f"{revision}:{package}/config.toml")
 
 
 def snapshot(root, revision, package):
@@ -39,7 +47,7 @@ def snapshot(root, revision, package):
         raise ValueError(f"unsupported package path: {package}")
     paths = {package}
     if package.startswith("rulesets/"):
-        config = tomllib.loads(git(root, "show", f"{revision}:{package}/config.toml").decode())
+        config = tomllib.loads(definition(root, revision, package).decode())
         # This catalog uses direct Rule references, without nested imports.
         if "imports" in config or "rule_sets" in config:
             raise ValueError(f"nested imports are unsupported: {package}")

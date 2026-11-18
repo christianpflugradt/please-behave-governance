@@ -31,7 +31,7 @@ class TrackingTests(unittest.TestCase):
         self.environment.start()
         self.addCleanup(self.environment.stop)
         self.git("init", "--template=", "-b", "main")
-        self.write("rulesets/sample/config.toml", 'rules = ["rules/checks/example"]\n')
+        self.write("rulesets/sample/ruleset.toml", 'rules = ["rules/checks/example"]\n')
         self.write("rules/checks/example/rule.toml", 'id = "example"\n')
         self.write("rules/checks/example/check.py", 'print("original")\n')
         self.write("providers/sample/provider.toml", 'command = "python3"\n')
@@ -95,7 +95,7 @@ class TrackingTests(unittest.TestCase):
                 self.track("rulesets/sample", changed)
 
     def test_rule_membership_change_counts_even_with_unchanged_rule_bytes(self):
-        self.write("rulesets/sample/config.toml", "rules = []\n")
+        self.write("rulesets/sample/ruleset.toml", "rules = []\n")
         changed = self.commit()
         self.assertEqual(self.updates(), [f"{changed}:refs/heads/updates/rulesets/sample"])
 
@@ -104,10 +104,18 @@ class TrackingTests(unittest.TestCase):
         self.commit()
         with self.assertRaises(subprocess.CalledProcessError):
             self.updates()
-        (self.root / "rulesets/sample/config.toml").unlink()
+        (self.root / "rulesets/sample/ruleset.toml").unlink()
         self.commit()
         with self.assertRaisesRegex(ValueError, "retiring packages"):
             self.updates()
+
+    def test_tracking_branch_from_before_the_definition_rename_is_compared(self):
+        self.git("mv", "rulesets/sample/ruleset.toml", "rulesets/sample/config.toml")
+        legacy = self.commit()
+        self.track("rulesets/sample", legacy)
+        self.git("mv", "rulesets/sample/config.toml", "rulesets/sample/ruleset.toml")
+        renamed = self.commit()
+        self.assertEqual(self.updates(), [f"{renamed}:refs/heads/updates/rulesets/sample"])
 
     def test_initialization_and_late_ci_completion(self):
         self.git("update-ref", "-d", tracking.PREFIX + "providers/sample")

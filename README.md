@@ -57,7 +57,7 @@ its definition, following the [rule knowledge schemas](https://github.com/please
 
 ```text
 rulesets/
-  <ruleset>/config.toml                    # Policy bundles, grouped logically rather than by execution point
+  <ruleset>/ruleset.toml                   # Policy bundles, grouped logically rather than by execution point
   <ruleset>/ruleset.yaml                   # Why the set exists and which Rules belong to it
 rules/checks/<rule>/                       # rule.toml, rule.yaml, implementation and resources
 rules/reviews/<rule>/                      # rule.toml, rule.yaml, prompt and resources
