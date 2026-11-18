@@ -32,3 +32,7 @@ class PinTests(unittest.TestCase):
 
     def test_workflows_without_jobs_pass(self):
         self.assertEqual(mod.violations("ci.yml", {}), [])
+
+
+if __name__ == "__main__":
+    unittest.main()
