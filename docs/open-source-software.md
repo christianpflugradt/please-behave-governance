@@ -1,7 +1,7 @@
 # Open-source software
 
 The `rulesets/open-source-software` set includes the blocking `license`,
-`workflow-syntax`, `ci-workflow`, `statistics-workflow`, `mise-setup` and `shell-scripts` checks at `check` and `pre-push` and the `github-metadata` check at `check`.
+`ci-workflow`, `statistics-workflow` and `mise-setup` checks at `check` and `pre-push` and the `github-metadata` check at `check`.
 The [quality assurance checks](#quality-assurance) follow the license section.
 The `license` check It compares the target file byte-for-byte with the regular,
 nonhidden files in `rules/checks/license/licenses/`. The included references are
@@ -32,14 +32,6 @@ ERROR (2).
 
 ## Quality assurance
 
-- `workflow-syntax` runs `actionlint` on the repository's GitHub workflows. It needs `actionlint` on
-  `PATH` and a `.github/workflows` directory; issues return FAIL, and a missing tool ERROR.
-- `shell-scripts` runs ShellCheck on every tracked `*.sh` file of the working tree, in any directory.
-  Scripts whose shebang names zsh are skipped because ShellCheck cannot analyze them.
-  Write portable POSIX `sh` (`#!/bin/sh`) where practical: ShellCheck then reports bashisms. Bash- or
-  zsh-specific syntax is accepted but discouraged; the rule does not require `sh`.
-  No scripts means PASS. Findings return FAIL; a missing tool or any other ShellCheck failure
-  returns ERROR.
 - `github-metadata` requires the GitHub repository it runs in to have a description of at least 30
   characters and 3 to 10 topics. It runs only at `check` and only in GitHub Actions: it reads
   `GITHUB_REPOSITORY` and queries the public GitHub API for that repository. Pass
@@ -78,7 +70,7 @@ ERROR (2).
   What the jobs calculate, the scripts they call, runners and the receiving repository are the repository's own. The rule
   checks structure only. It needs `yq` (v4) on `PATH` and Python 3.9+, and a missing tool or invalid YAML returns ERROR.
 
-Requirements: Git, and Python 3.9+ for `shell-scripts`, `github-metadata`, `ci-workflow` and `statistics-workflow`, plus the tools named above.
+Requirements: Git, and Python 3.9+ for `github-metadata`, `ci-workflow` and `statistics-workflow`, plus the tools named above.
 
 Pin a full commit hash for reproducible imports. Run `please sync` to resolve
 the import and install the managed pre-push hook. Exact matching enforces the

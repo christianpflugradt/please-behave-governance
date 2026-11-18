@@ -2,7 +2,7 @@
 
 The `rulesets/repository-conventions` set runs at `pre-commit` and `check`
 and keeps its two commit rules at `commit-msg` through per-reference overrides. It requires
-Please Behave 0.8.0 or later. It contains the `agents-size`, `editorconfig`, `mise-baseline` and `renovate-baseline` Checks, a deterministic
+Please Behave 0.8.0 or later. It contains the `agents-size`, `editorconfig`, `mise-baseline`, `renovate-baseline`, `workflow-syntax` and `shell-scripts` Checks, a deterministic
 commit syntax Check, an advisory wording Review and an advisory `AGENTS.md` quality Review.
 
 ## EditorConfig baseline
@@ -136,6 +136,22 @@ configuration, so it cannot see a rule that another rule overrides. It does not 
 Renovate app is installed or that branch protection allows the merge. Everything else, such as
 grouping, custom managers or `minimumReleaseAgeBehaviour`, is the repository's own. The Check needs
 no parameters.
+
+## Workflow syntax
+
+The blocking `workflow-syntax` Check runs `actionlint` on the repository's GitHub workflows, in any
+repository that has them. It needs `actionlint` on `PATH`. Issues return FAIL; a missing tool
+returns ERROR.
+
+## Shell scripts
+
+The blocking `shell-scripts` Check runs ShellCheck on every tracked `*.sh` file of the working tree,
+in any directory. Scripts must be portable across systems: every tracked `*.sh` file needs the
+shebang `#!/bin/sh` or `#!/usr/bin/env sh`, and a tracked `*.zsh` file is rejected. A bash, zsh or
+other shebang, or none, returns FAIL. ShellCheck then analyzes each script as POSIX `sh` and reports
+bashisms. Scripts without a `.sh` extension are not examined. No scripts means PASS. Findings return
+FAIL; a missing tool or any other ShellCheck failure returns ERROR. It needs `shellcheck` on `PATH`
+and Python 3.9+.
 
 ## AGENTS.md size
 
@@ -287,7 +303,7 @@ Please Behave sends the whole commit message with line numbers and, because the 
 judgment to the header. The CLI validates cited lines and message stability. No comparison with
 the actual change occurs.
 These rules do not inspect commit ranges or PR titles. The Review runs only at
-`commit-msg`, not in CI `check`, pre-push or release readiness. Only the deterministic `agents-size`, `editorconfig`, `mise-baseline` and `renovate-baseline` Checks run at `pre-commit` and `check`.
+`commit-msg`, not in CI `check`, pre-push or release readiness. Only the deterministic `agents-size`, `editorconfig`, `mise-baseline`, `renovate-baseline`, `workflow-syntax` and `shell-scripts` Checks run at `pre-commit` and `check`.
 
 A direct `please run --at commit-msg` or offline preview has no Git message
 argument and cannot run this set. Use a real Git commit/amend after setup, then

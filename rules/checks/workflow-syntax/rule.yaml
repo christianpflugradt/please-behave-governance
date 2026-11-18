@@ -1,0 +1,27 @@
+purpose: >-
+  Make GitHub workflow files have valid syntax and valid expressions.
+problem: >-
+  A syntax error or a wrong expression in a workflow shows only when GitHub runs it,
+  after the push and often with an unhelpful message. A broken CI or a release
+  workflow that never starts is then noticed late or not at all.
+value: >-
+  Mistakes in workflows are found locally, before the push.
+conditions:
+  - statement: actionlint reports no problem for the workflows of the repository.
+    rationale: It is the established tool for the syntax and expressions of GitHub workflows.
+success_criteria:
+  - A finding fails.
+  - A missing tool is an ERROR.
+  - A repository without workflows passes.
+out_of_scope:
+  - description: The structure and content of workflows.
+    owner: ci-workflow
+  - description: Whether a workflow runs or passes.
+limitations:
+  - Only what actionlint detects is found, and whether a workflow does the right thing is not judged.
+placement: >-
+  Almost every repository has workflows, and using GitHub Actions is not a
+  deliberate technology decision for each of them, so one shared check covers all.
+references:
+  - docs/repository-conventions.md
+  - https://github.com/rhysd/actionlint

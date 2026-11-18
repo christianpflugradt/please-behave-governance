@@ -5,8 +5,9 @@ audience: >-
   personal coaching.
 commonality: >-
   Each rule records a baseline that holds for every repository: shared formatting,
-  a uniform commit history, the same basic commands, continuous updates and a lean,
-  usable AGENTS.md. They need only Git hooks, not CI.
+  a uniform commit history, the same basic commands, continuous updates, a lean,
+  usable AGENTS.md and workflows and shell scripts that are free of syntax mistakes.
+  They need only Git hooks, not CI.
 rules:
   - rule: editorconfig
     role: Fixes the shared formatting baseline.
@@ -18,6 +19,10 @@ rules:
     role: Gives every repository the same basic commands and a fixed governor version.
   - rule: renovate-baseline
     role: Keeps pins and dependencies up to date automatically.
+  - rule: workflow-syntax
+    role: Finds mistakes in GitHub workflows, which almost every repository has, before the push.
+  - rule: shell-scripts
+    role: Keeps shell scripts, which almost every repository has, portable and free of typical mistakes.
   - rule: agents-size
     role: Keeps AGENTS.md small.
   - rule: agents-quality
@@ -25,10 +30,10 @@ rules:
 admission:
   - The rule applies to every repository, regardless of software, visibility or technology.
   - It works through Git hooks alone, without CI, and stays lightweight.
-  - It records a baseline and does not dictate the choice of tools; a rule that merely passes one command to local tooling stays local.
+  - It records a baseline and does not dictate the choice of tools; a rule that merely passes one command to local tooling stays local, unless nearly every repository has the matter regardless of any technology decision, as with workflows and shell scripts.
   - It does not duplicate another rule of the set.
 excluded:
-  - description: Licenses, workflow structure and shell checks.
+  - description: Licenses and the structure of CI and statistics workflows.
     rationale: They concern only open-source repositories.
     ruleset: open-source-software
   - description: Security checks.

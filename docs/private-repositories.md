@@ -6,7 +6,6 @@ is rounded up to a whole minute, macOS bills at 10x and Windows at 2x). It is an
 `open-source-software`, not an addition: that set requires CI on every push to `main`, this one
 forbids it. It runs at `check` and `pre-push` and adds to `repository-conventions`.
 
-- `workflow-syntax` runs `actionlint` on the repository's workflows. It needs `actionlint` on `PATH`.
 - `private-ci-workflow` requires `.github/workflows/ci.yml` to be the lean CI:
   - `name: CI`, triggered by `pull_request` and optionally `workflow_dispatch`, never by `push`,
     `schedule` or any other event. Agents and owners already pass the Git hooks before pushing to
@@ -20,8 +19,8 @@ forbids it. It runs at `check` and `pre-push` and adds to `repository-convention
   - Every job sets `timeout-minutes` of at most the `max_job_minutes` parameter, runs on a versioned
     Ubuntu runner such as `ubuntu-24.04` and uses no `strategy.matrix`. A versioned label instead of
     `ubuntu-latest` keeps runner changes reviewable: Renovate's github-actions manager proposes new
-    runner versions as PRs. Do not move to a runner that `actionlint` does not know yet; this
-    set's `workflow-syntax` check fails such a PR on purpose.
+    runner versions as PRs. Do not move to a runner that `actionlint` does not know yet; the
+    `workflow-syntax` check of `repository-conventions` fails such a PR on purpose.
   - Every `uses` is pinned to a full commit SHA. The check needs `yq` (v4) and Python 3.9+.
 - `private-renovate` requires `rebaseWhen: "conflicted"` in `renovate.json` and a `packageRules`
   entry with `rebaseWhen: "behind-base-branch"` for `please-behave/cli`, `please-behave/action` and

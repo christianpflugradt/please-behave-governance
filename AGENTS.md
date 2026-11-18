@@ -15,7 +15,7 @@
   size limit belong here. Keep this baseline lightweight: it runs at `pre-commit`
   and `check`, with commit rules overridden to `commit-msg`, and works through Git
   hooks without requiring CI.
-- Open-source software adds approved licenses and the shared workflow-syntax and shell
+- Open-source software adds approved licenses and the shared CI and Statistics workflow
   checks. A license check alone does not justify a separate ruleset.
 - Dependency-vulnerability evaluation is not a Please Behave concern. The Security bundle only
   verifies that a standardized audit workflow exists; scanners, reports and thresholds stay local.

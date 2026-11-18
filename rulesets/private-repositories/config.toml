@@ -2,7 +2,6 @@ id = "private-repositories"
 description = "Keep GitHub Actions usage of private repositories within the free minutes and Renovate churn low"
 run_at = ["pre-push", "check"]
 rules = [
-  "rules/checks/workflow-syntax",
   "rules/checks/private-ci-workflow",
   "rules/checks/private-renovate",
   { id = "rules/checks/repository-private", run_at = ["check"] },
