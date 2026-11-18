@@ -42,6 +42,19 @@ class BaselineTests(unittest.TestCase):
         extended["packageRules"].append({"matchPackageNames": ["eclipse-temurin"], "allowedVersions": "/^21/"})
         self.assertEqual(mod.violations(extended), [])
 
+    def test_lock_file_maintenance_is_required_in_any_accepted_form(self):
+        without = changed(lambda c: c["extends"].remove(":maintainLockFilesMonthly"))
+        self.assertTrue(any("lock file maintenance" in message for message in mod.violations(without)))
+        for preset in (":maintainLockFilesDaily", ":maintainLockFilesWeekly"):
+            self.assertEqual(
+                mod.violations(changed(lambda c, p=preset: c["extends"].__setitem__(c["extends"].index(":maintainLockFilesMonthly"), p))),
+                [],
+            )
+        enabled = changed(lambda c: (c["extends"].remove(":maintainLockFilesMonthly"), c.update(lockFileMaintenance={"enabled": True})))
+        self.assertEqual(mod.violations(enabled), [])
+        disabled = changed(lambda c: (c["extends"].remove(":maintainLockFilesMonthly"), c.update(lockFileMaintenance={"enabled": False})))
+        self.assertTrue(mod.violations(disabled))
+
     def test_equivalent_forms_pass(self):
         def mutate(config):
             config["minimumReleaseAge"] = "1 week"
@@ -58,8 +71,8 @@ class BaselineTests(unittest.TestCase):
             return lambda c: c["packageRules"].remove(rule(c, key, value))
 
         cases = {
-            "empty": ({}, 6),
-            "no governor": (changed(lambda c: c.update(extends=["config:best-practices"])), 1),
+            "empty": ({}, 7),
+            "no governor": (changed(lambda c: c.update(extends=["config:best-practices", ":maintainLockFilesMonthly"])), 1),
             "platform automerge": (changed(lambda c: c.update(platformAutomerge=True)), 1),
             "short default age": (changed(lambda c: c.update(minimumReleaseAge="6 days")), 1),
             "unsupported age": (changed(lambda c: c.update(minimumReleaseAge="a week")), 1),
@@ -83,7 +96,7 @@ class BaselineTests(unittest.TestCase):
             "major automerge": (changed(lambda c: rule(c, "matchUpdateTypes", "minor")["matchUpdateTypes"].append("major")), 1),
             "patch missing": (changed(lambda c: rule(c, "matchUpdateTypes", "minor")["matchUpdateTypes"].remove("patch")), 1),
             "not an object": ([], 1),
-            "malformed values": ({"extends": "x", "packageRules": ["x", {"matchUpdateTypes": "major"}]}, 6),
+            "malformed values": ({"extends": "x", "packageRules": ["x", {"matchUpdateTypes": "major"}]}, 7),
         }
         for name, (config, count) in cases.items():
             with self.subTest(name=name):

@@ -54,6 +54,7 @@ def read_file(selected, name):
 
 TARGET = "renovate.json"
 GOVERNOR = "github>christianpflugradt/please-behave-governance:renovate-governor"
+LOCK_MAINTENANCE_PRESETS = (":maintainLockFilesDaily", ":maintainLockFilesWeekly", ":maintainLockFilesMonthly")
 DEFAULT_DAYS = 7
 SLOW_DAYS = 14
 # The governor preset applies updates of these packages immediately; cooldown rules must not delay them.
@@ -92,6 +93,14 @@ def violations(config):
     found = []
     if GOVERNOR not in items(config.get("extends")):
         found.append(f"must extend {GOVERNOR}")
+    lock_maintenance = config.get("lockFileMaintenance")
+    if not (
+        any(preset in items(config.get("extends")) for preset in LOCK_MAINTENANCE_PRESETS)
+        or (isinstance(lock_maintenance, dict) and lock_maintenance.get("enabled") is True)
+    ):
+        found.append(
+            f"requires lock file maintenance: extend {', '.join(LOCK_MAINTENANCE_PRESETS)} or set lockFileMaintenance.enabled to true"
+        )
     if config.get("platformAutomerge") is not False:
         found.append("requires platformAutomerge = false")
     if days(config.get("minimumReleaseAge")) < DEFAULT_DAYS:

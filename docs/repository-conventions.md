@@ -88,6 +88,7 @@ ERROR (2).
 ```json
 {
   "extends": [
+    ":maintainLockFilesMonthly",
     "github>christianpflugradt/please-behave-governance:renovate-governor"
   ],
   "platformAutomerge": false,
@@ -113,6 +114,10 @@ ERROR (2).
 
 - `extends` contains the [governor preset](governor-updates.md), which keeps the governor and
   the ruleset pins current.
+- Lock file maintenance is enabled, so Renovate refreshes lock files itself instead of leaving transitive
+  dependencies to age: `extends` contains `:maintainLockFilesDaily`, `:maintainLockFilesWeekly` or
+  `:maintainLockFilesMonthly`, or `lockFileMaintenance.enabled` is `true`. The interval is the repository's own;
+  repositories without lock files meet the requirement without effect.
 - `platformAutomerge` is `false`, so Renovate merges itself and no repository setting is needed.
 - The default `minimumReleaseAge` is at least 7 days. Major updates and GitHub Actions need an
   entry with at least 14 days; an entry matches Actions through `matchManagers` with
