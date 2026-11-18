@@ -1,0 +1,29 @@
+purpose: >-
+  Give every public GitHub repository a meaningful description and a sensible number of topics.
+problem: >-
+  A public repository without a description and topics is hard to find and does not
+  tell visitors what it is for.
+value: >-
+  Every public repository presents itself with the same minimum quality.
+conditions:
+  - statement: The description has at least 30 characters.
+    rationale: Shorter texts rarely say anything useful.
+  - statement: The repository has between 3 and 10 topics.
+    rationale: Too few topics hamper discoverability and too many dilute it.
+  - statement: The Rule runs only at check and only in GitHub Actions, and only for public repositories.
+    rationale: It queries the public GitHub API for the repository it runs in, which needs no token for public repositories.
+success_criteria:
+  - Values outside the limits fail and the message names them.
+  - A missing GITHUB_REPOSITORY or an API failure is an ERROR.
+  - The optional token is never printed.
+out_of_scope:
+  - description: The quality of the description beyond its length, and whether the topics fit.
+  - description: README and website of the repository.
+limitations:
+  - Only the length of the description and the number of topics are checked.
+placement: >-
+  Making open-source repositories discoverable is a requirement the catalog owner
+  has for the owner's own public repositories, so the Rule belongs to the
+  open-source set.
+references:
+  - docs/open-source-software.md
