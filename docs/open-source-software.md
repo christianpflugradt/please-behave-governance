@@ -52,7 +52,7 @@ ERROR (2).
     steps allowed in between: `actions/checkout` with `persist-credentials: false`,
     `jdx/mise-action` without `install_args`, `run: mise run setup`, and `please-behave/action`
     with `execution-point: check`, `install: 'false'` and `sync: 'true'`.
-  - Every job sets `timeout-minutes`, and every `uses` of a remote action or workflow is pinned to a full commit SHA.
+  - Every job sets `timeout-minutes`.
 
   Runners, matrices, timeout values, extra jobs and steps, secrets and artifact names are the
   repository's own. The rule checks structure only; it does not verify that CI ran or passed.
@@ -64,8 +64,7 @@ ERROR (2).
   - Top-level `permissions` are exactly `contents: read`, and no job grants a write permission.
   - At least one job `collect` or `collect-<name>` calculates the statistics. A job `publish` needs every such job, runs only on
     `refs/heads/main` and is the only job that uses `secrets.STATISTICS_TOKEN`.
-  - Every `actions/checkout` sets `persist-credentials: false`, every job sets `timeout-minutes`, and every `uses` of a remote
-    action or workflow is pinned to a full commit SHA.
+  - Every `actions/checkout` sets `persist-credentials: false`, and every job sets `timeout-minutes`.
 
   What the jobs calculate, the scripts they call, runners and the receiving repository are the repository's own. The rule
   checks structure only. It needs `yq` (v4) on `PATH` and Python 3.9+, and a missing tool or invalid YAML returns ERROR.

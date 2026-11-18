@@ -1,11 +1,15 @@
 # Security
 
-The `rulesets/security` set runs three blocking checks at `check` and `pre-push`:
+The `rulesets/security` set runs four blocking checks at `check` and `pre-push`:
 
 - `sensitive-files` rejects `.env` and `.env.*` filenames, except `.env.example`,
   `.env.sample` and `.env.template`, and files ending in `.tfstate` or containing
   `.tfstate.`. Matching is case-sensitive and applies in every directory.
 - `secret-scan` scans file contents with Gitleaks.
+- `workflow-action-pins` requires every `uses` of a remote action or reusable workflow in the files directly below
+  `.github/workflows` to be pinned to a full 40-character commit SHA. Local references starting with `./` are exempt.
+  Tags and branches fail, because they can be moved after review. A repository without workflows passes. It needs `yq`
+  (v4) on `PATH` and Python 3.9+; a missing tool or invalid YAML returns ERROR.
 - `dependency-audit-workflow` makes every repository decide how it handles dependency vulnerabilities. It verifies
   structure only, never that the workflow ran or passed, and it does not scan dependencies: scanners, reports,
   summaries, caches and severity handling are the repository's own. It needs the required parameter `dependencies`:
@@ -19,8 +23,7 @@ The `rulesets/security` set runs three blocking checks at `check` and `pre-push`
       severity from which the audit fails. The rule checks that it is declared and valid; how the audit applies it is up
       to the workflow. Projects start with `medium` and raise it individually.
     - At least one job `audit` or `audit-<name>`. Top-level `permissions` are exactly `contents: read` and no job grants
-      a write permission. Every `actions/checkout` sets `persist-credentials: false`, every job sets `timeout-minutes`,
-      and every `uses` of a remote action or workflow is pinned to a full commit SHA.
+      a write permission. Every `actions/checkout` sets `persist-credentials: false`, and every job sets `timeout-minutes`.
   - `none` declares that the repository has no dependencies. The rule then fails when any tracked or nonignored file in
     any directory has a name from the candidate list in `rules/checks/dependency-audit-workflow/manifests.txt` (for example
     `package.json`, `Cargo.toml`, `build.gradle.kts`, `pyproject.toml` or `requirements*.txt`; names are matched

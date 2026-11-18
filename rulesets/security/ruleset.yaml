@@ -1,11 +1,11 @@
 purpose: >-
-  Bundle the baseline checks that keep credentials and vulnerable dependencies from going unnoticed.
+  Bundle the baseline checks that keep credentials, vulnerable dependencies and unpinned workflow code from going unnoticed.
 audience: >-
   Repositories that adopt the security policy, whether public or private, and
   whether or not they have dependencies.
 commonality: >-
-  Each rule protects against a way in which sensitive material or known weaknesses
-  reach or stay in a repository, and each can be judged mechanically from the
+  Each rule protects against a way in which sensitive material, known weaknesses or
+  unreviewed third-party code reach or stay in a repository, and each can be judged mechanically from the
   repository snapshot, without project-specific tooling choices.
 rules:
   - rule: sensitive-files
@@ -14,8 +14,10 @@ rules:
     role: Catches credentials inside ordinary files that no file name would reveal.
   - rule: dependency-audit-workflow
     role: Ensures that vulnerabilities in dependencies are looked for regularly, or that none can exist.
+  - rule: workflow-action-pins
+    role: Keeps third-party code in every workflow reviewed and unchangeable, as a security aspect that cuts across all workflows.
 admission:
-  - The rule addresses exposure of sensitive material or known vulnerabilities, not general code quality or hygiene.
+  - The rule addresses exposure of sensitive material, known vulnerabilities or unreviewed third-party code, not general code quality or hygiene.
   - It is decidable from the repository snapshot and does not depend on a specific language or build tool.
   - It verifies that a protective practice exists and leaves choice of tools, reports and thresholds to the repository.
   - It does not duplicate what another member already covers.

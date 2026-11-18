@@ -21,7 +21,7 @@ forbids it. It runs at `check` and `pre-push` and adds to `repository-convention
     `ubuntu-latest` keeps runner changes reviewable: Renovate's github-actions manager proposes new
     runner versions as PRs. Do not move to a runner that `actionlint` does not know yet; the
     `workflow-syntax` check of `repository-conventions` fails such a PR on purpose.
-  - Every `uses` is pinned to a full commit SHA. The check needs `yq` (v4) and Python 3.9+.
+  - The check needs `yq` (v4) and Python 3.9+.
 - `private-renovate` requires `rebaseWhen: "conflicted"` in `renovate.json` and a `packageRules`
   entry with `rebaseWhen: "behind-base-branch"` for `please-behave/cli`, `please-behave/action` and
   the governance repository's git URL. By default Renovate rebases every open PR whenever `main`

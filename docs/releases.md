@@ -78,7 +78,7 @@ structure. It needs `yq` (v4) on `PATH` and Python 3.9+; a missing tool or inval
   `needs.plan.outputs.source_sha`.
 - Only `plan` and `publish` may grant write permissions.
 - A job `publish` waits on uses `please-behave/action` with `execution-point: release`.
-- Every job sets `timeout-minutes`, and every `uses` of a remote action or workflow is pinned to a full commit SHA.
+- Every job sets `timeout-minutes`.
 
 Scripts and their locations, evidence and artifact handling, candidate and smoke steps, runners and
 matrices are the repository's own and are not inspected, so release scripts can move to another repository

@@ -18,7 +18,7 @@ conditions:
     rationale: Off-peak times avoid GitHub's busiest slot, and an early hour has the result ready at the start of the day, before anyone is up.
   - statement: AUDIT_FAIL_ON names a severity from which the audit fails.
     rationale: Each repository must decide its threshold deliberately; the rule only requires that the decision exists.
-  - statement: Permissions are read-only, checkout does not persist credentials, jobs have a timeout and external actions are pinned to a commit SHA.
+  - statement: Permissions are read-only, checkout does not persist credentials and jobs have a timeout.
     rationale: A workflow that runs on a timer with repository access can become an attack path, so it is held to a minimal privilege baseline.
   - statement: With dependencies declared as none, no tracked or non-ignored file has the name of a known dependency manifest.
     rationale: The declaration is only honest while it stays true, and a new manifest turns it into a failure.

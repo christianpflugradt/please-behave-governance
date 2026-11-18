@@ -11,7 +11,7 @@ that apply to a repository; each bundle adds to the others.
 | `rulesets/open-source-software` | Open-source software | `check`, `pre-push` | Approved license, `setup` task, CI and Statistics workflow structure |
 | `rulesets/private-repositories` | Private repositories on the free Actions minutes, instead of open-source software | `check`, `pre-push` | Pull-request-only CI with bounded jobs, Renovate rebase policy, private visibility |
 | `rulesets/releasable-open-source-software` | Releasable open-source software | `check`, `pre-push` | Semantic Release baseline, `release` task, Release workflow structure |
-| `rulesets/security` | Repositories adopting the security policy | `check`, `pre-push` | Sensitive filenames, secret scanning and Dependency Audit workflow structure |
+| `rulesets/security` | Repositories adopting the security policy | `check`, `pre-push` | Sensitive filenames, secret scanning, pinned workflow actions and Dependency Audit workflow structure |
 
 Repository conventions stay lightweight and work through Git hooks alone; `check` adds the same checks to CI.
 Security is a deliberate domain separation. License checking belongs to the

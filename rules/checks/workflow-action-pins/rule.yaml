@@ -1,0 +1,35 @@
+purpose: >-
+  Make every remote action and reusable workflow in the repository's workflows refer to one exact, reviewed revision.
+problem: >-
+  A tag or branch of an action can be moved after it was reviewed. A workflow that
+  refers to one runs whatever the reference points to at that moment, with the
+  permissions and secrets of the workflow. Third-party code can thereby enter the
+  repository's automation unnoticed, in any workflow, not just in the shared ones.
+value: >-
+  Workflows run only code that was reviewed at an exact revision, and a change of
+  that code becomes a visible change of the repository.
+conditions:
+  - statement: Every uses of a remote action or reusable workflow in the files directly below .github/workflows ends in @ followed by a full 40-character commit SHA.
+    rationale: A full commit hash identifies exact content and cannot be moved, unlike a tag or branch.
+  - statement: Local references starting with ./ are exempt.
+    rationale: They are part of the repository itself and reviewed with it.
+success_criteria:
+  - A tag, a branch or an abbreviated hash fails and the message names the workflow, the job and the reference.
+  - Every workflow file of the repository is covered, whatever its purpose.
+  - A repository without workflows passes.
+  - A missing tool or invalid YAML is an ERROR and never a verdict.
+out_of_scope:
+  - description: Whether the pinned revision is itself trustworthy or free of vulnerabilities.
+  - description: Keeping pins current, which Renovate does.
+  - description: Pins outside workflows, such as in mise.toml or lock files.
+  - description: The structure and permissions of individual workflows.
+    owner: ci-workflow
+limitations:
+  - The hash pins the content but does not show that the content was reviewed.
+  - Composite actions and workflow files below subdirectories are not examined.
+placement: >-
+  Pinning is a security aspect that cuts across all workflows, so it belongs in the
+  security bundle as one rule instead of repeated inside each workflow-structure
+  rule.
+references:
+  - docs/security.md

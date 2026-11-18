@@ -51,9 +51,6 @@ def read_file(selected, name):
     return path.read_bytes()
 
 
-PINNED = re.compile(r"^[^@\s]+@[0-9a-f]{40}$")
-
-
 def parse(content):
     """Return the workflow as a dict; invalid YAML or a non-mapping document is a technical failure."""
     result = subprocess.run(["yq", "--output-format=json", "."], input=content, capture_output=True)
@@ -128,7 +125,7 @@ def expect_steps(job_id, job, expected):
 
 
 def common(document):
-    """Rules every shared workflow follows: read-only default permissions, timeouts and pinned actions."""
+    """Rules every shared workflow follows: read-only default permissions and timeouts."""
     found = []
     if document.get("permissions") != {"contents": "read"}:
         found.append("top-level permissions must be exactly contents: read")
@@ -136,12 +133,6 @@ def common(document):
         reusable = "uses" in job
         if "timeout-minutes" not in job and not reusable:
             found.append(f"job {job_id} sets no timeout-minutes")
-        references = [job["uses"]] if reusable else []
-        references += [step["uses"] for step in steps(job) if "uses" in step]
-        for reference in references:
-            reference = str(reference)
-            if not reference.startswith("./") and not PINNED.match(reference):
-                found.append(f"job {job_id} uses {reference}, which is not pinned to a full commit SHA")
     return found
 
 

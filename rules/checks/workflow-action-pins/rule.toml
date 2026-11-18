@@ -1,0 +1,8 @@
+id = "workflow-action-pins"
+name = "Workflow action pins"
+description = "Every remote action and reusable workflow in the GitHub workflows is pinned to a full commit SHA"
+enabled = true
+
+[check]
+command = "python3 @rule/check.py @context"
+timeout_seconds = 60

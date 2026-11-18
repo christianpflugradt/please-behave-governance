@@ -77,10 +77,9 @@ class DependencyAuditWorkflowTests(unittest.TestCase):
         self.assertTrue(changed(lambda d: d["jobs"]["audit"]["steps"][0].pop("with")))
         self.assertTrue(changed(lambda d: d.update(permissions={"contents": "write"})))
 
-    def test_name_timeout_and_pinning_fail(self):
+    def test_name_and_timeout_fail(self):
         self.assertTrue(changed(lambda d: d.update(name="Audit")))
         self.assertTrue(changed(lambda d: d["jobs"]["audit"].pop("timeout-minutes")))
-        self.assertTrue(changed(lambda d: d["jobs"]["audit"]["steps"][0].update(uses="actions/checkout@v7")))
 
 
 class ManifestTests(unittest.TestCase):
