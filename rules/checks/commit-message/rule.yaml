@@ -1,0 +1,38 @@
+purpose: >-
+  Make commit headers follow one uniform, machine-readable format.
+problem: >-
+  Freely worded commit headers are inconsistent. The history does not show what
+  kind of change a commit is or which part of the project it affects. Tools such as
+  Semantic Release cannot derive releases or changelogs from it.
+value: >-
+  The history is uniformly readable and can be evaluated by tools. The kind and
+  area of every change are visible in its header.
+conditions:
+  - statement: "The header has the form <type>[(scope)][!]: <description> with a nonblank description."
+    rationale: This is the Conventional Commits syntax that tools rely on.
+  - statement: The type comes from the Rule's fixed list.
+    rationale: A closed list keeps the history comparable.
+  - statement: A scope, when present, is listed in the repository's scope file.
+    rationale: Which areas exist is project-specific, but the set should be closed and maintained deliberately.
+  - statement: Only the first line is validated.
+    rationale: Body and footer are free text.
+success_criteria:
+  - A header with a wrong form, an unknown type, an unknown scope or an empty description fails, and the message names the reason.
+  - Valid headers, including those with a breaking marker, pass.
+  - Missing context, files or parameters are an ERROR and never a verdict.
+out_of_scope:
+  - description: The wording of the description.
+    owner: commit-message-quality
+  - description: Body and footer of the message.
+  - description: Commit ranges and pull request titles.
+limitations:
+  - Only the header of a single commit is checked at the moment it is created.
+  - Whether the header matches the actual change is not checked.
+placement: >-
+  The format is a widespread standard and the same for all repositories. Only the
+  allowed scopes are project-specific, and they stay local as a parameter.
+parameters:
+  scopes_file: Points to the project's own list of allowed scopes.
+references:
+  - docs/repository-conventions.md
+  - https://www.conventionalcommits.org/en/v1.0.0/

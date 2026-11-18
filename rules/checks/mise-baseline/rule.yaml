@@ -1,0 +1,37 @@
+purpose: >-
+  Make every repository offer the same basic commands and fix the version of Please Behave it works with.
+problem: >-
+  Without a shared vocabulary, every repository must be understood anew: how to
+  format, how to verify, and which version of Please Behave applies. Differences
+  between repositories surprise people and cost productivity, and differing
+  versions lead to inconsistent results.
+value: >-
+  Uniformity is easier to understand, raises productivity and reduces surprises.
+  The same commands work the same way in every repository, and the version of
+  Please Behave in use is fixed and reproducible in the repository.
+conditions:
+  - statement: The root mise.toml pins the Please Behave version under [tools].
+    rationale: Everyone involved, and CI, should check with the same version.
+  - statement: It defines the task format.
+    rationale: There is one command everywhere to format all files; what it runs is the repository's decision.
+  - statement: It defines the task verify.
+    rationale: There is one quick diagnosis everywhere that runs the deterministic checks and stops at the first blocker. Its name differs from the check execution point on purpose, because the two are not the same and must not be confused.
+  - statement: A task counts when it has a nonempty run or depends.
+    rationale: A placeholder for a repository without a formatter keeps the vocabulary complete.
+  - statement: Further tools and tasks are allowed.
+    rationale: They are the repository's own decision.
+success_criteria:
+  - A missing file, a missing tool or a missing task fails.
+  - An unreadable or invalid file is an ERROR.
+  - Further tools and tasks never cause a FAIL.
+out_of_scope:
+  - description: What the tasks actually run, except that verify is defined in the documentation.
+  - description: Whether formatting is enforced, which is the job of the repository's own rules.
+  - description: Tasks defined outside mise.toml.
+limitations:
+  - Only the existence of the tasks is verified, not what they do.
+placement: >-
+  A shared vocabulary only comes into being when it is the same everywhere, and
+  the effort of checking it is the same for all repositories.
+references:
+  - docs/repository-conventions.md

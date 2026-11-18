@@ -1,0 +1,35 @@
+purpose: >-
+  Keep AGENTS.md small enough that agents read it completely at a reasonable context cost.
+problem: >-
+  AGENTS.md is loaded into the context of every agent for every task. Whatever
+  grows there takes up space permanently and lets the important parts get lost.
+  Without a limit the file grows gradually, because each single addition looks
+  reasonable.
+value: >-
+  The file stays focused. Anyone who wants to add something must decide what gives
+  way or what belongs in other documents.
+conditions:
+  - statement: The root AGENTS.md does not exceed the limit given by max_tokens.
+    rationale: A fixed limit makes growth visible before it becomes a problem.
+  - statement: Size is counted in words and punctuation marks as a rough token estimate.
+    rationale: It is reproducible without a tokenizer and accurate enough for the order of magnitude.
+  - statement: Each repository sets its own limit; there is no default.
+    rationale: A sensible size depends on the project, but the decision should be made deliberately.
+success_criteria:
+  - A file above the limit fails and a file below it passes.
+  - Only the size matters, never the content of the file.
+  - An invalid limit or an unreadable file is an ERROR and never a verdict.
+out_of_scope:
+  - description: The quality and content of AGENTS.md.
+    owner: agents-quality
+  - description: Other agent instruction files.
+limitations:
+  - The count is an estimate and does not equal the token count of any model.
+  - A missing AGENTS.md passes; its presence is not required by this Rule.
+placement: >-
+  The problem is the same in every repository that uses agents, and the only
+  project-specific part is the limit, which remains a parameter.
+parameters:
+  max_tokens: Sets the limit and forces each repository to decide its own.
+references:
+  - docs/repository-conventions.md

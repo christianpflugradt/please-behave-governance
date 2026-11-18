@@ -1,0 +1,38 @@
+purpose: >-
+  Keep the dependencies and version pins of every repository up to date automatically, with a shared caution when adopting updates.
+problem: >-
+  Pins, dependencies and lock files age when nobody maintains them. Updating by
+  hand is forgotten or postponed. Updates adopted without restraint carry their own
+  risk, for example from freshly published, faulty or compromised versions.
+value: >-
+  Every repository is kept current continuously and without manual work, with a
+  uniform waiting period for fresh versions and manual control over large jumps.
+conditions:
+  - statement: A valid root renovate.json exists.
+    rationale: Every repository, software or not, always has something to update through the governor pin and the ruleset pins.
+  - statement: It extends the governor preset.
+    rationale: The preset keeps the governor and the ruleset pins current. It applies updates to Please Behave's own tooling without a waiting period, because that tooling is first-party rather than third-party and new capabilities should be usable at once.
+  - statement: Lock file maintenance is enabled, daily, weekly or monthly as the repository chooses.
+    rationale: Otherwise transitive dependencies age. Without lock files the condition is met without effect.
+  - statement: platformAutomerge is false.
+    rationale: Renovate merges by itself, so no repository setting is needed.
+  - statement: The default waiting period for new versions is at least 7 days, and at least 14 days for major updates and GitHub Actions.
+    rationale: Freshly published versions should prove themselves first.
+  - statement: Minor, patch, pin and digest updates are merged automatically and major updates are not.
+    rationale: Small updates carry little risk, while large ones need a deliberate decision.
+success_criteria:
+  - A missing or invalid file or a missing requirement fails, and the message names it.
+  - Further settings, such as grouping or custom managers, never cause a FAIL.
+  - An unreadable or non-UTF-8 file is an ERROR.
+out_of_scope:
+  - description: Whether the Renovate app is installed.
+  - description: Whether branch protection allows the merge.
+  - description: All further Renovate settings of the repository.
+limitations:
+  - The Rule reads the file, not Renovate's merged configuration, so it cannot see when another rule overrides one of the entries.
+placement: >-
+  The update policy is the same for all repositories and is deliberately not
+  renegotiated locally, and the preset is tied to the governor itself.
+references:
+  - docs/repository-conventions.md
+  - docs/governor-updates.md

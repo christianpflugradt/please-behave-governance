@@ -1,0 +1,52 @@
+purpose: >-
+  Bundle the lightweight baseline that every repository should have, regardless of its kind or visibility.
+audience: >-
+  All repositories, public or private, software or not, such as documentation or
+  personal coaching.
+commonality: >-
+  Each rule records a baseline that holds for every repository: shared formatting,
+  a uniform commit history, the same basic commands, continuous updates and a lean,
+  usable AGENTS.md. They need only Git hooks, not CI.
+rules:
+  - rule: editorconfig
+    role: Fixes the shared formatting baseline.
+  - rule: commit-message
+    role: Keeps the history in a uniform, machine-readable format.
+  - rule: commit-message-quality
+    role: Makes the description say something, as advice.
+  - rule: mise-baseline
+    role: Gives every repository the same basic commands and a fixed governor version.
+  - rule: renovate-baseline
+    role: Keeps pins and dependencies up to date automatically.
+  - rule: agents-size
+    role: Keeps AGENTS.md small.
+  - rule: agents-quality
+    role: Checks that AGENTS.md gives usable guidance, as advice.
+admission:
+  - The rule applies to every repository, regardless of software, visibility or technology.
+  - It works through Git hooks alone, without CI, and stays lightweight.
+  - It records a baseline and does not dictate the choice of tools; a rule that merely passes one command to local tooling stays local.
+  - It does not duplicate another rule of the set.
+excluded:
+  - description: Licenses, workflow structure and shell checks.
+    rationale: They concern only open-source repositories.
+    ruleset: open-source-software
+  - description: Security checks.
+    rationale: Security is its own domain with its own bundle.
+    ruleset: security
+  - description: Formatters and linters as rules.
+    rationale: They are a choice of tools and stay local in each repository.
+complements:
+  - ruleset: open-source-software
+    rationale: Adds what only open-source repositories need on top of the baseline.
+  - ruleset: private-repositories
+    rationale: Adds what private repositories need on top of the baseline.
+  - ruleset: security
+    rationale: Adds the security policy on top of the baseline.
+execution_points: >-
+  The rules run at pre-commit and check, so that they work through Git hooks alone
+  and CI repeats the same checks. The two commit rules run at commit-msg because the
+  message they judge exists only there. The review of AGENTS.md runs only at check
+  to avoid the cost of model calls.
+references:
+  - docs/repository-conventions.md

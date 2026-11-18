@@ -1,0 +1,37 @@
+purpose: >-
+  Make every repository record the same baseline for character set, line endings and indentation.
+problem: >-
+  Without a shared baseline, editors, operating systems and agents format
+  differently. The result is mixed line endings, missing final newlines, trailing
+  whitespace and changing indentation. This fills diffs with noise and makes reviews
+  harder. In whitespace-sensitive formats, such as Python with differing tab widths,
+  inconsistent indentation can also cause real errors.
+value: >-
+  Every repository has an explicit baseline that is the same everywhere and that
+  common editors apply on their own.
+conditions:
+  - statement: A root .editorconfig exists and declares root = true.
+    rationale: Only then does it apply unambiguously and not mix with files outside the repository.
+  - statement: For all files, UTF-8, LF line endings, a final newline, trimmed trailing whitespace and indentation with two spaces apply.
+    rationale: This is the common baseline all repositories agree on.
+  - statement: For Markdown, trailing whitespace is not trimmed.
+    rationale: In Markdown, trailing spaces can mean a line break.
+  - statement: For Makefile, indentation uses tabs.
+    rationale: Make requires tabs, and without this section the baseline for all files would break Makefiles.
+  - statement: Further sections and properties are allowed.
+    rationale: File-type specific settings, such as four spaces for some languages, are the repository's own decision.
+success_criteria:
+  - A missing file, a missing section or a deviating value fails.
+  - Order, comments, spacing and letter case do not matter.
+  - Further sections and properties never cause a FAIL.
+  - An unreadable, non-UTF-8 or non-regular file is an ERROR.
+out_of_scope:
+  - description: Whether files actually follow the settings, which an EditorConfig-aware formatter or linter verifies.
+  - description: File-type specific formatting.
+limitations:
+  - Only the existence of the baseline is verified, not that it is followed.
+placement: >-
+  The baseline is the same for all repositories and needs no project knowledge, so
+  it is deliberately not renegotiated locally.
+references:
+  - docs/repository-conventions.md

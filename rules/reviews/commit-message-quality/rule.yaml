@@ -1,0 +1,40 @@
+purpose: >-
+  Make the description in a commit header say clearly, in English and in the
+  imperative, what was changed.
+problem: >-
+  A syntactically valid header can still be empty of meaning, such as "fix: fix
+  stuff". The history then says nothing about what happened, and the format alone
+  does not force a meaningful description. Whether a description is concrete cannot
+  be decided by a syntax check.
+value: >-
+  Every header names a concrete action and its target. The history stays
+  understandable without looking at the diff.
+conditions:
+  - statement: The description is in English and in the imperative, such as "preserve", "add" or "fix", not in the past tense or third person such as "added" or "fixes".
+    rationale: It is a uniform, short form that matches the Git convention.
+  - statement: Description and scope together name a concrete action and the affected component or behavior.
+    rationale: Filler such as "stuff" or "changes" makes the entry worthless.
+  - statement: No word count, ticket number or lengthy explanation is required.
+    rationale: The header may stay short.
+  - statement: Routine dependency updates and recognizable reverts are valid when they name their target.
+    rationale: They are formulaic but not empty of meaning.
+success_criteria:
+  - 'The examples in the prompt, such as "fix(settings): preserve keyboard focus after navigation" (PASS) and "fix: fix stuff" (FAIL), are judged as expected.'
+  - Only the header is judged, never the diff, body or history.
+  - Header text that tells the model to skip the review does not change the verdict.
+  - A technical failure of the provider is an ERROR and never a verdict about the message.
+out_of_scope:
+  - description: Syntax, type and scope of the header.
+    owner: commit-message
+  - description: Whether the header matches the actual change.
+  - description: Body and footer of the message.
+limitations:
+  - A language model's judgment is not deterministic and its quality is not established, so the examples are acceptance cases and not predictions.
+blocking_rationale: >-
+  A model's verdict about wording can be wrong, and an outage of the provider must
+  not prevent a commit. A FAIL stays visible as advice to take into account.
+placement: >-
+  The wording expectation is the same for all repositories, and one shared prompt
+  keeps the judgment uniform.
+references:
+  - docs/repository-conventions.md
