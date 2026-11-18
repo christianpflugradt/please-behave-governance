@@ -1,0 +1,37 @@
+purpose: >-
+  Make sure a repository that uses the rules for private repositories is actually private.
+problem: >-
+  A private repository can contain data that must not be public. If it is switched
+  to public by mistake, that data is exposed and can no longer be taken back, since
+  anything that was visible once must be treated as compromised. The reverse
+  mistake is harmless by comparison, because a public repository made private only
+  loses its visibility and can be corrected without consequence. Also, the limits of
+  the private set assume that the repository is private and billed from the free
+  allowance, so they would be the wrong tool for a public one.
+value: >-
+  An accidental switch of a private repository to public is noticed at the next
+  check, and the set is applied only where its premise holds.
+conditions:
+  - statement: The GitHub repository in which the Rule runs is private.
+    rationale: Only then do the limits of the set apply, and a private repository must not be public unnoticed.
+  - statement: The Rule runs only at check and only in GitHub Actions.
+    rationale: It queries the GitHub API for the repository it runs in.
+  - statement: GITHUB_REPOSITORY is set and, for a private repository, GITHUB_TOKEN as well.
+    rationale: A private repository cannot be read through the API without a token.
+success_criteria:
+  - A public repository fails and the message refers to the open-source set.
+  - A missing GITHUB_REPOSITORY or an API failure is an ERROR, locally always.
+  - The token is never printed.
+out_of_scope:
+  - description: Structure of CI and of Renovate.
+    owner: private-ci-workflow
+  - description: Billing and the spending limit of the account.
+limitations:
+  - Only the state at the time of the check is seen, and the Rule does not run locally.
+  - The opposite direction, a public repository made private by mistake, is not checked, because it only loses visibility.
+placement: >-
+  The premise of being private is the same for the whole set, and the check needs no
+  project knowledge. It is a separate rule because exposing private data is the
+  more serious mistake; the open-source set has no counterpart for that reason.
+references:
+  - docs/private-repositories.md

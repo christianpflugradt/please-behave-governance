@@ -2,9 +2,11 @@
 
 The `rulesets/private-repositories` set is for private repositories that run GitHub Actions on
 the free plan's monthly minutes (2,000 Linux minutes across all private repositories; each job
-is rounded up to a whole minute, macOS bills at 10x and Windows at 2x). It is an alternative to
-`open-source-software`, not an addition: that set requires CI on every push to `main`, this one
-forbids it. It runs at `check` and `pre-push` and adds to `repository-conventions`.
+is rounded up to a whole minute, macOS bills at 10x and Windows at 2x). It is not combined with
+`open-source-software`, because the two define the CI workflow differently: that set also runs CI
+on every push to `main`, this one runs it on pull requests only. It runs at `check` and `pre-push`
+and adds to `repository-conventions`. Why each rule and the set exist is recorded in the
+`rule.yaml` and `ruleset.yaml` files next to their definitions.
 
 - `private-ci-workflow` requires `.github/workflows/ci.yml` to be the lean CI:
   - `name: CI`, triggered by `pull_request` and optionally `workflow_dispatch`, never by `push`,

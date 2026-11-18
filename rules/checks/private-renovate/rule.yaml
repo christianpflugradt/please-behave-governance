@@ -1,0 +1,32 @@
+purpose: >-
+  Make Renovate rebase open pull requests in private repositories only on conflicts, to keep CI runs low.
+problem: >-
+  By default Renovate rebases every open pull request whenever main moves, and each
+  rebase reruns CI. One merged pull request then triggers a rebase of all the others.
+  In private repositories with a limited allowance of Actions minutes, this is a
+  considerable usage without benefit.
+value: >-
+  Roughly one CI run per pull request instead of one per pull request and per
+  change of main.
+conditions:
+  - statement: renovate.json sets rebaseWhen to conflicted.
+    rationale: Renovate then rebases only when it is actually necessary.
+  - statement: Updates of the governor and the catalog pins keep the stricter policy of rebasing whenever they are behind the base branch.
+    rationale: A catalog pin must be validated again after a governor update that touches different files.
+success_criteria:
+  - A missing setting or rule fails and the message names it.
+  - Further settings are free and never cause a FAIL.
+  - An unreadable file is an ERROR.
+out_of_scope:
+  - description: The rest of renovate.json.
+    owner: renovate-baseline
+  - description: Whether Renovate is installed.
+  - description: Branch protection.
+limitations:
+  - The Rule reads the file, not Renovate's merged configuration, so it cannot see an override by another rule.
+  - Without branch protection, which the free plan does not offer for private repositories, a pull request that is behind still merges.
+placement: >-
+  The policy is the same for all private repositories, and the exception for
+  governor and catalog pins belongs to the structure of the catalog.
+references:
+  - docs/private-repositories.md

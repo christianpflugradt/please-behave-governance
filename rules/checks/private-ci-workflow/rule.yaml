@@ -1,0 +1,43 @@
+purpose: >-
+  Give private repositories a lean CI that runs only on pull requests and bounds the Actions minutes it can use.
+problem: >-
+  Private repositories share a monthly allowance of free Actions minutes. A CI that
+  also runs on every push to main pays twice for checks that the Git hooks already
+  ran. Unbounded jobs, matrices and superseded runs consume further minutes. Once the
+  allowance is used up, pull requests of dependency updates remain without a check.
+value: >-
+  Every private repository has a CI for pull requests and stays predictably within
+  the free allowance.
+conditions:
+  - statement: .github/workflows/ci.yml is named CI and runs on pull requests, optionally on manual dispatch, never on push, schedule or any other event.
+    rationale: Agents and owners already pass the Git hooks before pushing to main, so a run on push would bill the same checks twice.
+  - statement: Top-level permissions are exactly contents read.
+    rationale: Checking needs no write access.
+  - statement: Concurrency cancels runs in progress.
+    rationale: A pull request superseded by a force push must not keep billing minutes for old runs.
+  - statement: A job check contains, in this order, checkout without persisted credentials, mise setup and the Please Behave action at the check execution point limited to checks.
+    rationale: Reviews are advisory and call a paid model API, so they stay out of CI.
+  - statement: Every job sets a timeout of at most the value of max_job_minutes.
+    rationale: The usage per run is bounded from above.
+  - statement: Every job runs on a versioned Ubuntu runner such as ubuntu-24.04 and uses no matrix.
+    rationale: A fixed version makes runner changes reviewable, since Renovate proposes new versions, and a matrix multiplies the usage.
+success_criteria:
+  - A deviating structure fails and the message names the violated part.
+  - Additional steps, secrets and artifact names are free and never cause a FAIL.
+  - A missing tool, invalid YAML or an invalid parameter is an ERROR.
+out_of_scope:
+  - description: Whether the allowance suffices, because billing is not visible to the Rule.
+  - description: Syntax and expressions of the workflow.
+    owner: workflow-syntax
+  - description: Pinning of actions to commit hashes.
+    owner: workflow-action-pins
+  - description: All other workflows.
+limitations:
+  - Only the structure is verified, not the actual usage; only the account's spending limit protects against exceeding the allowance.
+placement: >-
+  The restriction is the same for all private repositories. Only the limit per job
+  is project-specific and remains a parameter.
+parameters:
+  max_job_minutes: Sets the upper bound for the timeout of every job, so that the usage stays controllable.
+references:
+  - docs/private-repositories.md

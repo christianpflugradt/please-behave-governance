@@ -1,0 +1,39 @@
+purpose: >-
+  Keep the GitHub Actions usage of private repositories within the free allowance and Renovate churn low, and make sure the repository is private.
+audience: >-
+  Private repositories of the catalog owner that run GitHub Actions on the free
+  plan's monthly allowance of minutes.
+commonality: >-
+  Each rule follows from the premise that the repository is private and that its
+  minutes are limited: a lean CI for pull requests, little rebase churn from
+  Renovate, and the check that the premise holds.
+rules:
+  - rule: private-ci-workflow
+    role: Provides a CI for pull requests whose usage is bounded.
+  - rule: private-renovate
+    role: Keeps Renovate from triggering needless CI runs.
+  - rule: private-visibility
+    role: Makes sure the repository is private, so the premise holds and nothing is exposed by mistake.
+admission:
+  - The rule follows from the repository being private or from its limited allowance of minutes.
+  - It does not apply to public repositories.
+  - It checks structure or state and does not dictate technology.
+  - It does not repeat a rule of another set.
+excluded:
+  - description: Publication rules such as license, statistics and repository metadata.
+    rationale: They concern the presentation of public open-source repositories.
+    ruleset: open-source-software
+  - description: A CI that runs on every push to main.
+    rationale: It would consume the free allowance, and the two sets define the CI workflow differently, so they are not combined.
+    ruleset: open-source-software
+complements:
+  - ruleset: repository-conventions
+    rationale: It is the baseline that this set builds on.
+  - ruleset: security
+    rationale: It adds the security policy on top.
+execution_points: >-
+  The rules run at check and pre-push, so that violations are noticed before pushing
+  and CI checks again. private-visibility runs only at check, because it queries the
+  GitHub API and runs only in GitHub Actions.
+references:
+  - docs/private-repositories.md
