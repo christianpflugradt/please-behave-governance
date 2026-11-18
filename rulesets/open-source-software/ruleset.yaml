@@ -1,0 +1,44 @@
+purpose: >-
+  Add what a public open-source repository needs on top of the baseline: an approved license, a uniform CI, visible statistics and a discoverable presentation.
+audience: >-
+  The public open-source software repositories of the catalog owner. Some
+  requirements, such as visible statistics and repository metadata, are the
+  owner's personal ones and not a general expectation of open-source projects.
+commonality: >-
+  Each rule concerns publishing a repository as open source: legal clarity through
+  the license, independent verification of the checks through CI, and visibility and
+  discoverability through statistics and metadata.
+rules:
+  - rule: license
+    role: Keeps licenses uniform and consciously chosen.
+  - rule: ci-workflow
+    role: Repeats the checks independently of local hooks.
+  - rule: statistics-workflow
+    role: Makes the statistics of main visible in a uniform way.
+  - rule: github-metadata
+    role: Gives each public repository a description and topics.
+admission:
+  - The rule concerns the publication or visibility of an open-source repository and does not apply to private repositories.
+  - It does not apply to every repository, otherwise it belongs in repository-conventions.
+  - It checks structure or state and does not dictate technology.
+  - It does not repeat a rule of another set.
+excluded:
+  - description: Security checks such as secret scanning, dependency audits and pinned actions.
+    rationale: Security is its own domain with its own bundle.
+    ruleset: security
+  - description: Releases with Semantic Release.
+    rationale: They concern only repositories that publish releases.
+    ruleset: releasable-open-source-software
+complements:
+  - ruleset: repository-conventions
+    rationale: It is the baseline that this set builds on.
+  - ruleset: security
+    rationale: It adds the security policy on top.
+  - ruleset: releasable-open-source-software
+    rationale: It adds releases for repositories that publish them.
+execution_points: >-
+  The rules run at check and pre-push, so that violations are noticed before
+  publication and CI checks again. github-metadata runs only at check, because it
+  queries the GitHub API and runs only in GitHub Actions.
+references:
+  - docs/open-source-software.md
