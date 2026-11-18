@@ -1,0 +1,7 @@
+id = "format-shell"
+name = "Shell formatting"
+description = "Tracked shell scripts are formatted with shfmt"
+
+[check]
+command = "python3 @rule/check.py"
+timeout_seconds = 60

@@ -22,7 +22,8 @@
 - Releasable open-source software adds the Semantic Release baseline.
 - Admit a Rule only with a strong argument. A Rule that merely passes one command to local
   tooling, such as a formatter or linter in check mode, stays local to each repository: accept
-  the redundancy instead of centrally managing tool choices. Rules backed by local scripts that
+  the redundancy instead of centrally managing tool choices. Tools for technology that nearly
+  every repository has, such as shell scripts, are the exception and belong here. Rules backed by local scripts that
   may drift between repositories are decided individually. Do not dictate technology stacks; a
   stack-specific ruleset (for example Java applications, where Maven or Gradle may be used) is
   neither excluded nor assumed and needs its own case. This is maintainer advice for this

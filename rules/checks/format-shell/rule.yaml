@@ -1,0 +1,36 @@
+purpose: >-
+  Keep shell scripts formatted with shfmt in every repository.
+problem: >-
+  Almost every repository has shell scripts, and without a shared formatter each
+  one drifts in indentation and style. Unformatted scripts fill diffs with noise
+  and cause style discussions. Because the same tool would otherwise be configured
+  as a local Rule in every repository, the rule would be duplicated without reason.
+value: >-
+  Shell formatting is uniform in all repositories and no longer reviewed by hand.
+  The formatter is decided once instead of per repository.
+conditions:
+  - statement: shfmt reports no differences for every tracked *.sh file, in any directory.
+    rationale: shfmt is the one formatter for shell scripts, and its style comes from the repository's .editorconfig.
+  - statement: Without scripts the Rule passes.
+    rationale: There is nothing to check.
+  - statement: The Rule only verifies and never edits files; writing the format belongs to the repository's mise format task.
+    rationale: Checks stay free of side effects, and the task vocabulary is the same in every repository.
+success_criteria:
+  - Formatted scripts pass and unformatted ones fail with the differences shown.
+  - A syntax error, a missing shfmt or any other shfmt failure is an ERROR.
+  - A repository without scripts passes.
+out_of_scope:
+  - description: Scripts without a .sh extension.
+  - description: Linting and portability, which the shell-scripts Rule covers.
+  - description: Which indentation to use, which .editorconfig decides.
+limitations:
+  - Only tracked *.sh files are examined.
+  - The repository must provide shfmt, for example through its mise.toml, and apply it in its format task.
+placement: >-
+  Shell scripts are not a deliberate technology decision and nearly every
+  repository has them, so the formatter is one shared decision. It sits next to
+  shell-scripts, which already covers the same files. Only the format task that
+  writes the result stays local.
+references:
+  - docs/repository-conventions.md
+  - https://github.com/mvdan/sh
