@@ -1,7 +1,0 @@
-id = "npm-audit"
-name = "npm dependency audit"
-description = "No npm dependency has a known high or critical vulnerability"
-
-[check]
-command = "python3 @rule/check.py"
-timeout_seconds = 300

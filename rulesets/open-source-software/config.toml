@@ -8,6 +8,5 @@ rules = [
   "rules/checks/statistics-workflow",
   "rules/checks/shell-scripts",
   "rules/checks/mise-setup",
-  { id = "rules/checks/npm-audit", run_at = ["check"] },
   { id = "rules/checks/github-metadata", run_at = ["check"] },
 ]

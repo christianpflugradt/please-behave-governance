@@ -15,8 +15,10 @@
   size limit belong here. Keep this baseline lightweight: it runs at `pre-commit`
   and `check`, with commit rules overridden to `commit-msg`, and works through Git
   hooks without requiring CI.
-- Open-source software adds approved licenses and the shared workflow-syntax, shell
-  and dependency-audit checks. A license check alone does not justify a separate ruleset.
+- Open-source software adds approved licenses and the shared workflow-syntax and shell
+  checks. A license check alone does not justify a separate ruleset.
+- Dependency-vulnerability evaluation is not a Please Behave concern. The Security bundle only
+  verifies that a standardized audit workflow exists; scanners, reports and thresholds stay local.
 - Releasable open-source software adds the Semantic Release baseline.
 - Admit a Rule only with a strong argument. A Rule that merely passes one command to local
   tooling, such as a formatter or linter in check mode, stays local to each repository: accept
