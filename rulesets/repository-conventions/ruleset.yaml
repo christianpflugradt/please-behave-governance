@@ -17,6 +17,8 @@ rules:
     role: Makes the description say something, as advice.
   - rule: mise-baseline
     role: Gives every repository the same basic commands and a fixed governor version.
+  - rule: mise-setup
+    role: Gives every repository the same way to set up a checkout.
   - rule: renovate-baseline
     role: Keeps pins and dependencies up to date automatically.
   - rule: workflow-syntax

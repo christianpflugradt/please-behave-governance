@@ -5,6 +5,5 @@ rules = [
   "rules/checks/license",
   "rules/checks/ci-workflow",
   "rules/checks/statistics-workflow",
-  "rules/checks/mise-setup",
   { id = "rules/checks/github-metadata", run_at = ["check"] },
 ]

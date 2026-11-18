@@ -7,8 +7,8 @@ that apply to a repository; each bundle adds to the others.
 
 | Ruleset path | Repository group | Execution points | Current rules |
 | --- | --- | --- | --- |
-| `rulesets/repository-conventions` | Every repository, public or private, software or otherwise | `pre-commit`, `check`; `commit-msg` for commit rules | `AGENTS.md` size limit, EditorConfig baseline, Conventional Commit syntax and advisory header wording, mise governor pin with `format` and `verify` tasks, Renovate baseline, workflow syntax with `actionlint`, portable POSIX `sh` scripts checked with ShellCheck |
-| `rulesets/open-source-software` | Open-source software | `check`, `pre-push` | Approved license, `setup` task, CI and Statistics workflow structure |
+| `rulesets/repository-conventions` | Every repository, public or private, software or otherwise | `pre-commit`, `check`; `commit-msg` for commit rules | `AGENTS.md` size limit, EditorConfig baseline, Conventional Commit syntax and advisory header wording, mise governor pin with `format`, `verify` and `setup` tasks, Renovate baseline, workflow syntax with `actionlint`, portable POSIX `sh` scripts checked with ShellCheck |
+| `rulesets/open-source-software` | Open-source software | `check`, `pre-push` | Approved license, CI and Statistics workflow structure, GitHub metadata |
 | `rulesets/private-repositories` | Private repositories on the free Actions minutes, instead of open-source software | `check`, `pre-push` | Pull-request-only CI with bounded jobs, Renovate rebase policy, private visibility |
 | `rulesets/releasable-open-source-software` | Releasable open-source software | `check`, `pre-push` | Semantic Release baseline, `release` task, Release workflow structure |
 | `rulesets/security` | Repositories adopting the security policy | `check`, `pre-push` | Sensitive filenames, secret scanning, pinned workflow actions and Dependency Audit workflow structure |
@@ -45,8 +45,8 @@ the Gemini operations themselves still require network access.
 
 | Bundle | Required consumer configuration | Tools and credentials |
 | --- | --- | --- |
-| Repository conventions | `agents-size.max_tokens`; `commit-message.scopes_file`; independent `gemini-flash-lite` and `gemini-flash` provider imports | Python 3.9+ (3.11+ for the mise tasks check), Git, `actionlint`, ShellCheck and `GEMINI_API_KEY` for the wording and `AGENTS.md` reviews |
-| Open-source software | `license.target`, usually `LICENSE` | Python 3.9+ (3.11+ for the `setup` task check), Git, `yq`; network and optionally `GITHUB_TOKEN` for `github-metadata` at `check` |
+| Repository conventions | `agents-size.max_tokens`; `commit-message.scopes_file`; independent `gemini-flash-lite` and `gemini-flash` provider imports | Python 3.9+ (3.11+ for the mise checks), Git, `actionlint`, ShellCheck and `GEMINI_API_KEY` for the wording and `AGENTS.md` reviews |
+| Open-source software | `license.target`, usually `LICENSE` | Python 3.9+, Git, `yq`; network and optionally `GITHUB_TOKEN` for `github-metadata` at `check` |
 | Private repositories | `private-ci-workflow.max_job_minutes` | Python 3.9+, Git, `yq`; `GITHUB_REPOSITORY` and `GITHUB_TOKEN` for `repository-private` at `check` |
 | Releasable open-source software | `semantic-release.tag_format` | Python 3.11+, Git, Node 24+, `yq` |
 | Security | `dependency-audit-workflow.dependencies`, `audited` or `none` | Python 3.9+, Git, `yq`, Gitleaks v8 with `gitleaks dir` |

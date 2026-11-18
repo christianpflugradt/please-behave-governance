@@ -1,0 +1,31 @@
+purpose: >-
+  Give every repository the same way to set up a fresh checkout, through a setup task.
+problem: >-
+  A fresh checkout lacks what hooks and CI need to check, such as the locked
+  packages fetched by npm ci. Without a uniform entry point, one has to find out per
+  repository how to set up, and offline hooks fail on missing dependencies.
+value: >-
+  mise install followed by mise setup sets up a checkout the same way in every
+  repository, for developers, agents and CI alike.
+conditions:
+  - statement: The root mise.toml defines the task setup with a nonempty run or depends.
+    rationale: It is the uniform entry point that CI and developers use alike.
+  - statement: The task fetches the locked dependencies that offline hooks and CI need, such as with npm ci.
+    rationale: They should work without network access afterward. A repository without dependencies may use a placeholder.
+  - statement: The task is not specific to CI.
+    rationale: It serves every checkout.
+success_criteria:
+  - A missing task fails.
+  - An unreadable or invalid file is an ERROR.
+  - What the task runs is free and never causes a FAIL.
+out_of_scope:
+  - description: What the task actually does, and whether it fetches the right dependencies.
+  - description: Tasks defined outside mise.toml.
+limitations:
+  - Only the existence of the task is verified, not what it does.
+placement: >-
+  Every repository is set up the same way, whether it has dependencies or not, so
+  one shared definition of the entry point belongs in the baseline for all
+  repositories.
+references:
+  - docs/repository-conventions.md

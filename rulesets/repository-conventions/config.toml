@@ -5,6 +5,7 @@ rules = [
   "rules/checks/agents-size",
   "rules/checks/editorconfig",
   "rules/checks/mise-baseline",
+  "rules/checks/mise-setup",
   "rules/checks/renovate-baseline",
   "rules/checks/workflow-syntax",
   "rules/checks/shell-scripts",

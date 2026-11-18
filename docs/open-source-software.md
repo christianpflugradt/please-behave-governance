@@ -1,7 +1,7 @@
 # Open-source software
 
 The `rulesets/open-source-software` set includes the blocking `license`,
-`ci-workflow`, `statistics-workflow` and `mise-setup` checks at `check` and `pre-push` and the `github-metadata` check at `check`.
+`ci-workflow` and `statistics-workflow` checks at `check` and `pre-push` and the `github-metadata` check at `check`.
 The [quality assurance checks](#quality-assurance) follow the license section.
 The `license` check It compares the target file byte-for-byte with the regular,
 nonhidden files in `rules/checks/license/licenses/`. The included references are
@@ -40,11 +40,6 @@ ERROR (2).
   outside the limits return FAIL; a missing `GITHUB_REPOSITORY` or an API failure returns ERROR.
   It supports public repositories only.
 
-- `mise-setup` requires a `setup` task in the root `mise.toml` (same rules as the
-  [Mise baseline](repository-conventions.md#mise-baseline); it needs Python 3.11+). The task
-  fetches the locked dependencies that offline Git hooks and CI need, such as `npm ci`, so that
-  `mise install` followed by `mise setup` sets up a checkout. It is not specific to CI.
-
 - `ci-workflow` requires `.github/workflows/ci.yml` to follow the shared structure:
   - `name: CI`, triggered by `push` to `main` and by `pull_request`; further triggers are allowed.
   - Top-level `permissions` are exactly `contents: read`.
@@ -60,7 +55,7 @@ ERROR (2).
 
 - `statistics-workflow` passes when `.github/workflows/statistics.yml` does not exist. Otherwise the workflow follows
   the shared structure for sending statistics to a central repository:
-  - `name: Statistics`, triggered by `push` to `main` and by `workflow_dispatch`, never by `pull_request` or `pull_request_target`.
+  - `name: Statistics`, triggered only by `push` to `main`, never by `workflow_dispatch`, `pull_request` or any other event.
   - Top-level `permissions` are exactly `contents: read`, and no job grants a write permission.
   - At least one job `collect` or `collect-<name>` calculates the statistics. A job `publish` needs every such job, runs only on
     `refs/heads/main` and is the only job that uses `secrets.STATISTICS_TOKEN`.

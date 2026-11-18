@@ -2,7 +2,7 @@
 
 The `rulesets/repository-conventions` set runs at `pre-commit` and `check`
 and keeps its two commit rules at `commit-msg` through per-reference overrides. It requires
-Please Behave 0.8.0 or later. It contains the `agents-size`, `editorconfig`, `mise-baseline`, `renovate-baseline`, `workflow-syntax` and `shell-scripts` Checks, a deterministic
+Please Behave 0.8.0 or later. It contains the `agents-size`, `editorconfig`, `mise-baseline`, `mise-setup`, `renovate-baseline`, `workflow-syntax` and `shell-scripts` Checks, a deterministic
 commit syntax Check, an advisory wording Review and an advisory `AGENTS.md` quality Review.
 
 ## EditorConfig baseline
@@ -75,6 +75,15 @@ run = "please run --at pre-push --checks-only --fail-fast"
   the last one before adding the task.
 
 The Check needs Python 3.11+ for `tomllib`. It takes no parameters.
+
+## Mise setup
+
+The blocking `mise-setup` Check requires a `setup` task in the root `mise.toml`, under the same rules as the
+[Mise baseline](#mise-baseline): a task counts when it has a non-empty `run` or `depends`, and file tasks outside
+`mise.toml` are not recognized. The task fetches the locked dependencies that offline Git hooks and CI need, such as
+`npm ci`, so that `mise install` followed by `mise setup` sets up a checkout. It is not specific to CI. A repository
+without dependencies may print a not-implemented message instead of leaving the task out. The Check needs Python
+3.11+ for `tomllib` and takes no parameters.
 
 ## Renovate baseline
 
@@ -303,7 +312,7 @@ Please Behave sends the whole commit message with line numbers and, because the 
 judgment to the header. The CLI validates cited lines and message stability. No comparison with
 the actual change occurs.
 These rules do not inspect commit ranges or PR titles. The Review runs only at
-`commit-msg`, not in CI `check`, pre-push or release readiness. Only the deterministic `agents-size`, `editorconfig`, `mise-baseline`, `renovate-baseline`, `workflow-syntax` and `shell-scripts` Checks run at `pre-commit` and `check`.
+`commit-msg`, not in CI `check`, pre-push or release readiness. Only the deterministic `agents-size`, `editorconfig`, `mise-baseline`, `mise-setup`, `renovate-baseline`, `workflow-syntax` and `shell-scripts` Checks run at `pre-commit` and `check`.
 
 A direct `please run --at commit-msg` or offline preview has no Git message
 argument and cannot run this set. Use a real Git commit/amend after setup, then
