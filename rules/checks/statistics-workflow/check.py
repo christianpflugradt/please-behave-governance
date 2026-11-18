@@ -171,12 +171,10 @@ def violations(document):
         found.append('name must be "Statistics"')
     events = triggers(document)
     push = as_dict(events.get("push"))
-    if "main" not in as_list(push.get("branches")):
+    if as_list(push.get("branches")) != ["main"]:
         found.append("must run on push to main")
-    if "workflow_dispatch" not in events:
-        found.append("must run on workflow_dispatch")
-    if {"pull_request", "pull_request_target"} & set(events):
-        found.append("must not run on pull requests")
+    if set(events) - {"push"}:
+        found.append("must run only on push to main, not on any other event")
     listed = jobs(document)
     collectors = [job_id for job_id in listed if is_collect(job_id)]
     if not collectors:

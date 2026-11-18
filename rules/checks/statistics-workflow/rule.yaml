@@ -1,0 +1,41 @@
+purpose: >-
+  Make the statistics of an open-source repository visible in a uniform way, by sending them from the state of main to a central repository.
+problem: >-
+  Statistics that are shown for arbitrary branches or pull requests do not describe
+  the state that counts. Without a shared structure, every repository collects and
+  sends its statistics differently, and whatever displays them cannot rely on a
+  uniform source.
+value: >-
+  The statistics of every open-source repository come from the state of main in the
+  same form, and can be shown together.
+conditions:
+  - statement: When .github/workflows/statistics.yml does not exist, the Rule passes.
+    rationale: Sending statistics is optional.
+  - statement: The workflow is named Statistics and runs only on push to main, never on manual dispatch, pull requests or any other event.
+    rationale: Only the state of main is shown, and statistics of other branches or pull requests are not needed.
+  - statement: Top-level permissions are exactly contents read, and no job grants a write permission.
+    rationale: Calculating statistics needs no write access to the repository.
+  - statement: At least one job collect or collect-<name> calculates the statistics.
+    rationale: Calculating is separated from sending.
+  - statement: A job publish waits for every collect job, runs only on refs/heads/main and is the only job that uses secrets.STATISTICS_TOKEN.
+    rationale: Sending happens in one place and only from the state that counts.
+  - statement: Every checkout sets persist-credentials to false, and every job sets a timeout.
+    rationale: Later steps do not need the checkout credentials, and a hanging job must not consume minutes unnoticed.
+success_criteria:
+  - A deviating structure fails and the message names the violated part.
+  - What the jobs calculate, the scripts they call, runners and the receiving repository are free and never cause a FAIL.
+  - A missing tool or invalid YAML is an ERROR.
+out_of_scope:
+  - description: What is calculated and how it is displayed.
+  - description: Whether the workflow ran or passed.
+  - description: Pinning of actions to commit hashes.
+    owner: workflow-action-pins
+limitations:
+  - Only the structure is verified, not that the statistics are meaningful.
+placement: >-
+  Visible statistics are a requirement of the catalog owner for the owner's own
+  open-source repositories, not a general open-source expectation. The Rule is
+  therefore shared within this catalog's open-source set only, and would not belong
+  in a generally reusable set.
+references:
+  - docs/open-source-software.md
