@@ -1,0 +1,37 @@
+purpose: >-
+  Keep files that hold credentials or infrastructure state out of the repository.
+problem: >-
+  An environment file or Terraform state that is committed carries real credentials
+  or resource details. Once pushed, they must be treated as compromised and rotated,
+  and removing them from history is laborious and never certain. Such files are
+  easy to commit by accident because tools create them next to the source.
+value: >-
+  The mistake is caught from the file name alone, before the push, when it is still
+  free to correct and without needing to read the file.
+conditions:
+  - statement: No file is named .env or starts with .env.
+    rationale: Environment files customarily hold the real values of secrets.
+  - statement: No file name ends in .tfstate or contains .tfstate.
+    rationale: Terraform state stores sensitive values in plain text, and its backups share the marker.
+  - statement: Matching is case-sensitive and applies in every directory.
+    rationale: A nested file is as dangerous as a top-level one, and a predictable rule is easier to trust.
+success_criteria:
+  - Every prohibited name is reported, in any directory, in tracked files and in untracked files that are not ignored.
+  - Template files named in the exceptions never cause a FAIL.
+  - The result does not depend on file contents, so a file without secrets still fails by name.
+  - A technical problem is an ERROR and never reads as a verdict about the repository.
+exceptions:
+  - description: .env.example, .env.sample and .env.template are allowed.
+    rationale: Value-free templates document which variables a project needs, which is worth keeping in the repository.
+out_of_scope:
+  - description: Secrets inside the contents of ordinary files, including allowed templates.
+    owner: secret-scan
+  - description: Secrets in earlier commits.
+limitations:
+  - Names only; a secret stored under an unlisted file name is not detected.
+  - Git history is not examined, so a file removed from the tree but present in earlier commits passes.
+placement: >-
+  The failure pattern and the file names are the same in every repository, and the
+  check needs no project knowledge, so one shared definition protects all adopters.
+references:
+  - docs/security.md

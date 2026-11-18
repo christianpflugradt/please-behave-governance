@@ -1,0 +1,36 @@
+purpose: >-
+  Bundle the baseline checks that keep credentials and vulnerable dependencies from going unnoticed.
+audience: >-
+  Repositories that adopt the security policy, whether public or private, and
+  whether or not they have dependencies.
+commonality: >-
+  Each rule protects against a way in which sensitive material or known weaknesses
+  reach or stay in a repository, and each can be judged mechanically from the
+  repository snapshot, without project-specific tooling choices.
+rules:
+  - rule: sensitive-files
+    role: Catches the most common accidental leak, environment and state files, from the file name alone.
+  - rule: secret-scan
+    role: Catches credentials inside ordinary files that no file name would reveal.
+  - rule: dependency-audit-workflow
+    role: Ensures that vulnerabilities in dependencies are looked for regularly, or that none can exist.
+admission:
+  - The rule addresses exposure of sensitive material or known vulnerabilities, not general code quality or hygiene.
+  - It is decidable from the repository snapshot and does not depend on a specific language or build tool.
+  - It verifies that a protective practice exists and leaves choice of tools, reports and thresholds to the repository.
+  - It does not duplicate what another member already covers.
+excluded:
+  - description: Running a vulnerability scanner or setting its thresholds.
+    rationale: Evaluating dependency vulnerabilities is not a concern of the governance catalog; tools and policies stay local.
+  - description: Approved licenses.
+    rationale: License compliance is a legal question of open-source publication, not a security one.
+    ruleset: open-source-software
+complements:
+  - ruleset: repository-conventions
+    rationale: Its baseline applies to every repository, while this set adds the security policy on top.
+execution_points: >-
+  The checks run at pre-push and check. Scanning contents and verifying workflows
+  would slow every commit, while a push is the last point before material becomes
+  visible to others, and CI checks independently of any local hook.
+references:
+  - docs/security.md

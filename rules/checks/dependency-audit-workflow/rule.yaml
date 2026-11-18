@@ -1,0 +1,46 @@
+purpose: >-
+  Make every repository state how it audits its dependencies for vulnerabilities.
+problem: >-
+  Dependencies age silently. Vulnerabilities are published long after code is
+  merged, so without a recurring audit a repository learns about them late or never.
+  Leaving the choice to memory means some repositories have no audit and nobody
+  notices, and different audits make results incomparable.
+value: >-
+  Each repository has either a recurring audit with a recognizable, safe shape or
+  an explicit statement that it has no dependencies, and a repository that later
+  gains dependencies cannot keep claiming it has none.
+conditions:
+  - statement: With dependencies declared as audited, .github/workflows/dependency-audit.yml exists and follows the shared structure.
+    rationale: A shared shape makes audits recognizable and reviewable across repositories without prescribing any scanner.
+  - statement: The workflow runs by schedule and on manual dispatch, never on push or pull request.
+    rationale: A recurring audit finds vulnerabilities that appear without any code change, and an audit that blocks ordinary changes would be disabled.
+  - statement: The schedule is daily or weekly at a fixed minute off the hour and an early UTC hour.
+    rationale: Off-peak times avoid GitHub's busiest slot, and an early hour has the result ready at the start of the day, before anyone is up.
+  - statement: AUDIT_FAIL_ON names a severity from which the audit fails.
+    rationale: Each repository must decide its threshold deliberately; the rule only requires that the decision exists.
+  - statement: Permissions are read-only, checkout does not persist credentials, jobs have a timeout and external actions are pinned to a commit SHA.
+    rationale: A workflow that runs on a timer with repository access can become an attack path, so it is held to a minimal privilege baseline.
+  - statement: With dependencies declared as none, no tracked or non-ignored file has the name of a known dependency manifest.
+    rationale: The declaration is only honest while it stays true, and a new manifest turns it into a failure.
+success_criteria:
+  - A missing, misscheduled or unsafe workflow fails with a message that names the violated part.
+  - The rule never decides how vulnerabilities are found or weighed; any scanner can satisfy it.
+  - A repository without dependencies needs no workflow, but cannot add a manifest unnoticed.
+  - An invalid parameter value, a missing tool or invalid YAML is an ERROR and never a verdict.
+out_of_scope:
+  - description: Running the audit, reporting vulnerabilities and handling their severity.
+  - description: Whether the workflow ran or passed.
+  - description: Which tool audits which ecosystem.
+  - description: Secrets in the repository.
+    owner: secret-scan
+limitations:
+  - Only the structure of the workflow is verified, so a workflow that is present but does not audit anything passes.
+  - The manifest list names candidate files only and may miss an ecosystem it does not list.
+placement: >-
+  The need to decide how dependencies are audited is common to repositories, while
+  scanners and thresholds differ per project; sharing the structure and leaving the
+  content local gives consistency without dictating technology.
+parameters:
+  dependencies: Selects whether the repository audits dependencies or states that it has none, so the rule can apply the matching expectation.
+references:
+  - docs/security.md

@@ -1,0 +1,37 @@
+purpose: >-
+  Keep secrets such as keys and tokens out of the files of a repository.
+problem: >-
+  A credential in a source, configuration or documentation file gives anyone with
+  read access the same rights as its owner. A leaked secret must be rotated
+  regardless of how quickly the commit is deleted. File names cannot reveal this,
+  because secrets sit in ordinary files.
+value: >-
+  Leaked credentials are found before publication, with an established detector
+  whose rules the community maintains, instead of a hand-written pattern list.
+conditions:
+  - statement: Gitleaks finds no secret in the files of the checked snapshot.
+    rationale: A dedicated scanner recognizes many secret formats that no repository would maintain itself.
+  - statement: The scan uses the scanner configuration and ignore list from the snapshot itself, never from the environment.
+    rationale: A result that depends on the caller's machine could hide a leak that the committed repository contains.
+  - statement: Reported findings show the file and detector but never the secret value or its line.
+    rationale: Output is stored in reports and logs, so printing a secret there would spread it further.
+success_criteria:
+  - A secret in any tracked or non-ignored file, templates included, produces a FAIL naming the file and detector.
+  - No output, report or log contains a secret value.
+  - A missing scanner, a scanner crash or an inconsistent scanner report is an ERROR and never a PASS.
+out_of_scope:
+  - description: Prohibited file names such as environment files.
+    owner: sensitive-files
+  - description: Vulnerable dependencies.
+    owner: dependency-audit-workflow
+limitations:
+  - Detection is pattern based, so a PASS does not prove that no secret exists.
+  - Git history is not scanned, only the current snapshot.
+  - Contents behind symlinks and unsupported entries such as submodules are outside the scan; submodules raise an ERROR.
+placement: >-
+  Secret exposure is not specific to any project, and a consistent, hardened
+  invocation of the scanner, with its snapshot handling and output suppression, is
+  the value of sharing it.
+parameters: {}
+references:
+  - docs/security.md
