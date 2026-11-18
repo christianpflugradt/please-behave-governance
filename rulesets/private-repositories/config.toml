@@ -4,5 +4,5 @@ run_at = ["pre-push", "check"]
 rules = [
   "rules/checks/private-ci-workflow",
   "rules/checks/private-renovate",
-  { id = "rules/checks/repository-private", run_at = ["check"] },
+  { id = "rules/checks/private-visibility", run_at = ["check"] },
 ]

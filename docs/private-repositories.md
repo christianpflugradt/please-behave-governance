@@ -31,7 +31,7 @@ forbids it. It runs at `check` and `pre-push` and adds to `repository-convention
   and ruleset pins keep the stricter policy, because a ruleset pin must be re-validated after a
   governor update that touches different files. The check reads the file, not Renovate's merged
   configuration.
-- `repository-private` runs at `check` only, in GitHub Actions, and fails when the repository is
+- `private-visibility` runs at `check` only, in GitHub Actions, and fails when the repository is
   public. It needs `GITHUB_REPOSITORY` and, for a private repository, `GITHUB_TOKEN`, so pass
   `env: GITHUB_TOKEN: ${{ github.token }}` to the Please Behave step. Locally it returns ERROR (2),
   as `github-metadata` does.
