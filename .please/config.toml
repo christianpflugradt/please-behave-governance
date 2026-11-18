@@ -3,7 +3,7 @@ project = "Please Behave Governance"
 [[imports]]
 git = "https://github.com/christianpflugradt/please-behave-governance.git"
 path = "rulesets/repository-conventions"
-ref = "a65baa4daaa8229bdcd342636b4f5606967548c5"
+ref = "99e6343686796ee9899d4b7b4ea9020fb9001e4d"
 
 [imports.rule_parameters.agents-size]
 max_tokens = "1500"
@@ -14,7 +14,7 @@ scopes_file = ".please/commit-scopes.txt"
 [[imports]]
 git = "https://github.com/christianpflugradt/please-behave-governance.git"
 path = "rulesets/security"
-ref = "da37ce8bc5772b150479db3f14ffecbc873b4bb1"
+ref = "af39e3c3b3a4c3e99bdc2e8228d8debed3d58354"
 
 [imports.rule_parameters.dependency-audit-workflow]
 dependencies = "none"
@@ -22,7 +22,7 @@ dependencies = "none"
 [[imports]]
 git = "https://github.com/christianpflugradt/please-behave-governance.git"
 path = "rulesets/open-source-software"
-ref = "22d69b50cdc1af622471fc88bf46ef7637476e97"
+ref = "0d144cfde259d10942fae7760cbace32c45bc83d"
 
 [imports.rule_parameters.license]
 target = "LICENSE"
