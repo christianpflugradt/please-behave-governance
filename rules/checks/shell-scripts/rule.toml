@@ -1,6 +1,6 @@
 id = "shell-scripts"
 name = "Shell scripts"
-description = "Shell scripts are free of ShellCheck findings"
+description = "Shell scripts use an sh shebang and are free of ShellCheck findings"
 
 [check]
 command = "python3 @rule/check.py"

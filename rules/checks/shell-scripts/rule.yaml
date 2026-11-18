@@ -1,0 +1,38 @@
+purpose: >-
+  Keep shell scripts portable across systems and free of ShellCheck findings.
+problem: >-
+  Shell scripts depend on the shell that runs them. A script written for bash or
+  zsh fails or behaves differently on a system where that shell is missing or old,
+  and macOS ships only an outdated bash. Shell scripts also often fail only at run
+  time and behave wrongly for certain input, for example with spaces in file names.
+  ShellCheck cannot analyze zsh at all.
+value: >-
+  Scripts run the same on any system, typical shell mistakes are found early, and
+  every script in the repository is covered by the same analysis.
+conditions:
+  - statement: Every tracked *.sh file declares #!/bin/sh or #!/usr/bin/env sh as its shebang.
+    rationale: The system's POSIX shell is the one shell that can be assumed everywhere, so a script that needs nothing else is system-agnostic.
+  - statement: No tracked *.zsh file exists.
+    rationale: zsh is neither portable nor analyzable by ShellCheck.
+  - statement: ShellCheck reports no finding for any tracked *.sh file, in any directory.
+    rationale: With an sh shebang it also reports constructs that are not portable, such as bashisms.
+  - statement: Without scripts the Rule passes.
+    rationale: There is nothing to check.
+success_criteria:
+  - A script with a bash, zsh or other shebang, or with none, fails and the message names the file.
+  - A ShellCheck finding fails.
+  - A missing tool or any other ShellCheck failure is an ERROR.
+  - A repository without scripts passes.
+out_of_scope:
+  - description: Scripts without a .sh extension.
+  - description: Whether a script does the right thing.
+limitations:
+  - Only what ShellCheck detects is found.
+  - Scripts without a .sh extension are not examined.
+placement: >-
+  Almost every repository has shell scripts, and using them is not a deliberate
+  technology decision. Tools of a chosen stack, such as npm, stay local, because
+  their use is a conscious choice.
+references:
+  - docs/repository-conventions.md
+  - https://www.shellcheck.net/
