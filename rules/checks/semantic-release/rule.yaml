@@ -1,0 +1,50 @@
+purpose: >-
+  Make every repository that publishes releases use the same Semantic Release configuration.
+problem: >-
+  When each repository builds its own release configuration, each decides differently
+  which commit types trigger a version, how release notes look, whether a changelog
+  is written and which plugins run. Releases then behave inconsistently, and there
+  is no reason for such freedom: nothing about the individual project calls for a
+  different release policy. Deviations drift apart over time and surprise the people
+  who maintain several repositories.
+value: >-
+  Version bumps and release notes follow the same rules everywhere, so a release
+  holds no surprise. A commit history in Conventional Commits format leads
+  traceably to the next version.
+conditions:
+  - statement: release.config.mjs is the only configuration source, with no .releaserc, no other release.config file and no release key in package.json.
+    rationale: Several sources make it unclear which one applies.
+  - statement: Only branches, tagFormat, repositoryUrl and plugins are set, branches is main and tagFormat equals the parameter tag_format.
+    rationale: Releases come only from main, and the tag format is declared deliberately, while any further option would be a deviation without a reason.
+  - statement: The plugins are the commit analyzer, the release notes generator, optional local plugins and the GitHub plugin, in this order.
+    rationale: Everything beyond the GitHub release, such as a changelog, a Git commit or an npm publication, is not needed, and the policy takes only what is used.
+  - statement: Analyzer and release notes generator use the conventionalcommits preset with the shared release levels and sections.
+    rationale: Every commit type then means the same in every repository, which reduces surprise.
+  - statement: The GitHub plugin switches off success comments, failure comments and released labels.
+    rationale: They produce noise in the form of GitHub emails and information that nobody uses.
+  - statement: package.json sets private and the engine and pins the Semantic Release packages to exact versions that the lock file matches.
+    rationale: Releases are reproducible, and a version only changes through a reviewed update.
+success_criteria:
+  - A deviating configuration fails and the message names the violated part.
+  - Local plugin contents, assets, versions and engine bounds are free and never cause a FAIL.
+  - A missing tool or a configuration that cannot be evaluated is an ERROR.
+out_of_scope:
+  - description: The structure of the release workflow.
+    owner: release-workflow
+  - description: The release task.
+    owner: mise-release
+  - description: Which commit types exist and their syntax.
+    owner: commit-message
+  - description: Whether a release succeeded.
+limitations:
+  - The Rule checks the configuration, not the behavior of a release.
+  - The configuration is evaluated with Node in an isolated directory, so it must be self-contained.
+placement: >-
+  The release policy is the same for all repositories that publish releases, and
+  there is no reason to deviate per project, so one shared definition prevents
+  drift. Only the tag format is a parameter, because repositories with older tags
+  may need to declare theirs.
+parameters:
+  tag_format: Declares the format of release tags, normally v${version}, so that a repository with older tags deviates only deliberately.
+references:
+  - docs/releases.md

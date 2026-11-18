@@ -1,0 +1,27 @@
+purpose: >-
+  Give every repository that publishes releases the same command to start a release, through a release task.
+problem: >-
+  Without a uniform entry point, one has to find out per repository how a release
+  is started, and a release started from local state can differ from what is on
+  main.
+value: >-
+  mise run release starts a release the same way in every repository, always on the
+  remote main and never on local state.
+conditions:
+  - statement: The root mise.toml defines the task release with a nonempty run or depends.
+    rationale: It is the uniform entry point for releases.
+success_criteria:
+  - A missing task fails.
+  - An unreadable or invalid file is an ERROR.
+  - What the task runs is free and never causes a FAIL.
+out_of_scope:
+  - description: What the task actually does, and whether it starts the workflow on main.
+  - description: The structure of the release workflow.
+    owner: release-workflow
+limitations:
+  - Only the existence of the task is verified, not what it does.
+placement: >-
+  Starting a release is the same action in every repository that publishes releases,
+  so one shared entry point removes surprise.
+references:
+  - docs/releases.md

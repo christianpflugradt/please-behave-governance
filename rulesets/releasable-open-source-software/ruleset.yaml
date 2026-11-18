@@ -1,0 +1,37 @@
+purpose: >-
+  Add to an open-source repository the uniform way of publishing releases: one Semantic Release configuration, one release workflow and one release task.
+audience: >-
+  Open-source software repositories of the catalog owner that publish releases.
+commonality: >-
+  Each rule standardizes one part of publishing a release, so that releases behave
+  the same in every repository and hold no surprise: the release policy, the
+  workflow that carries it out and the command that starts it.
+rules:
+  - rule: semantic-release
+    role: Fixes the release policy, so every commit type means the same everywhere.
+  - rule: release-workflow
+    role: Fixes the stages through which every release passes before it is published.
+  - rule: mise-release
+    role: Fixes the command that starts a release.
+admission:
+  - The rule concerns publishing releases and applies only to repositories that publish them.
+  - It standardizes where there is no legitimate interest in deviating per repository.
+  - It checks structure or configuration and does not dictate what is built or verified.
+  - It does not repeat a rule of another set.
+excluded:
+  - description: Repositories without releases.
+    rationale: The rules would demand a release machinery they do not use.
+  - description: What is built, tested and verified in a release.
+    rationale: It differs per repository and stays local.
+complements:
+  - ruleset: open-source-software
+    rationale: Releases are published by open-source repositories, which this set builds on.
+  - ruleset: repository-conventions
+    rationale: The commit conventions it defines drive the release levels.
+  - ruleset: security
+    rationale: It adds the security policy, including pinned actions, to the release workflow.
+execution_points: >-
+  The rules run at check and pre-push, so that deviations are noticed before they are
+  published and CI checks again.
+references:
+  - docs/releases.md
