@@ -17,13 +17,50 @@ Repository conventions stay lightweight and work through Git hooks alone; `check
 Security is a deliberate domain separation. License checking belongs to the
 open-source bundle.
 
+## Principles
+
+The catalog standardizes principles, not technologies. It prescribes no language,
+framework, build tool, test runner or linter, and it places no limit on the artifact
+a repository produces: a compiled binary, a JAR, several container images or a
+deployment all fit. Structure and policy are shared where there is no legitimate
+reason to deviate; where there is one, the choice stays local. The only technology
+the catalog sets is a small layer of governance tooling and the glue around a project,
+such as shell scripts, and it complements other tools instead of excluding them.
+The platform it works on (Please Behave, GitHub, mise, Renovate) is its environment,
+not a constraint on what is built.
+
+Goals:
+
+- **Predictability** (no surprises): a repository behaves as one expects, also when
+  seen for the first time.
+- **Stability** (no drift): what was agreed stays agreed, over time and across
+  repositories.
+- **Simplicity** (no unnecessary complexity): exactly what is needed and easy to survey.
+
+Means:
+
+- **Consistency**: the same commands, structure and meaning everywhere, defined once
+  instead of renegotiated per repository.
+- **Frugality**: nothing is introduced without a reason, whether a plugin, a
+  permission, a tool or a rule.
+- **Reproducibility**: CI/CD that verifies from a neutral environment, as much as
+  possible defined as code, and version pinning instead of moving targets.
+
+Two measures qualify the means. Standardize only where there is no legitimate interest
+in deviating. And weigh what cannot be undone more heavily than what can, as with
+exposing a private repository.
+
+Every Rule and Rule Set states why it exists in a `rule.yaml` or `ruleset.yaml` next to
+its definition, following the [rule knowledge schemas](https://github.com/please-behave/cli/tree/main/knowledge/contracts/rule-knowledge).
+
 ## Layout
 
 ```text
 rulesets/
   <ruleset>/config.toml                    # Policy bundles, grouped logically rather than by execution point
-rules/checks/<rule>/                       # rule.toml, implementation and resources
-rules/reviews/<rule>/                      # rule.toml, prompt and resources
+  <ruleset>/ruleset.yaml                   # Why the set exists and which Rules belong to it
+rules/checks/<rule>/                       # rule.toml, rule.yaml, implementation and resources
+rules/reviews/<rule>/                      # rule.toml, rule.yaml, prompt and resources
 providers/<provider>/                      # provider.toml and adapter
 docs/                                     # Policy usage and compatibility details
 ```
