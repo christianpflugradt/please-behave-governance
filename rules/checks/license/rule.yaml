@@ -1,0 +1,38 @@
+purpose: >-
+  Make every open-source repository carry a license from a list of deliberately approved licenses.
+problem: >-
+  A repository without a license is legally unclear, because others may use or
+  change the code only with doubt. Licenses chosen ad hoc multiply without reason,
+  and the overview of which licenses are in use is lost. Small deviations from a
+  standard text leave open whether the intended text applies.
+value: >-
+  Every repository carries a consciously chosen license in the wording of the
+  original text. When no approved license fits, supporting another one becomes a
+  deliberate decision instead of a side effect.
+conditions:
+  - statement: The license file, whose path is given by the parameter target, matches one of the Rule's reference texts byte for byte.
+    rationale: Only an unchanged original text is unambiguously the approved license.
+  - statement: The list of approved licenses is kept small and changes only by adding or removing reference files.
+    rationale: Few licenses keep the overview, and the approval stays in one visible place.
+  - statement: At check the file in the working tree is read, at pre-push the file from HEAD.
+    rationale: What is pushed is what is committed.
+success_criteria:
+  - A matching file passes, a missing or deviating one fails.
+  - The smallest deviation fails, including whitespace and line endings.
+  - Invalid configuration or an execution error is an ERROR.
+out_of_scope:
+  - description: Recognizing licenses or judging their legal suitability.
+  - description: Licenses of dependencies.
+  - description: Earlier commits.
+limitations:
+  - Only exact equality with a reference text is checked; a license text with project-specific parts cannot match a fixed reference.
+  - The legal suitability of a license is not assessed.
+placement: >-
+  Which licenses are approved is one shared decision for all open-source
+  repositories and belongs in one place. Only the path of the license file is
+  project-specific.
+parameters:
+  target: Gives the path of the license file, usually LICENSE.
+references:
+  - docs/open-source-software.md
+  - https://github.com/spdx/license-list-data
