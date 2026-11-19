@@ -67,25 +67,11 @@ jobs:
         uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
       - name: Verify exact-source CI prerequisites
         id: proof
-        uses: christianpflugradt/please-behave-governance/actions/release/check-ci@bebfa9c1b717c64c49f677c0a2d2e4730d86515d # updates/actions/release
+        uses: christianpflugradt/please-behave-governance/actions/release/check-ci@e0d645d4cf3d5e462540eb184ee55b5ad7227889 # updates/actions/release
         with:
           required-jobs: ${{ inputs.required-jobs }}
       - name: Verify release readiness
         if: inputs.governance == 'true'
-        uses: please-behave/action@9a184e405e62a79154989de1e54c54869180751b # v1.5.0
+        uses: christianpflugradt/please-behave-governance/actions/release/governance@e0d645d4cf3d5e462540eb184ee55b5ad7227889 # updates/actions/release
         with:
-          install: 'false'
-          sync: 'true'
-          execution-point: release
-          summary: 'true'
-        env:
-          GH_TOKEN: ${{ github.token }}
-      - name: Upload readiness report
-        if: always() && inputs.governance == 'true'
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: release-readiness-report-${{ github.run_id }}-${{ github.run_attempt }}
-          path: .please/reports/last.json
-          include-hidden-files: true
-          if-no-files-found: warn
-          retention-days: 7
+          report-name: release-readiness-report
