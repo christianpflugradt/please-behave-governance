@@ -92,6 +92,12 @@ The calling job grants the permissions, because a called workflow cannot hold mo
 as strings (`'true'`), so a scheduled run, which has no inputs, also works. `release-readiness` only proves CI; governance rules at the `release` point run in the candidate job. The workflows pin the actions of this directory to a full commit SHA, which Renovate keeps current in this
 repository; consumers pin the workflow files and receive the tracking branch `updates/workflows/release`.
 
+## Versions
+
+The release levels follow Conventional Commits. While the latest official release is a `0.x` version, a breaking change raises
+the minor version instead of the major one, because Semver allows breaking changes in the `0.x` series. The step to `1.0.0`
+is a deliberate, manual one: tag it yourself.
+
 ## Two ways to publish
 
 A repository publishes either files or images, and each way has its own action instead of one action with switches.

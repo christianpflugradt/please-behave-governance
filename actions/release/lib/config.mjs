@@ -35,18 +35,24 @@ const noteTypes = [
 
 const analyzerOptions = { preset: "conventionalcommits", parserOpts, releaseRules };
 
-// With `force`, commits that would not release by themselves still yield a patch release.
-// A repository uses this to test the release process, so the shared policy stays untouched otherwise.
-const forcingAnalyzer = {
-  async analyzeCommits(pluginConfig, context) {
-    return (await analyzeCommits(pluginConfig, context)) ?? "patch";
-  },
-};
+// With `force`, commits that would not release by themselves still yield a patch release; a repository uses this to
+// test the release process. While the latest official release is a 0.x version, a breaking change raises the minor
+// version, because Semver allows breaking changes in the 0.x series and the jump to 1.0.0 is a deliberate, manual step.
+function analyzer({ force }) {
+  return {
+    async analyzeCommits(pluginConfig, context) {
+      let type = await analyzeCommits(pluginConfig, context);
+      if (!type && force) type = "patch";
+      if (type === "major" && context.lastRelease?.version?.startsWith("0.")) type = "minor";
+      return type;
+    },
+  };
+}
 
 /** The commit analyzer and notes generator: all that is needed to plan a release. */
 export function analysisPlugins({ force = false } = {}) {
   return [
-    force ? [forcingAnalyzer, analyzerOptions] : ["@semantic-release/commit-analyzer", analyzerOptions],
+    [analyzer({ force }), analyzerOptions],
     ["@semantic-release/release-notes-generator", { preset: "conventionalcommits", parserOpts, presetConfig: { types: noteTypes } }],
   ];
 }

@@ -55,13 +55,24 @@ test("inputs have defaults and are validated", () => {
   assert.throws(() => settings({ RELEASE_MODE: "nightly" }));
 });
 
+const analysis = (force, commits, lastVersion) =>
+  analysisPlugins({ force })[0][0].analyzeCommits(
+    { preset: "conventionalcommits" },
+    { commits: commits.map((message, index) => ({ message, hash: String(index) })), logger: { log() {} }, cwd: ".", lastRelease: { version: lastVersion } },
+  );
+
 test("force turns a non-releasing analysis into a patch and leaves releases alone", async () => {
-  const [[forcing]] = analysisPlugins({ force: true });
-  const context = { commits: [{ message: "docs: text", hash: "1" }], logger: { log() {} }, cwd: "." };
-  assert.equal(await forcing.analyzeCommits({ preset: "conventionalcommits" }, context), "patch");
-  const feature = { ...context, commits: [{ message: "feat: add", hash: "2" }] };
-  assert.equal(await forcing.analyzeCommits({ preset: "conventionalcommits" }, feature), "minor");
-  assert.equal(analysisPlugins()[0][0], "@semantic-release/commit-analyzer");
+  assert.equal(await analysis(false, ["docs: text"], "1.0.0"), null);
+  assert.equal(await analysis(true, ["docs: text"], "1.0.0"), "patch");
+  assert.equal(await analysis(true, ["feat: add"], "1.0.0"), "minor");
+});
+
+test("a breaking change raises the minor version while the latest release is 0.x", async () => {
+  assert.equal(await analysis(false, ["feat!: break"], "0.16.0"), "minor");
+  assert.equal(await analysis(false, ["fix: x\n\nBREAKING CHANGE: y"], "0.16.0"), "minor");
+  assert.equal(await analysis(false, ["feat!: break"], "1.2.3"), "major");
+  assert.equal(await analysis(false, ["feat!: break"], undefined), "major");
+  assert.equal(await analysis(false, ["fix: small"], "0.16.0"), "patch");
 });
 
 test("the configuration derives the repository and keeps the guard before GitHub", () => {
