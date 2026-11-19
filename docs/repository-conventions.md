@@ -162,6 +162,13 @@ bashisms. Scripts without a `.sh` extension are not examined. No scripts means P
 FAIL; a missing tool or any other ShellCheck failure returns ERROR. It needs `shellcheck` on `PATH`
 and Python 3.9+.
 
+A justified exception is declared in the optional file `.please/shell-exceptions.txt` of the consuming
+repository, with one full repository-relative path per line; blank lines and lines starting with `#`
+are ignored, so put the reason in a comment. Listed scripts skip the shebang and ShellCheck analysis.
+Wildcards are not supported, and an entry that is not a tracked non-portable script, because it
+is misspelled, deleted or already portable, returns FAIL. The path is fixed instead of a parameter so
+that existing consumers need no configuration change.
+
 ## Shell formatting
 
 The blocking `format-shell` Check runs `shfmt -d` on every tracked `*.sh` file of the working tree,

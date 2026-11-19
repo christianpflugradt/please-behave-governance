@@ -12,13 +12,17 @@ value: >-
 conditions:
   - statement: Every tracked *.sh file declares #!/bin/sh or #!/usr/bin/env sh as its shebang.
     rationale: The system's POSIX shell is the one shell that can be assumed everywhere, so a script that needs nothing else is system-agnostic.
-  - statement: No tracked *.zsh file exists.
-    rationale: zsh is neither portable nor analyzable by ShellCheck.
+  - statement: No tracked *.zsh file exists, unless it is listed in .please/shell-exceptions.txt.
+    rationale: zsh is neither portable nor analyzable by ShellCheck. A justified exception, such as a Nix repository whose shell fragments only ever run in zsh, is a deliberate and reviewable decision.
+  - statement: Every entry of .please/shell-exceptions.txt is the full repository path of a tracked, non-portable script, without wildcards.
+    rationale: Globs would silently exempt future files, and an entry that no longer matches would leave a dead exception behind.
   - statement: ShellCheck reports no finding for any tracked *.sh file, in any directory.
     rationale: With an sh shebang it also reports constructs that are not portable, such as bashisms.
   - statement: Without scripts the Rule passes.
     rationale: There is nothing to check.
 success_criteria:
+  - A listed exception is skipped by the shebang and ShellCheck analysis.
+  - A wildcard entry, or an entry that is not a tracked non-portable script, fails and the message names it.
   - A script with a bash, zsh or other shebang, or with none, fails and the message names the file.
   - A ShellCheck finding fails.
   - A missing tool or any other ShellCheck failure is an ERROR.
