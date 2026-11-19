@@ -6,3 +6,4 @@ deps
 config
 ci
 mise-tasks
+actions

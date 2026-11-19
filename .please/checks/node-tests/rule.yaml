@@ -1,0 +1,26 @@
+purpose: Make sure the unit tests of the shared release action pass.
+problem: >-
+  Without this check a broken release action goes unnoticed until a consumer
+  runs a release with it.
+value: >-
+  The tests of the release action run with the same gates as the Python tests,
+  offline and without a test framework.
+conditions:
+  - statement: The Node test runner runs every test file below actions/release.
+    rationale: The action carries its own tests next to the code, like every Rule and provider.
+  - statement: Installed dependencies are required; missing ones are an ERROR.
+    rationale: A missing setup is a tooling problem, not a verdict about the tests.
+  - statement: A crash of the runner itself is an ERROR, not a FAIL.
+    rationale: A tooling problem is not a verdict about the tests.
+success_criteria:
+  - All tests passing is a PASS.
+  - A failing test is a FAIL.
+  - Missing dependencies or a crash of the runner are an ERROR.
+out_of_scope:
+  - description: Test coverage and the quality of the tests.
+  - description: Installing dependencies, which `mise run setup` does.
+limitations:
+  - Only tests below actions/release are run.
+placement: >-
+  Local, because running tests is bound to the chosen technology stack and the
+  runner only concerns the layout of this repository.

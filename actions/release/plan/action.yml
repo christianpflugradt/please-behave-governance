@@ -1,0 +1,47 @@
+name: Plan release
+description: Calculate the next release of a repository with the shared release policy, without publishing anything
+inputs:
+  mode:
+    description: "`release` plans a Semantic Release version; `prerelease` plans a development version of the latest stable release"
+    default: release
+  tag-format:
+    description: Tag format of official releases
+    default: v${version}
+  force:
+    description: "`true` plans a patch release even when no commit would release by itself, to test the release process"
+    default: 'false'
+  github-token:
+    description: Token with `contents: write`; Semantic Release verifies push access even in a dry run
+    default: ${{ github.token }}
+outputs:
+  release:
+    description: "`true` when a release is planned"
+    value: ${{ steps.plan.outputs.release }}
+  version:
+    description: The planned version, empty when no release is planned
+    value: ${{ steps.plan.outputs.version }}
+  source-sha:
+    description: The commit the release is built from
+    value: ${{ steps.plan.outputs.source_sha }}
+  mode:
+    description: The planned mode
+    value: ${{ steps.plan.outputs.mode }}
+runs:
+  using: composite
+  steps:
+    - name: Install the release tooling
+      shell: bash
+      run: npm ci --ignore-scripts --omit=dev --no-audit --no-fund --prefix "$ACTION_ROOT"
+      env:
+        ACTION_ROOT: ${{ github.action_path }}/..
+    - name: Plan the release
+      id: plan
+      shell: bash
+      run: node "$ACTION_ROOT/lib/plan.mjs"
+      env:
+        ACTION_ROOT: ${{ github.action_path }}/..
+        RELEASE_MODE: ${{ inputs.mode }}
+        RELEASE_TAG_FORMAT: ${{ inputs.tag-format }}
+        RELEASE_FORCE: ${{ inputs.force }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GH_TOKEN: ${{ inputs.github-token }}

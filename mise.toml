@@ -10,8 +10,8 @@ gitleaks = "8.30.1"
 ruff = "0.17.4"
 
 [tasks.setup]
-description = "Nothing to fetch: the repository has no external dependencies"
-run = "echo 'No dependencies to set up.'"
+description = "Install the locked release action dependencies"
+run = "npm ci --ignore-scripts --prefix actions/release"
 
 [tasks.format]
 description = "Format Python and shell sources"

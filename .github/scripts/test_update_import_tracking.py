@@ -37,6 +37,8 @@ class TrackingTests(unittest.TestCase):
         self.write("providers/sample/provider.toml", 'command = "python3"\n')
         self.write("providers/sample/adapter.py", 'print("provider")\n')
         self.write("mise-tasks/sample/task", "#!/bin/sh\necho task\n")
+        self.write("actions/sample/plan/action.yml", "name: Plan\n")
+        self.write("actions/sample/lib/plan.mjs", "export {};\n")
         self.initial = self.commit()
         for package in tracking.packages(self.root, self.initial):
             self.track(package, self.initial)
@@ -90,6 +92,11 @@ class TrackingTests(unittest.TestCase):
         self.write("mise-tasks/other/task", "#!/bin/sh\n")
         added = self.commit()
         self.assertEqual(self.updates(), [f"{added}:refs/heads/updates/mise-tasks/other"])
+
+    def test_action_group_change_updates_only_that_group(self):
+        self.write("actions/sample/lib/plan.mjs", "export const changed = true;\n")
+        changed = self.commit()
+        self.assertEqual(self.updates(), [f"{changed}:refs/heads/updates/actions/sample"])
 
     def test_resource_addition_deletion_and_mode_change_count(self):
         for operation in ("add", "delete", "mode"):

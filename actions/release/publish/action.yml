@@ -1,0 +1,41 @@
+name: Publish release
+description: Publish the planned release of a repository with the shared release policy
+inputs:
+  version:
+    description: The version planned by the plan action
+    required: true
+  mode:
+    description: The mode that was planned
+    default: release
+  tag-format:
+    description: Tag format of official releases
+    default: v${version}
+  force:
+    description: Must equal the value given to the plan action
+    default: 'false'
+  assets:
+    description: Newline-separated globs of the files attached to the release
+    default: ''
+  github-token:
+    description: Token with `contents: write`
+    default: ${{ github.token }}
+runs:
+  using: composite
+  steps:
+    - name: Install the release tooling
+      shell: bash
+      run: npm ci --ignore-scripts --omit=dev --no-audit --no-fund --prefix "$ACTION_ROOT"
+      env:
+        ACTION_ROOT: ${{ github.action_path }}/..
+    - name: Publish the release
+      shell: bash
+      run: node "$ACTION_ROOT/lib/publish.mjs"
+      env:
+        ACTION_ROOT: ${{ github.action_path }}/..
+        EXPECTED_RELEASE_VERSION: ${{ inputs.version }}
+        RELEASE_MODE: ${{ inputs.mode }}
+        RELEASE_TAG_FORMAT: ${{ inputs.tag-format }}
+        RELEASE_FORCE: ${{ inputs.force }}
+        RELEASE_ASSETS: ${{ inputs.assets }}
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GH_TOKEN: ${{ inputs.github-token }}

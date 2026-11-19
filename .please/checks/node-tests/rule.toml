@@ -1,0 +1,8 @@
+id = "node-tests"
+name = "Node tests"
+description = "Unit tests of the shared release action pass"
+run_at = ["pre-push", "check"]
+
+[check]
+command = "python3 -B @rule/run.py"
+timeout_seconds = 300

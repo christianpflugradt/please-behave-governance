@@ -1,4 +1,4 @@
-"""Publish content-aware import branches for rulesets, providers and mise task groups pointing to commits already tested by CI."""
+"""Publish content-aware import branches for rulesets, providers, mise task groups and actions pointing to commits already tested by CI."""
 
 import argparse
 from pathlib import Path
@@ -9,7 +9,7 @@ import tomllib
 
 
 PREFIX = "refs/remotes/origin/updates/"
-PACKAGE = re.compile(r"(?:rulesets|providers|mise-tasks)/[a-z0-9][a-z0-9-]*")
+PACKAGE = re.compile(r"(?:rulesets|providers|mise-tasks|actions)/[a-z0-9][a-z0-9-]*")
 RULE = re.compile(r"rules/(?:checks|reviews)/[a-z0-9][a-z0-9-]*")
 
 
@@ -25,15 +25,17 @@ def ancestor(root, older, newer):
 
 
 def packages(root, revision):
-    names = git(root, "ls-tree", "-r", "--name-only", revision, "--", "rulesets", "providers", "mise-tasks").decode().splitlines()
+    names = (
+        git(root, "ls-tree", "-r", "--name-only", revision, "--", "rulesets", "providers", "mise-tasks", "actions").decode().splitlines()
+    )
     found = set()
     for name in names:
         if (name.startswith("rulesets/") and name.endswith("/ruleset.toml")) or (
             name.startswith("providers/") and name.endswith("/provider.toml")
         ):
             found.add(str(Path(name).parent))
-        elif name.startswith("mise-tasks/") and name.count("/") >= 2:
-            # A task group is every file below its directory, such as mise-tasks/release.
+        elif name.startswith(("mise-tasks/", "actions/")) and name.count("/") >= 2:
+            # A task group or action group is every file below its directory, such as mise-tasks/release or actions/release.
             found.add("/".join(name.split("/")[:2]))
     return sorted(found)
 
