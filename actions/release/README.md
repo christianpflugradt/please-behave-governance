@@ -87,8 +87,7 @@ jobs:
 ```
 
 The calling job grants the permissions, because a called workflow cannot hold more than its caller. Booleans are passed
-as strings (`'true'`), so a scheduled run, which has no inputs, also works. `release-readiness` only proves CI and outputs `ci_run_id` and
-`ci_attempt`; governance rules at the `release` point run in the candidate job. The workflows pin the actions of this directory to a full commit SHA, which Renovate keeps current in this
+as strings (`'true'`), so a scheduled run, which has no inputs, also works. `release-readiness` only proves CI; governance rules at the `release` point run in the candidate job. The workflows pin the actions of this directory to a full commit SHA, which Renovate keeps current in this
 repository; consumers pin the workflow files and receive the tracking branch `updates/workflows/release`.
 
 ## Hooks

@@ -216,10 +216,6 @@ class ProofTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 mod.policy_from(dict(env, **change))
 
-    def test_outputs_name_the_run_and_the_attempt_of_the_first_required_job(self):
-        evidence = dict(run_id=10, jobs={"Check (linux)": dict(id=1, attempt=2), "Check (macos)": dict(id=2, attempt=1)})
-        self.assertEqual(mod.outputs(POLICY, evidence), "ci_run_id=10\nci_attempt=2\n")
-
     def test_api_pagination_is_complete_and_fails_closed(self):
         api = mod.GitHub("test-token")
         entries = [dict(id=i + 1) for i in range(101)]

@@ -11,13 +11,6 @@ on:
         description: Newline-separated names of the CI jobs that must have succeeded, including every matrix entry
         type: string
         default: Check
-    outputs:
-      ci_run_id:
-        description: The CI run that proved the source commit
-        value: ${{ jobs.readiness.outputs.ci_run_id }}
-      ci_attempt:
-        description: The attempt of that run in which the first required job succeeded
-        value: ${{ jobs.readiness.outputs.ci_attempt }}
 
 permissions:
   contents: read
@@ -33,9 +26,6 @@ jobs:
     permissions:
       contents: read
       actions: read
-    outputs:
-      ci_run_id: ${{ steps.proof.outputs.ci-run-id }}
-      ci_attempt: ${{ steps.proof.outputs.ci-attempt }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -47,7 +37,6 @@ jobs:
         with:
           install_args: python
       - name: Verify exact-source CI prerequisites
-        id: proof
         uses: christianpflugradt/please-behave-governance/actions/release/check-ci@e0d645d4cf3d5e462540eb184ee55b5ad7227889 # updates/actions/release
         with:
           required-jobs: ${{ inputs.required-jobs }}
