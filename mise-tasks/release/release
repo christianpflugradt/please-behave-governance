@@ -3,6 +3,7 @@
 # USAGE flag "--follow" help="Watch the dispatched release run until it finishes"
 # USAGE flag "--force" help="Release a patch version even if no commit would raise the version, to test the release process"
 # USAGE flag "--prerelease" help="Publish a development prerelease of the latest stable release instead of an official release"
+# USAGE flag "--release" help="Publish an official release even if the workflow defaults to a prerelease"
 """Start the Release workflow once CI on main is idle; with --follow, watch the run.
 
 --force, --prerelease and --release are passed to the workflow as the dispatch inputs `force` and `mode`;

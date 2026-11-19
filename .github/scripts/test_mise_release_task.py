@@ -3,6 +3,7 @@
 import importlib.machinery
 import importlib.util
 import json
+import re
 from pathlib import Path
 import unittest
 from unittest.mock import patch
@@ -57,6 +58,11 @@ class ReleaseTaskTest(unittest.TestCase):
             gh.named("gh", "workflow", "run"),
             [("gh", "workflow", "run", "release.yml", "--ref", "main", "-f", "force=true", "-f", "mode=prerelease")],
         )
+
+    def test_every_accepted_flag_is_declared_in_the_usage_header(self):
+        header = TASK.read_text().split('"""', 1)[0]
+        declared = set(re.findall(r'^# USAGE flag "(--[a-z-]+)"', header, re.M))
+        self.assertEqual(declared, mod.FLAGS)
 
     def test_release_flag_selects_the_official_mode(self):
         gh = FakeGh([ci("completed")])
