@@ -7,11 +7,15 @@ import json
 import os
 from pathlib import Path, PurePosixPath
 import re
+import shutil
+import stat
 import subprocess
 import sys
+import tarfile
 
 
 WORKFLOW = ".github/workflows/release.yml"
+CANDIDATES = Path("release-candidate")
 
 
 def require(condition, message):
@@ -113,6 +117,41 @@ def artifact_hashes(policy, target, version):
     return result
 
 
+def package_candidate(policy, target, version):
+    """Archive exactly the files the policy lists for the target, so Publish can restore the tested candidate."""
+    root = relative(policy["root"], root=True)
+    require(not CANDIDATES.is_symlink(), "Unsafe candidate directory")
+    CANDIDATES.mkdir(exist_ok=True)
+    path = CANDIDATES / f"{target}.tar"
+    require(not path.exists() and not path.is_symlink(), "Candidate archive already exists")
+    with tarfile.open(path, "w") as archive:
+        for name in artifact_hashes(policy, target, version):
+            archive.add(regular(root / name), arcname=name, recursive=False)
+
+
+def unpack_candidates(policy, version):
+    """Restore the candidate files of every target from their archives, and nothing the policy does not list."""
+    require(CANDIDATES.is_dir() and not CANDIDATES.is_symlink(), "Missing candidate directory")
+    require(
+        {path.name for path in CANDIDATES.iterdir()} == {f"{target}.tar" for target in policy["targets"]},
+        "Incomplete or unexpected candidate archive set",
+    )
+    root = relative(policy["root"], root=True)
+    for target, templates in policy["targets"].items():
+        expected = [template.replace("{version}", version) for template in templates]
+        with tarfile.open(CANDIDATES / f"{target}.tar", "r:") as archive:
+            members = archive.getmembers()
+            require(sorted(member.name for member in members) == sorted(expected), f"Candidate archive differs from the policy: {target}")
+            require(all(member.isreg() for member in members), "Candidate archives hold regular files only")
+            for member in members:
+                destination = root / relative(member.name)
+                require(not any(part.is_symlink() for part in [destination.parent, *destination.parent.parents]), "Symlinks are forbidden")
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                with archive.extractfile(member) as source, destination.open("wb") as output:
+                    shutil.copyfileobj(source, output)
+                destination.chmod(stat.S_IMODE(member.mode) & 0o777)
+
+
 def record(policy, env, head):
     context = identity(policy, env, head)
     target = env.get("RELEASE_TARGET", "")
@@ -123,10 +162,12 @@ def record(policy, env, head):
     path = directory / f"{target}.json"
     require(not path.exists() and not path.is_symlink(), "Candidate evidence already exists")
     path.write_text(json.dumps(dict(context, target=target, artifacts=hashes), indent=2, sort_keys=True) + "\n")
+    package_candidate(policy, target, context["version"])
 
 
 def verify(policy, env, head):
     context = identity(policy, env, head)
+    unpack_candidates(policy, context["version"])
     directory = Path("release-evidence")
     require(directory.is_dir() and not directory.is_symlink(), "Missing evidence directory")
     require(

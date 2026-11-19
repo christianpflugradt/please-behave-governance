@@ -9,7 +9,8 @@ build and verification steps.
 | `actions/release/plan` | Calculates the next release without publishing; outputs `release`, `version`, `source-sha`, `mode` |
 | `actions/release/publish` | Publishes the planned version; refuses if the version or `main` changed since planning |
 | `actions/release/check-ci` | Proves that CI succeeded for the exact source commit within one trusted workflow run, including reruns |
-| `actions/release/evidence` | `record`s the hashes of a release candidate per target and uploads them as `release-evidence-<run>-<attempt>-<target>`; `verify` downloads the evidence of every target and verifies the complete set before publication |
+| `actions/release/evidence` | `record`s the hashes of a release candidate per target and uploads them as `release-evidence-<run>-<attempt>-<target>`, together with the candidate files as `release-candidate-<run>-<attempt>-<target>`; `verify` downloads both for every target, restores the candidate files below the policy `root` and verifies the complete set before publication |
+| `actions/release/governance` | verifies the repository at the `release` point of Please Behave and uploads the governance report |
 
 `plan` and `publish` need Node 24.10+ on `PATH` (for example `install_args: node` in `jdx/mise-action`) and install their
 pinned dependencies from `package-lock.json` themselves. `check-ci` and `evidence` need only Python 3.
@@ -117,6 +118,14 @@ moves the pin.
 
 `mise run setup` installs the locked dependencies, then `node --test` in this directory runs the offline tests.
 The `node-tests` check runs them at `pre-push` and `check`.
+
+## Candidate files
+
+`evidence` also carries the candidate between jobs. `record` archives exactly the files that the policy lists for the target
+and uploads them; `verify` restores them from the archives of every target, refuses any member the policy does not list,
+and hashes the restored files against the evidence. A repository therefore needs no artifact steps of its own around
+`evidence`: Publish checks out the source, runs `verify`, and finds the candidate where the policy puts it. Add
+`/release-candidate/` next to `/release-evidence/` to `.gitignore`.
 
 ## Repository files
 

@@ -1,9 +1,12 @@
 """Offline candidate evidence checks without installing or invoking governance."""
 
 import importlib.util
+import io
 import json
 import os
 from pathlib import Path
+import shutil
+import tarfile
 import tempfile
 import unittest
 from unittest.mock import patch
@@ -87,11 +90,70 @@ class ReleaseEvidenceTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             evidence.verify(self.policy, self.env, self.head)
         extra.unlink()
-        (self.root / self.policy["root"] / next(iter(self.policy["targets"].values()))[0].replace("{version}", "1.3.0")).write_text(
-            "changed after testing"
-        )
+
+    def archive_path(self):
+        return self.root / "release-candidate" / "macos.tar"
+
+    def rewrite_archive(self, change):
+        """Rebuild the candidate archive after `change` edited its members as (TarInfo, bytes) pairs."""
+        path = self.archive_path()
+        with tarfile.open(path, "r:") as archive:
+            members = [(member, archive.extractfile(member).read()) for member in archive.getmembers()]
+        members = change(members)
+        with tarfile.open(path, "w") as archive:
+            for info, data in members:
+                archive.addfile(info, io.BytesIO(data) if info.isreg() else None)
+
+    def test_publish_restores_the_candidate_from_the_archives(self):
+        names = [name.replace("{version}", "1.3.0") for name in self.policy["targets"]["macos"]]
+        for name in names:
+            (self.root / self.policy["root"] / name).chmod(0o755)
+        self.archive_path().unlink()
+        evidence.package_candidate(self.policy, "macos", "1.3.0")
+        fresh = self.root.parent / (self.root.name + "-publish")
+        fresh.mkdir()
+        shutil.copytree(self.root / "release-evidence", fresh / "release-evidence")
+        shutil.copytree(self.root / "release-candidate", fresh / "release-candidate")
+        os.chdir(fresh)
+        evidence.verify(self.policy, self.env, self.head)
+        for name in names:
+            restored = fresh / self.policy["root"] / name
+            self.assertEqual(restored.read_text(), "tested source")
+            self.assertEqual(restored.stat().st_mode & 0o777, 0o755)
+
+    def test_modified_extra_missing_or_unsafe_archives_are_rejected(self):
+        original = self.archive_path().read_bytes()
+
+        def tampered(members):
+            info, _ = members[0]
+            return [(info, b"changed after testing")] + members[1:]
+
+        def with_extra(members):
+            extra = tarfile.TarInfo("unexpected.txt")
+            extra.size = 1
+            return members + [(extra, b"x")]
+
+        def with_link(members):
+            link = tarfile.TarInfo(members[0][0].name)
+            link.type, link.linkname = tarfile.SYMTYPE, "/etc/passwd"
+            return [(link, b"")] + members[1:]
+
+        def traversal(members):
+            info = tarfile.TarInfo("../outside")
+            info.size = 1
+            return [(info, b"x")] + members[1:]
+
+        for change in (tampered, with_extra, with_link, traversal, lambda members: members[1:]):
+            with self.subTest(change=getattr(change, "__name__", "dropped member")):
+                self.rewrite_archive(change)
+                with self.assertRaises(ValueError):
+                    evidence.verify(self.policy, self.env, self.head)
+                self.archive_path().write_bytes(original)
+        self.archive_path().unlink()
         with self.assertRaises(ValueError):
             evidence.verify(self.policy, self.env, self.head)
+        self.archive_path().write_bytes(original)
+        evidence.verify(self.policy, self.env, self.head)
 
 
 if __name__ == "__main__":
