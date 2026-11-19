@@ -17,7 +17,7 @@ path = "rulesets/security"
 ref = "c9dedd752770fbac964dcb92474103e17ab21665"
 
 [imports.rule_parameters.dependency-audit-workflow]
-dependencies = "none"
+dependencies = "audited"
 
 [[imports]]
 git = "https://github.com/christianpflugradt/please-behave-governance.git"
