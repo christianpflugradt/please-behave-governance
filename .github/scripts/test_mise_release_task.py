@@ -39,9 +39,9 @@ def ci(*statuses):
 
 
 class ReleaseTaskTest(unittest.TestCase):
-    def release(self, gh, follow):
+    def release(self, gh, follow, **inputs):
         with patch.object(mod, "run", gh), patch.object(mod.time, "sleep") as sleep, patch("builtins.print"):
-            mod.release(follow)
+            mod.release(follow, **inputs)
         return sleep
 
     def test_dispatches_without_following_when_ci_is_idle(self):
@@ -49,6 +49,19 @@ class ReleaseTaskTest(unittest.TestCase):
         self.release(gh, follow=False)
         self.assertEqual(gh.named("gh", "workflow", "run"), [("gh", "workflow", "run", "release.yml", "--ref", "main")])
         self.assertEqual(gh.named("gh", "run", "watch"), [])
+
+    def test_force_and_prerelease_become_dispatch_inputs(self):
+        gh = FakeGh([ci("completed")])
+        self.release(gh, follow=False, force=True, prerelease=True)
+        self.assertEqual(
+            gh.named("gh", "workflow", "run"),
+            [("gh", "workflow", "run", "release.yml", "--ref", "main", "-f", "force=true", "-f", "mode=prerelease")],
+        )
+
+    def test_follow_passes_inputs_to_the_dispatch(self):
+        gh = FakeGh([ci("completed")], [[{"databaseId": 5}], [{"databaseId": 5}, {"databaseId": 9}]])
+        self.release(gh, follow=True, force=True)
+        self.assertEqual(gh.named("gh", "workflow", "run"), [("gh", "workflow", "run", "release.yml", "--ref", "main", "-f", "force=true")])
 
     def test_waits_while_ci_is_queued_or_in_progress(self):
         gh = FakeGh([ci("queued"), ci("in_progress"), ci("completed")])

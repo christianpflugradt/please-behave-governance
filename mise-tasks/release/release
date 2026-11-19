@@ -1,7 +1,13 @@
 #!/usr/bin/env python3
-#MISE description="Wait for CI on main, then start the Release workflow; --follow watches the run"
-#USAGE flag "--follow" help="Watch the dispatched release run until it finishes"
-"""Start the Release workflow once CI on main is idle; with --follow, watch the run."""
+# MISE description="Wait for CI on main, then start the Release workflow; --follow watches the run"
+# USAGE flag "--follow" help="Watch the dispatched release run until it finishes"
+# USAGE flag "--force" help="Release a patch version even if no commit would raise the version, to test the release process"
+# USAGE flag "--prerelease" help="Publish a development prerelease of the latest stable release instead of an official release"
+"""Start the Release workflow once CI on main is idle; with --follow, watch the run.
+
+--force and --prerelease are passed to the workflow as the dispatch inputs `force` and `mode`;
+the workflow must declare them.
+"""
 
 import json
 import os
@@ -61,10 +67,10 @@ def wait_for_ci():
         time.sleep(CI_POLL_SECONDS)
 
 
-def dispatch():
+def dispatch(fields=()):
     """Dispatch the workflow and return the new run's ID."""
     known = run_ids()
-    run("gh", "workflow", "run", WORKFLOW, "--ref", "main")
+    run("gh", "workflow", "run", WORKFLOW, "--ref", "main", *fields)
     for _ in range(30):
         time.sleep(2)
         if new := run_ids() - known:
@@ -72,20 +78,30 @@ def dispatch():
     raise ValueError("The dispatched release run did not appear; check GitHub Actions.")
 
 
-def release(follow):
+FLAGS = {"--follow", "--force", "--prerelease"}
+
+
+def dispatch_fields(force, prerelease):
+    """The `gh workflow run` fields for the requested dispatch inputs."""
+    return [*(["-f", "force=true"] if force else []), *(["-f", "mode=prerelease"] if prerelease else [])]
+
+
+def release(follow, force=False, prerelease=False):
     wait_for_ci()
+    fields = dispatch_fields(force, prerelease)
     if not follow:
-        run("gh", "workflow", "run", WORKFLOW, "--ref", "main", capture=False)
+        run("gh", "workflow", "run", WORKFLOW, "--ref", "main", *fields, capture=False)
         return
-    run_id = dispatch()
+    run_id = dispatch(fields)
     print(f"Watching release run {run_id}", flush=True)
     run("gh", "run", "watch", str(run_id), "--exit-status", capture=False)
 
 
 if __name__ == "__main__":
     try:
-        if sys.argv[1:] not in ([], ["--follow"]):
-            raise ValueError("Usage: mise release [--follow]")
-        release(bool(sys.argv[1:]))
+        flags = set(sys.argv[1:])
+        if not flags <= FLAGS or len(flags) != len(sys.argv[1:]):
+            raise ValueError("Usage: mise release [--follow] [--force] [--prerelease]")
+        release("--follow" in flags, "--force" in flags, "--prerelease" in flags)
     except (OSError, ValueError, KeyError, json.JSONDecodeError) as error:
         sys.exit(f"Release failed: {error}")
