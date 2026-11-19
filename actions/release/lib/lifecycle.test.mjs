@@ -26,7 +26,10 @@ test("the hooks run in the Semantic Release lifecycle against a real repository"
   git("commit", "-qm", "fix: second");
   git("push", "-q", "origin", "main", "--tags");
   const log = join(dir, "log");
-  const { NODE_TEST_CONTEXT: _context, ...baseEnv } = process.env; // Spawned processes must not join the test runner protocol.
+  // Spawned processes must not join the test runner protocol, and CI tokens would turn the remote URL into an authenticated one.
+  const baseEnv = Object.fromEntries(
+    Object.entries(process.env).filter(([key]) => !/^(NODE_TEST_CONTEXT|GITHUB_TOKEN|GH_TOKEN|GITHUB_ACTIONS|GIT_CREDENTIALS)$/.test(key)),
+  );
   const lifecycleEnv = {
     ...baseEnv,
     GITHUB_REF: "refs/heads/main",
