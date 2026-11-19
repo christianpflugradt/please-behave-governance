@@ -108,6 +108,7 @@ See complete import examples, parameters, evidence boundaries and limitations:
 - [Shared Renovate governor preset](docs/governor-updates.md)
 - [Shared mise tasks](docs/mise-tasks.md)
 - [Shared release actions](actions/release/README.md)
+- [Shared dependency audit action](actions/dependency-audit/README.md)
 
 ## Validation
 
