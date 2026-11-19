@@ -67,7 +67,7 @@ jobs:
         uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
       - name: Verify exact-source CI prerequisites
         id: proof
-        uses: christianpflugradt/please-behave-governance/actions/release/check-ci@c37eb9268f0c159f35e2301712269d77c94ad300 # updates/actions/release
+        uses: christianpflugradt/please-behave-governance/actions/release/check-ci@bebfa9c1b717c64c49f677c0a2d2e4730d86515d # updates/actions/release
         with:
           required-jobs: ${{ inputs.required-jobs }}
       - name: Verify release readiness

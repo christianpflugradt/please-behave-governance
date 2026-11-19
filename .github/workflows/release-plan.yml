@@ -60,7 +60,7 @@ jobs:
           install_args: node
       - name: Plan the release without publishing
         id: plan
-        uses: christianpflugradt/please-behave-governance/actions/release/plan@c37eb9268f0c159f35e2301712269d77c94ad300 # updates/actions/release
+        uses: christianpflugradt/please-behave-governance/actions/release/plan@bebfa9c1b717c64c49f677c0a2d2e4730d86515d # updates/actions/release
         with:
           mode: ${{ inputs.mode }}
           tag-format: ${{ inputs.tag-format }}
