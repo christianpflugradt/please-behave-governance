@@ -19,7 +19,7 @@ audit tools it installs (`npm`, `cargo-audit`, `pip-audit`), further preparation
 | Input | Scans |
 | --- | --- |
 | `npm`, `cargo` | the given directories with `npm audit` or `cargo audit` |
-| `requirements`, `pyproject` | pip requirements files, or the dependencies of a `pyproject.toml`, with `pip-audit` |
+| `requirements` | pip requirements files with `pip-audit` |
 | `owasp-report` | a Dependency-Check JSON report that an earlier step produced |
 | `none` | nothing: states that there is nothing to audit and records an empty report |
 

@@ -1,38 +1,23 @@
 name: Release governance
 description: Verify the repository at the release execution point of Please Behave and upload the report
-inputs:
-  report-name:
-    description: Name of the uploaded report; the run and attempt are appended
-    default: release-candidate-report
-  target:
-    description: Candidate target appended to the report name, for repositories with several candidates
-    default: ''
-  extra-report-paths:
-    description: Newline-separated further files that are uploaded with the report
-    default: ''
-  github-token:
-    description: Token for rules that read from GitHub, such as the check of a released dependency
-    default: ${{ github.token }}
 runs:
   using: composite
   steps:
     - name: Verify the repository at the release point
-      uses: please-behave/action@8b4f3e3d0dc1aec1cd12661abbcc10a666506b96 # v1.5.1
+      uses: please-behave/action@9a184e405e62a79154989de1e54c54869180751b # v1.5.0
       with:
         install: 'false'
         sync: 'true'
         execution-point: release
         summary: 'true'
       env:
-        GH_TOKEN: ${{ inputs.github-token }}
+        GH_TOKEN: ${{ github.token }}
     - name: Upload the governance report
       if: always()
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
       with:
-        name: ${{ inputs.report-name }}-${{ github.run_id }}-${{ github.run_attempt }}${{ inputs.target && format('-{0}', inputs.target) || '' }}
-        path: |
-          .please/reports/last.json
-          ${{ inputs.extra-report-paths }}
+        name: release-candidate-report-${{ github.run_id }}-${{ github.run_attempt }}
+        path: .please/reports/last.json
         include-hidden-files: true
         if-no-files-found: warn
         retention-days: 7

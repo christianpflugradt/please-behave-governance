@@ -164,27 +164,6 @@ class ScanAndGateTests(unittest.TestCase):
         self.assertEqual(calls, [("npm", "."), ("npm", "renderer"), ("cargo", "backend")])
         self.assertEqual([item["ecosystem"] for item in written["scans"]], ["npm", "npm renderer", "cargo backend"])
 
-    def test_pyproject_dependencies_are_audited_as_a_requirements_file(self):
-        seen = []
-
-        def fake(command, cwd, **_):
-            with open(command[command.index("--requirement") + 1]) as handle:
-                seen.append(handle.read())
-            return self.completed(json.dumps(PIP))
-
-        with tempfile.TemporaryDirectory() as directory:
-            pyproject = os.path.join(directory, "pyproject.toml")
-            with open(pyproject, "w") as handle:
-                handle.write('[project]\nname = "x"\ndependencies = ["PyYAML>=6,<7", "other==1"]\n')
-            path = os.path.join(directory, "report.json")
-            with patch.object(mod.subprocess, "run", side_effect=fake):
-                code = mod.scan(path, [], [], (), (pyproject,))
-            with open(path) as handle:
-                written = json.load(handle)
-        self.assertEqual(code, 0)
-        self.assertEqual(seen, ["PyYAML>=6,<7\nother==1\n"])
-        self.assertEqual(written["scans"][0]["findings"][0]["id"], "PYSEC-2099-1")
-
     def test_an_owasp_report_is_scanned_and_a_missing_one_is_an_error(self):
         with tempfile.TemporaryDirectory() as directory:
             owasp, report = os.path.join(directory, "owasp.json"), os.path.join(directory, "report.json")

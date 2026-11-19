@@ -1,15 +1,9 @@
 name: Check release CI
 description: Verify that CI succeeded for the exact commit being released, within one trusted workflow run
 inputs:
-  workflow:
-    description: Path of the push CI workflow whose run is the proof
-    default: .github/workflows/ci.yml
   required-jobs:
     description: Newline-separated names of the CI jobs that must have succeeded, including every matrix entry
     default: Check
-  github-token:
-    description: Token with the permissions actions read and contents read
-    default: ${{ github.token }}
 outputs:
   ci-run-id:
     description: The CI run that proved the source commit
@@ -26,6 +20,5 @@ runs:
       run: python3 -B "$ACTION_ROOT/lib/check_release_ci.py"
       env:
         ACTION_ROOT: ${{ github.action_path }}/..
-        CI_WORKFLOW: ${{ inputs.workflow }}
         CI_REQUIRED_JOBS: ${{ inputs.required-jobs }}
-        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_TOKEN: ${{ github.token }}

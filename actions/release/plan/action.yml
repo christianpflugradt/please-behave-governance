@@ -10,9 +10,6 @@ inputs:
   force:
     description: "`true` plans a patch release even when no commit would release by itself, to test the release process"
     default: 'false'
-  github-token:
-    description: Token with contents write permission, because Semantic Release verifies push access even in a dry run
-    default: ${{ github.token }}
 outputs:
   release:
     description: "`true` when a release is planned"
@@ -43,5 +40,5 @@ runs:
         RELEASE_MODE: ${{ inputs.mode }}
         RELEASE_TAG_FORMAT: ${{ inputs.tag-format }}
         RELEASE_FORCE: ${{ inputs.force }}
-        GITHUB_TOKEN: ${{ inputs.github-token }}
-        GH_TOKEN: ${{ inputs.github-token }}
+        GITHUB_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ github.token }}

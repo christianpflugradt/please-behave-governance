@@ -11,8 +11,6 @@ import math
 import os
 import subprocess
 import sys
-import tempfile
-import tomllib
 
 SEVERITIES = ("low", "medium", "high", "critical")
 NPM_SEVERITIES = {"info": "low", "low": "low", "moderate": "medium", "high": "high", "critical": "critical"}
@@ -161,17 +159,6 @@ def pip_audit(requirements):
     return pip_findings(run_audit(["pip-audit", "--requirement", requirements, "--format", "json", "--progress-spinner", "off"], "."))
 
 
-def pyproject_audit(pyproject):
-    """Audit the project's declared dependencies by writing them to a temporary requirements file."""
-    with open(pyproject, "rb") as handle:
-        dependencies = tomllib.load(handle)["project"]["dependencies"]
-    with tempfile.TemporaryDirectory() as directory:
-        requirements = os.path.join(directory, "requirements.txt")
-        with open(requirements, "w", encoding="utf-8") as handle:
-            handle.write("\n".join(dependencies) + "\n")
-        return pip_audit(requirements)
-
-
 def run_audit(command, directory):
     result = subprocess.run(command, cwd=directory, capture_output=True, check=False)
     if result.returncode not in (0, 1):
@@ -191,13 +178,12 @@ def label(tool, directory):
     return tool if directory == "." else f"{tool} {directory}"
 
 
-def scan(path, npm_directories, cargo_directories, requirements=(), pyprojects=(), owasp_reports=()):
+def scan(path, npm_directories, cargo_directories, requirements=(), owasp_reports=()):
     scans = [scan_one(label("npm", d), lambda d=d: npm_findings(run_audit(["npm", "audit", "--json"], d))) for d in npm_directories]
     scans += [
         scan_one(label("cargo", d), lambda d=d: cargo_findings(run_audit(["cargo", "audit", "--json"], d))) for d in cargo_directories
     ]
     scans += [scan_one(label("pip", f), lambda f=f: pip_audit(f)) for f in requirements]
-    scans += [scan_one(label("pip", f), lambda f=f: pyproject_audit(f)) for f in pyprojects]
     scans += [scan_one("owasp", lambda f=f: read_owasp(f)) for f in owasp_reports]
     report = {"scans": scans}
     with open(path, "w", encoding="utf-8") as handle:
@@ -272,7 +258,6 @@ def main(argv):
     scanning.add_argument("--npm", action="append", default=[], metavar="DIR", help="directory with a package-lock.json")
     scanning.add_argument("--cargo", action="append", default=[], metavar="DIR", help="directory with a Cargo.lock")
     scanning.add_argument("--requirements", action="append", default=[], metavar="FILE", help="pip requirements file")
-    scanning.add_argument("--pyproject", action="append", default=[], metavar="FILE", help="pyproject.toml with project dependencies")
     scanning.add_argument("--owasp-report", action="append", default=[], metavar="FILE", help="OWASP Dependency-Check JSON report")
     scanning.add_argument("--none", action="store_true", help="state that nothing has dependencies to audit and record an empty report")
     evaluate = commands.add_parser("report")
@@ -280,10 +265,10 @@ def main(argv):
     evaluate.add_argument("--fail-on", required=True, choices=SEVERITIES)
     args = parser.parse_args(argv)
     if args.command == "scan":
-        inputs = args.npm or args.cargo or args.requirements or args.pyproject or args.owasp_report
+        inputs = args.npm or args.cargo or args.requirements or args.owasp_report
         if args.none == bool(inputs):
-            parser.error("scan needs at least one input (--npm, --cargo, --requirements, --pyproject, --owasp-report), or --none alone")
-        return scan(args.report, args.npm, args.cargo, args.requirements, args.pyproject, args.owasp_report)
+            parser.error("scan needs at least one input (--npm, --cargo, --requirements, --owasp-report), or --none alone")
+        return scan(args.report, args.npm, args.cargo, args.requirements, args.owasp_report)
     return report(args.report, args.fail_on)
 
 

@@ -11,22 +11,6 @@ on:
         description: Newline-separated names of the CI jobs that must have succeeded, including every matrix entry
         type: string
         default: Check
-      tools:
-        description: Tools to install with mise for this job
-        type: string
-        default: python
-      governance:
-        description: "true also verifies the repository at the release execution point with the Please Behave action"
-        type: string
-        default: 'false'
-      gradle:
-        description: "true prepares Gradle before the checks, for repositories whose release checks need it"
-        type: string
-        default: 'false'
-      timeout-minutes:
-        description: Timeout of the job
-        type: number
-        default: 30
     outputs:
       ci_run_id:
         description: The CI run that proved the source commit
@@ -45,7 +29,7 @@ jobs:
   readiness:
     name: Readiness
     runs-on: ubuntu-24.04
-    timeout-minutes: ${{ inputs.timeout-minutes }}
+    timeout-minutes: 15
     permissions:
       contents: read
       actions: read
@@ -61,17 +45,9 @@ jobs:
       - name: Install project tools
         uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
         with:
-          install_args: ${{ inputs.tools }}
-      - name: Prepare Gradle
-        if: inputs.gradle == 'true'
-        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
+          install_args: python
       - name: Verify exact-source CI prerequisites
         id: proof
         uses: christianpflugradt/please-behave-governance/actions/release/check-ci@e0d645d4cf3d5e462540eb184ee55b5ad7227889 # updates/actions/release
         with:
           required-jobs: ${{ inputs.required-jobs }}
-      - name: Verify release readiness
-        if: inputs.governance == 'true'
-        uses: christianpflugradt/please-behave-governance/actions/release/governance@e0d645d4cf3d5e462540eb184ee55b5ad7227889 # updates/actions/release
-        with:
-          report-name: release-readiness-report

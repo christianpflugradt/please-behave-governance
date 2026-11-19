@@ -40,7 +40,6 @@ export async function publish(env = process.env, release = semanticRelease, run 
   const { mode, tagFormat, assets, force, repository, hooks } = settings(env);
   assertNoLocalConfiguration(cwd);
   verifySource(env, cwd, run);
-  if (mode === "prerelease" && hooks.verify) run("sh", ["-c", hooks.verify], { cwd, env, stdio: "inherit" });
   if (mode === "release") {
     const config = createConfig({ repository, tagFormat, assets, force, guard: guardFor(expected, env, cwd, run, hooks) });
     const result = await release(config, { cwd, env });
@@ -51,9 +50,7 @@ export async function publish(env = process.env, release = semanticRelease, run 
   if (developmentVersion(stable, allReleases(env, run, repository)) !== expected) {
     throw new Error("Development version changed after planning; refuse publication.");
   }
-  const files = assets
-    .flatMap(asset => globSync(asset.path ?? asset, { cwd }).map(file => (asset.label ? `${file}#${asset.label}` : file)))
-    .sort();
+  const files = assets.flatMap(pattern => globSync(pattern, { cwd })).sort();
   if (!files.length) throw new Error("No release assets matched; refuse publication.");
   verifySource(env, cwd, run);
   run("gh", ["release", "create", `dev-${expected}`, ...files, "--repo", repository, "--target", env.GITHUB_SHA,

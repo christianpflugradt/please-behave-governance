@@ -10,9 +10,6 @@ inputs:
   target:
     description: The candidate target to record, one of the targets of the policy file; not needed for `verify`
     default: ''
-  policy:
-    description: The repository's policy file with the artifact `root` and the `targets` with their file lists
-    default: .github/release-artifacts.json
 runs:
   using: composite
   steps:
@@ -38,7 +35,6 @@ runs:
         OPERATION: ${{ inputs.operation }}
         EXPECTED_RELEASE_VERSION: ${{ inputs.version }}
         RELEASE_TARGET: ${{ inputs.target }}
-        RELEASE_ARTIFACTS_POLICY: ${{ inputs.policy }}
     - name: Upload the evidence of this target
       if: inputs.operation == 'record'
       uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7

@@ -10,9 +10,6 @@ inputs:
   requirements:
     description: Newline-separated pip requirements files
     default: ''
-  pyproject:
-    description: Newline-separated pyproject.toml files with project dependencies
-    default: ''
   owasp-report:
     description: Newline-separated OWASP Dependency-Check JSON reports that an earlier step produced
     default: ''
@@ -40,7 +37,6 @@ runs:
         add --npm "$NPM"
         add --cargo "$CARGO"
         add --requirements "$REQUIREMENTS"
-        add --pyproject "$PYPROJECT"
         add --owasp-report "$OWASP_REPORT"
         if [ "$NONE" = "true" ]; then arguments+=(--none); fi
         python3 -B "$ACTION_ROOT/lib/dependency_audit.py" scan --report dependency-audit.json ${arguments[@]+"${arguments[@]}"}
@@ -49,7 +45,6 @@ runs:
         NPM: ${{ inputs.npm }}
         CARGO: ${{ inputs.cargo }}
         REQUIREMENTS: ${{ inputs.requirements }}
-        PYPROJECT: ${{ inputs.pyproject }}
         OWASP_REPORT: ${{ inputs.owasp-report }}
         NONE: ${{ inputs.none }}
     - name: Report the findings

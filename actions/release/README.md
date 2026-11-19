@@ -10,7 +10,7 @@ build and verification steps.
 | `actions/release/publish` | Publishes the planned version; refuses if the version or `main` changed since planning |
 | `actions/release/check-ci` | Proves that CI succeeded for the exact source commit within one trusted workflow run, including reruns |
 | `actions/release/evidence` | `record`s the hashes of a release candidate per target and uploads them as `release-evidence-<run>-<attempt>-<target>`, together with the candidate files as `release-candidate-<run>-<attempt>-<target>`; `verify` downloads both for every target, restores the candidate files below the policy `root` and verifies the complete set before publication |
-| `actions/release/governance` | verifies the repository at the `release` point of Please Behave and uploads the governance report |
+| `actions/release/governance` | verifies the repository at the `release` point of Please Behave and uploads the governance report; it has no inputs |
 
 `plan` and `publish` need Node 24.10+ on `PATH` (for example `install_args: node` in `jdx/mise-action`) and install their
 pinned dependencies from `package-lock.json` themselves. `check-ci` and `evidence` need only Python 3.
@@ -63,7 +63,7 @@ workflow calls instead of repeating their steps:
 | Workflow | Replaces | Inputs |
 | --- | --- | --- |
 | `.github/workflows/release-plan.yml` | the `plan` job | `mode`, `tag-format`, `force` |
-| `.github/workflows/release-readiness.yml` | the `release-readiness` job | `source-sha`, `required-jobs`, `tools`, `governance`, `gradle`, `timeout-minutes` |
+| `.github/workflows/release-readiness.yml` | the `release-readiness` job | `source-sha`, `required-jobs` |
 
 ```yaml
 jobs:
@@ -87,8 +87,8 @@ jobs:
 ```
 
 The calling job grants the permissions, because a called workflow cannot hold more than its caller. Booleans are passed
-as strings (`'true'`), so a scheduled run, which has no inputs, also works. `release-readiness` outputs `ci_run_id` and
-`ci_attempt`. The workflows pin the actions of this directory to a full commit SHA, which Renovate keeps current in this
+as strings (`'true'`), so a scheduled run, which has no inputs, also works. `release-readiness` only proves CI and outputs `ci_run_id` and
+`ci_attempt`; governance rules at the `release` point run in the candidate job. The workflows pin the actions of this directory to a full commit SHA, which Renovate keeps current in this
 repository; consumers pin the workflow files and receive the tracking branch `updates/workflows/release`.
 
 ## Hooks
@@ -103,8 +103,7 @@ release environment (`EXPECTED_RELEASE_VERSION` and the `GITHUB_*` variables), a
 | `prepare-command` | before the tag is created, followed by another source check |
 | `publish-command` | after the tag is created |
 
-`verify-command` also runs once before a `prerelease` is created; `prepare-command` and `publish-command` apply to the
-`release` mode only. An asset line may end in ` :: <label>` to set the label shown on the release.
+Hooks apply to the `release` mode only.
 
 ## Updates
 
@@ -137,5 +136,5 @@ Everything else is derived from the workflow context. A repository keeps only:
 
 ## Not covered yet
 
-Asset labels, and the 0.x development series of `please-behave/cli`. The Renovate managers for the
+The 0.x development series of `please-behave/cli`. The Renovate managers for the
 `uses:` lines are untested against a live Renovate run.
