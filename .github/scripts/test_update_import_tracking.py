@@ -39,6 +39,8 @@ class TrackingTests(unittest.TestCase):
         self.write("mise-tasks/sample/task", "#!/bin/sh\necho task\n")
         self.write("actions/sample/plan/action.yml", "name: Plan\n")
         self.write("actions/sample/lib/plan.mjs", "export {};\n")
+        self.write(".github/workflows/release-plan.yml", "name: plan\n")
+        self.write(".github/workflows/ci.yml", "name: ci\n")
         self.initial = self.commit()
         for package in tracking.packages(self.root, self.initial):
             self.track(package, self.initial)
@@ -97,6 +99,14 @@ class TrackingTests(unittest.TestCase):
         self.write("actions/sample/lib/plan.mjs", "export const changed = true;\n")
         changed = self.commit()
         self.assertEqual(self.updates(), [f"{changed}:refs/heads/updates/actions/sample"])
+
+    def test_release_workflows_form_one_package_and_other_workflows_do_not_count(self):
+        self.write(".github/workflows/ci.yml", "name: changed ci\n")
+        self.commit()
+        self.assertEqual(self.updates(), [])
+        self.write(".github/workflows/release-readiness.yml", "name: readiness\n")
+        added = self.commit()
+        self.assertEqual(self.updates(), [f"{added}:refs/heads/updates/workflows/release"])
 
     def test_resource_addition_deletion_and_mode_change_count(self):
         for operation in ("add", "delete", "mode"):

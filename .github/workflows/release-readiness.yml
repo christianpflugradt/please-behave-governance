@@ -1,0 +1,91 @@
+name: Release readiness
+
+on:
+  workflow_call:
+    inputs:
+      source-sha:
+        description: The commit planned for the release
+        type: string
+        required: true
+      required-jobs:
+        description: Newline-separated names of the CI jobs that must have succeeded, including every matrix entry
+        type: string
+        default: Check
+      tools:
+        description: Tools to install with mise for this job
+        type: string
+        default: python
+      governance:
+        description: "true also verifies the repository at the release execution point with the Please Behave action"
+        type: string
+        default: 'false'
+      gradle:
+        description: "true prepares Gradle before the checks, for repositories whose release checks need it"
+        type: string
+        default: 'false'
+      timeout-minutes:
+        description: Timeout of the job
+        type: number
+        default: 30
+    outputs:
+      ci_run_id:
+        description: The CI run that proved the source commit
+        value: ${{ jobs.readiness.outputs.ci_run_id }}
+      ci_attempt:
+        description: The attempt of that run in which the first required job succeeded
+        value: ${{ jobs.readiness.outputs.ci_attempt }}
+
+permissions:
+  contents: read
+
+env:
+  MISE_AUTO_INSTALL: 'false'
+
+jobs:
+  readiness:
+    name: Readiness
+    runs-on: ubuntu-24.04
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      ci_run_id: ${{ steps.proof.outputs.ci-run-id }}
+      ci_attempt: ${{ steps.proof.outputs.ci-attempt }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ inputs.source-sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install project tools
+        uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+        with:
+          install_args: ${{ inputs.tools }}
+      - name: Prepare Gradle
+        if: inputs.gradle == 'true'
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6
+      - name: Verify exact-source CI prerequisites
+        id: proof
+        uses: christianpflugradt/please-behave-governance/actions/release/check-ci@c37eb9268f0c159f35e2301712269d77c94ad300 # updates/actions/release
+        with:
+          required-jobs: ${{ inputs.required-jobs }}
+      - name: Verify release readiness
+        if: inputs.governance == 'true'
+        uses: please-behave/action@9a184e405e62a79154989de1e54c54869180751b # v1.5.0
+        with:
+          install: 'false'
+          sync: 'true'
+          execution-point: release
+          summary: 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Upload readiness report
+        if: always() && inputs.governance == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-readiness-report-${{ github.run_id }}-${{ github.run_attempt }}
+          path: .please/reports/last.json
+          include-hidden-files: true
+          if-no-files-found: warn
+          retention-days: 7

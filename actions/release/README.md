@@ -54,6 +54,42 @@ on:
 
 `mise run release --force`, `--prerelease` and `--release` set the `force` and `mode` dispatch inputs.
 
+## Reusable workflows
+
+The first two jobs of a release are identical in every repository and exist as reusable workflows, which the release
+workflow calls instead of repeating their steps:
+
+| Workflow | Replaces | Inputs |
+| --- | --- | --- |
+| `.github/workflows/release-plan.yml` | the `plan` job | `mode`, `tag-format`, `force` |
+| `.github/workflows/release-readiness.yml` | the `release-readiness` job | `source-sha`, `required-jobs`, `tools`, `governance`, `gradle`, `timeout-minutes` |
+
+```yaml
+jobs:
+  plan:
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    uses: christianpflugradt/please-behave-governance/.github/workflows/release-plan.yml@<FULL_COMMIT_SHA>
+    with:
+      force: ${{ inputs.force }}
+  release-readiness:
+    needs: plan
+    if: needs.plan.outputs.release == 'true'
+    permissions:
+      contents: read
+      actions: read
+    uses: christianpflugradt/please-behave-governance/.github/workflows/release-readiness.yml@<FULL_COMMIT_SHA>
+    with:
+      source-sha: ${{ needs.plan.outputs.source_sha }}
+      required-jobs: Check
+```
+
+The calling job grants the permissions, because a called workflow cannot hold more than its caller. Booleans are passed
+as strings (`'true'`), so a scheduled run, which has no inputs, also works. `release-readiness` outputs `ci_run_id` and
+`ci_attempt`. The workflows pin the actions of this directory to a full commit SHA, which Renovate keeps current in this
+repository; consumers pin the workflow files and receive the tracking branch `updates/workflows/release`.
+
 ## Hooks
 
 A repository whose release has more to do than tagging, for example publishing a container image, passes shell

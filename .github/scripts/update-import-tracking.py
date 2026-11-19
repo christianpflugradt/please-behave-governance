@@ -9,7 +9,8 @@ import tomllib
 
 
 PREFIX = "refs/remotes/origin/updates/"
-PACKAGE = re.compile(r"(?:rulesets|providers|mise-tasks|actions)/[a-z0-9][a-z0-9-]*")
+PACKAGE = re.compile(r"(?:(?:rulesets|providers|mise-tasks|actions)/[a-z0-9][a-z0-9-]*|workflows/release)")
+WORKFLOW = re.compile(r"\.github/workflows/release-[a-z-]+\.yml")
 RULE = re.compile(r"rules/(?:checks|reviews)/[a-z0-9][a-z0-9-]*")
 
 
@@ -26,7 +27,9 @@ def ancestor(root, older, newer):
 
 def packages(root, revision):
     names = (
-        git(root, "ls-tree", "-r", "--name-only", revision, "--", "rulesets", "providers", "mise-tasks", "actions").decode().splitlines()
+        git(root, "ls-tree", "-r", "--name-only", revision, "--", "rulesets", "providers", "mise-tasks", "actions", ".github/workflows")
+        .decode()
+        .splitlines()
     )
     found = set()
     for name in names:
@@ -34,6 +37,9 @@ def packages(root, revision):
             name.startswith("providers/") and name.endswith("/provider.toml")
         ):
             found.add(str(Path(name).parent))
+        elif WORKFLOW.fullmatch(name):
+            # The reusable release workflows form one package, because GitHub allows no subdirectories for them.
+            found.add("workflows/release")
         elif name.startswith(("mise-tasks/", "actions/")) and name.count("/") >= 2:
             # A task group or action group is every file below its directory, such as mise-tasks/release or actions/release.
             found.add("/".join(name.split("/")[:2]))
@@ -52,7 +58,10 @@ def snapshot(root, revision, package):
     if not PACKAGE.fullmatch(package):
         raise ValueError(f"unsupported package path: {package}")
     paths = {package}
-    if package.startswith("rulesets/"):
+    if package == "workflows/release":
+        listing = git(root, "ls-tree", "--name-only", "-z", revision, ".github/workflows/").decode().split("\0")
+        paths = {name for name in listing if WORKFLOW.fullmatch(name)}
+    elif package.startswith("rulesets/"):
         config = tomllib.loads(definition(root, revision, package).decode())
         # This catalog uses direct Rule references, without nested imports.
         if "imports" in config or "rule_sets" in config:

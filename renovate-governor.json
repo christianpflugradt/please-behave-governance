@@ -36,6 +36,18 @@
       "packageNameTemplate": "https://github.com/christianpflugradt/please-behave-governance.git",
       "depNameTemplate": "please-behave-governance",
       "currentValueTemplate": "main"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the commit pins of governance release workflows in the workflows on the default branch.",
+      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
+      "matchStrings": [
+        "uses:\\s*christianpflugradt/please-behave-governance/\\.github/workflows/release-[a-z-]+\\.yml@(?<currentDigest>[0-9a-f]{40})"
+      ],
+      "datasourceTemplate": "git-refs",
+      "packageNameTemplate": "https://github.com/christianpflugradt/please-behave-governance.git",
+      "depNameTemplate": "please-behave-governance",
+      "currentValueTemplate": "main"
     }
   ],
   "packageRules": [

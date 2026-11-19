@@ -1,0 +1,67 @@
+name: Release plan
+
+on:
+  workflow_call:
+    inputs:
+      mode:
+        description: "release plans a Semantic Release version; prerelease plans a development version of the latest stable release"
+        type: string
+        default: release
+      tag-format:
+        description: Tag format of official releases
+        type: string
+        default: v${version}
+      force:
+        description: "true plans a patch release even when no commit would release by itself, to test the release process"
+        type: string
+        default: 'false'
+    outputs:
+      release:
+        description: "true when a release is planned"
+        value: ${{ jobs.plan.outputs.release }}
+      version:
+        description: The planned version, empty when no release is planned
+        value: ${{ jobs.plan.outputs.version }}
+      source_sha:
+        description: The commit the release is built from
+        value: ${{ jobs.plan.outputs.source_sha }}
+      mode:
+        description: The planned mode
+        value: ${{ jobs.plan.outputs.mode }}
+
+permissions:
+  contents: read
+
+env:
+  MISE_AUTO_INSTALL: 'false'
+
+jobs:
+  plan:
+    name: Plan
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write # Semantic Release verifies push access during a dry run
+    outputs:
+      release: ${{ steps.plan.outputs.release }}
+      version: ${{ steps.plan.outputs.version }}
+      source_sha: ${{ steps.plan.outputs.source-sha }}
+      mode: ${{ steps.plan.outputs.mode }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Install project tools
+        uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+        with:
+          install_args: node
+      - name: Plan the release without publishing
+        id: plan
+        uses: christianpflugradt/please-behave-governance/actions/release/plan@c37eb9268f0c159f35e2301712269d77c94ad300 # updates/actions/release
+        with:
+          mode: ${{ inputs.mode }}
+          tag-format: ${{ inputs.tag-format }}
+          force: ${{ inputs.force }}
