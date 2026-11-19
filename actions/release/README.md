@@ -9,7 +9,7 @@ build and verification steps.
 | `actions/release/plan` | Calculates the next release without publishing; outputs `release`, `version`, `source-sha`, `mode` |
 | `actions/release/publish` | Publishes the planned version; refuses if the version or `main` changed since planning |
 | `actions/release/check-ci` | Proves that CI succeeded for the exact source commit within one trusted workflow run, including reruns |
-| `actions/release/evidence` | `record`s the hashes of a release candidate per target and `verify`s the complete set before publication |
+| `actions/release/evidence` | `record`s the hashes of a release candidate per target and uploads them as `release-evidence-<run>-<attempt>-<target>`; `verify` downloads the evidence of every target and verifies the complete set before publication |
 
 `plan` and `publish` need Node 24.10+ on `PATH` (for example `install_args: node` in `jdx/mise-action`) and install their
 pinned dependencies from `package-lock.json` themselves. `check-ci` and `evidence` need only Python 3.
