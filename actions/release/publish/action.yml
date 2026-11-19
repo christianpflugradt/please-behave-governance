@@ -17,7 +17,7 @@ inputs:
     description: Newline-separated globs of the files attached to the release
     default: ''
   github-token:
-    description: Token with `contents: write`
+    description: Token with contents write permission
     default: ${{ github.token }}
 runs:
   using: composite

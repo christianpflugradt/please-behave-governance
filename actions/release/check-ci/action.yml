@@ -8,7 +8,7 @@ inputs:
     description: Newline-separated names of the CI jobs that must have succeeded, including every matrix entry
     default: Check
   github-token:
-    description: Token with `actions: read` and `contents: read`
+    description: Token with the permissions actions read and contents read
     default: ${{ github.token }}
 runs:
   using: composite
