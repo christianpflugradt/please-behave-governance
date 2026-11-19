@@ -13,7 +13,7 @@ import { publish } from "./publish.mjs";
 test("the hooks run in the Semantic Release lifecycle against a real repository", async () => {
   const dir = mkdtempSync(join(tmpdir(), "lifecycle-"));
   const git = (...args) => execFileSync("git", args, { cwd: join(dir, "work"), encoding: "utf8" });
-  execFileSync("git", ["init", "-q", "--bare", join(dir, "origin.git")]);
+  execFileSync("git", ["init", "-q", "--bare", "-b", "main", join(dir, "origin.git")]); // CI defaults to master
   execFileSync("git", ["init", "-q", "-b", "main", join(dir, "work")]);
   for (const [key, value] of [["user.email", "t@t"], ["user.name", "t"]]) git("config", key, value);
   git("remote", "add", "origin", join(dir, "origin.git"));
