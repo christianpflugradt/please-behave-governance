@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { analysisPlugins, createConfig } from "./config.mjs";
-import { settings } from "./plan.mjs";
+import { assetsFrom, settings } from "./plan.mjs";
 import { publish } from "./publish.mjs";
 import { assertNoLocalConfiguration, verifySource } from "./source.mjs";
 import { developmentVersion, stableFromTag } from "./version.mjs";
@@ -113,4 +113,19 @@ test("a prerelease is refused for a stale version or without assets", async () =
   await assert.rejects(publish(prerelease, undefined, scriptedRun([]), cwd), /changed after planning/);
   const version = developmentVersion("1.2.3", []);
   await assert.rejects(publish({ ...prerelease, EXPECTED_RELEASE_VERSION: version, RELEASE_ASSETS: "nothing/*" }, undefined, scriptedRun([]), cwd), /No release assets/);
+});
+
+test("asset lines may carry a label", () => {
+  assert.deepEqual(assetsFrom("dist/app.jar :: Executable JAR\ndist/SHA256SUMS\n"), [{ path: "dist/app.jar", label: "Executable JAR" }, "dist/SHA256SUMS"]);
+});
+
+test("a prerelease verifies first and labels its assets", async () => {
+  const cwd = workdir();
+  const version = developmentVersion("1.2.3", []);
+  const calls = [];
+  const env = { ...publishEnv, RELEASE_MODE: "prerelease", EXPECTED_RELEASE_VERSION: version, RELEASE_ASSETS: "dist/*.zip :: The app", RELEASE_VERIFY_COMMAND: "check-it" };
+  await publish(env, undefined, scriptedRun(calls), cwd);
+  assert.deepEqual(calls.find(call => call[0] === "sh"), ["sh", "-c", "check-it"]);
+  assert.ok(calls.findIndex(call => call[0] === "sh") < calls.findIndex(call => call[1] === "release"));
+  assert.ok(calls.find(call => call[1] === "release").includes("dist/app.zip#The app"));
 });

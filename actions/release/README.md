@@ -52,7 +52,7 @@ on:
       dist/SHA256SUMS
 ```
 
-`mise run release --force` and `--prerelease` set the `force` and `mode` dispatch inputs.
+`mise run release --force`, `--prerelease` and `--release` set the `force` and `mode` dispatch inputs.
 
 ## Hooks
 
@@ -66,7 +66,8 @@ release environment (`EXPECTED_RELEASE_VERSION` and the `GITHUB_*` variables), a
 | `prepare-command` | before the tag is created, followed by another source check |
 | `publish-command` | after the tag is created |
 
-Hooks apply to the `release` mode only.
+`verify-command` also runs once before a `prerelease` is created; `prepare-command` and `publish-command` apply to the
+`release` mode only. An asset line may end in ` :: <label>` to set the label shown on the release.
 
 ## Updates
 

@@ -10,10 +10,18 @@ inputs:
   github-token:
     description: Token with the permissions actions read and contents read
     default: ${{ github.token }}
+outputs:
+  ci-run-id:
+    description: The CI run that proved the source commit
+    value: ${{ steps.proof.outputs.ci_run_id }}
+  ci-attempt:
+    description: The attempt of that run in which the first required job succeeded, for artifacts of that run
+    value: ${{ steps.proof.outputs.ci_attempt }}
 runs:
   using: composite
   steps:
     - name: Verify the CI run of the source commit
+      id: proof
       shell: bash
       run: python3 -B "$ACTION_ROOT/lib/check_release_ci.py"
       env:

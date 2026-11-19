@@ -7,7 +7,7 @@ a repository includes exactly the groups that apply to it.
 
 | Group | Repository group | Tasks |
 | --- | --- | --- |
-| `mise-tasks/release` | Releasable repositories | `release [--follow] [--force] [--prerelease]`: wait for CI on `main`, then start the Release workflow |
+| `mise-tasks/release` | Releasable repositories | `release [--follow] [--force] [--prerelease | --release]`: wait for CI on `main`, then start the Release workflow |
 
 ## Import
 
@@ -25,7 +25,7 @@ Entries later in the list override earlier ones with the same task name. The `mi
 Check accepts this include in place of a local `[tasks.release]`.
 
 `--force` releases a patch version even when no commit would raise the version, to test the release
-process. `--prerelease` publishes a development prerelease of the latest stable release. Both are passed as
+process. `--prerelease` publishes a development prerelease of the latest stable release, `--release` an official release in a workflow that defaults to a prerelease. They are passed as
 the `force` and `mode` inputs of the `workflow_dispatch` trigger, which the workflow must declare and hand to
 the [release action](../actions/release/README.md).
 

@@ -58,6 +58,13 @@ class ReleaseTaskTest(unittest.TestCase):
             [("gh", "workflow", "run", "release.yml", "--ref", "main", "-f", "force=true", "-f", "mode=prerelease")],
         )
 
+    def test_release_flag_selects_the_official_mode(self):
+        gh = FakeGh([ci("completed")])
+        self.release(gh, follow=False, official=True)
+        self.assertEqual(
+            gh.named("gh", "workflow", "run"), [("gh", "workflow", "run", "release.yml", "--ref", "main", "-f", "mode=release")]
+        )
+
     def test_follow_passes_inputs_to_the_dispatch(self):
         gh = FakeGh([ci("completed")], [[{"databaseId": 5}], [{"databaseId": 5}, {"databaseId": 9}]])
         self.release(gh, follow=True, force=True)

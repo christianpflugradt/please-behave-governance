@@ -205,11 +205,19 @@ def verify(policy, env, head, api):
     )
 
 
+def outputs(policy, evidence):
+    """The CI run and the attempt in which the first required job succeeded, for binding artifacts of that run."""
+    return f"ci_run_id={evidence['run_id']}\nci_attempt={evidence['jobs'][policy['required_jobs'][0]]['attempt']}\n"
+
+
 def main():
     try:
         policy = policy_from(os.environ)
         result = subprocess.run(["git", "rev-parse", "HEAD"], capture_output=True, text=True, timeout=15, check=True)
         evidence = verify(policy, os.environ, result.stdout.strip(), GitHub(os.environ.get("GITHUB_TOKEN")))
+        if os.environ.get("GITHUB_OUTPUT"):
+            with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+                output.write(outputs(policy, evidence))
         print("PASS: " + json.dumps(evidence, sort_keys=True))
         return 0
     except NotReady as exc:

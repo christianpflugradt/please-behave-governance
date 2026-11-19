@@ -5,7 +5,7 @@
 # USAGE flag "--prerelease" help="Publish a development prerelease of the latest stable release instead of an official release"
 """Start the Release workflow once CI on main is idle; with --follow, watch the run.
 
---force and --prerelease are passed to the workflow as the dispatch inputs `force` and `mode`;
+--force, --prerelease and --release are passed to the workflow as the dispatch inputs `force` and `mode`;
 the workflow must declare them.
 """
 
@@ -78,17 +78,18 @@ def dispatch(fields=()):
     raise ValueError("The dispatched release run did not appear; check GitHub Actions.")
 
 
-FLAGS = {"--follow", "--force", "--prerelease"}
+FLAGS = {"--follow", "--force", "--prerelease", "--release"}
 
 
-def dispatch_fields(force, prerelease):
+def dispatch_fields(force, prerelease, official=False):
     """The `gh workflow run` fields for the requested dispatch inputs."""
-    return [*(["-f", "force=true"] if force else []), *(["-f", "mode=prerelease"] if prerelease else [])]
+    mode = ["-f", "mode=prerelease"] if prerelease else ["-f", "mode=release"] if official else []
+    return [*(["-f", "force=true"] if force else []), *mode]
 
 
-def release(follow, force=False, prerelease=False):
+def release(follow, force=False, prerelease=False, official=False):
     wait_for_ci()
-    fields = dispatch_fields(force, prerelease)
+    fields = dispatch_fields(force, prerelease, official)
     if not follow:
         run("gh", "workflow", "run", WORKFLOW, "--ref", "main", *fields, capture=False)
         return
@@ -101,7 +102,9 @@ if __name__ == "__main__":
     try:
         flags = set(sys.argv[1:])
         if not flags <= FLAGS or len(flags) != len(sys.argv[1:]):
-            raise ValueError("Usage: mise release [--follow] [--force] [--prerelease]")
-        release("--follow" in flags, "--force" in flags, "--prerelease" in flags)
+            raise ValueError("Usage: mise release [--follow] [--force] [--prerelease | --release]")
+        if {"--prerelease", "--release"} <= flags:
+            raise ValueError("Use either --prerelease or --release")
+        release("--follow" in flags, "--force" in flags, "--prerelease" in flags, "--release" in flags)
     except (OSError, ValueError, KeyError, json.JSONDecodeError) as error:
         sys.exit(f"Release failed: {error}")

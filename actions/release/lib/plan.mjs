@@ -8,6 +8,14 @@ import { developmentVersion, stableFromTag } from "./version.mjs";
 
 export const MODES = ["release", "prerelease"];
 
+/** One asset per line: a path or glob, optionally followed by ` :: ` and the label shown on the release. */
+export function assetsFrom(text = "") {
+  return text.split("\n").map(line => line.trim()).filter(Boolean).map(line => {
+    const [path, label] = line.split(/\s+::\s+/, 2);
+    return label ? { path, label } : path;
+  });
+}
+
 /** Reads the action inputs, which the composite action hands over as environment variables. */
 export function settings(env) {
   const mode = env.RELEASE_MODE || "release";
@@ -15,7 +23,7 @@ export function settings(env) {
   return {
     mode,
     tagFormat: env.RELEASE_TAG_FORMAT || "v${version}",
-    assets: (env.RELEASE_ASSETS ?? "").split("\n").map(line => line.trim()).filter(Boolean),
+    assets: assetsFrom(env.RELEASE_ASSETS),
     force: env.RELEASE_FORCE === "true",
     repository: env.GITHUB_REPOSITORY,
     hooks: { verify: env.RELEASE_VERIFY_COMMAND || "", prepare: env.RELEASE_PREPARE_COMMAND || "", publish: env.RELEASE_PUBLISH_COMMAND || "" },

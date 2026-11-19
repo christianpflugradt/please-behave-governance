@@ -14,10 +14,10 @@ inputs:
     description: Must equal the value given to the plan action
     default: 'false'
   assets:
-    description: Newline-separated globs of the files attached to the release
+    description: Newline-separated globs of the files attached to the release; a glob can be followed by two colons and a label
     default: ''
   verify-command:
-    description: Shell command run with every verification of the release, after the source checks; a failure refuses publication
+    description: Shell command run with every verification of the release, after the source checks, and once before a prerelease is created; a failure refuses publication
     default: ''
   prepare-command:
     description: Shell command run before the tag is created, followed by another source check; for example loading the verified candidate
