@@ -1,4 +1,4 @@
-"""Run Rule, provider and workflow-tooling tests, each in its own interpreter."""
+"""Run Rule, provider, workflow-tooling and action tests, each in its own interpreter."""
 
 import subprocess
 import sys
@@ -6,7 +6,12 @@ from pathlib import Path
 
 
 def main():
-    tests = sorted(path for top in ("rules", "providers", ".github/scripts") for path in Path(top).rglob("test_*.py"))
+    tests = sorted(
+        path
+        for top in ("rules", "providers", ".github/scripts", "actions")
+        for path in Path(top).rglob("test_*.py")
+        if "node_modules" not in path.parts  # Installed dependencies bring their own tests.
+    )
     failed = [str(test) for test in tests if subprocess.run([sys.executable, "-B", str(test)]).returncode != 0]
     for test in failed:
         print(f"FAIL: {test}", file=sys.stderr)

@@ -6,7 +6,7 @@ value: >-
   One command runs every test of the repository without a test framework, and
   each suite stays isolated from the others.
 conditions:
-  - statement: Every test_*.py file under rules, providers and .github/scripts is run as a script in its own Python interpreter.
+  - statement: Every test_*.py file under rules, providers, .github/scripts and actions is run as a script in its own Python interpreter.
     rationale: Each suite stays limited to one Rule or provider, as the repository guidelines require (derived from AGENTS.md, not stated in the code).
   - statement: A test file that exits with a nonzero code fails the Rule, and the message names the file.
     rationale: The failing suite is found without searching the output.
@@ -18,7 +18,7 @@ success_criteria:
   - A crash of the runner is an ERROR.
 out_of_scope:
   - description: Test coverage and the quality of the tests.
-  - description: Test files outside rules, providers and .github/scripts.
+  - description: Test files outside rules, providers, .github/scripts and actions, and below node_modules.
 limitations:
   - A repository state without any test file passes.
   - A test file only counts when running it as a script actually starts its tests, for example through a main guard.

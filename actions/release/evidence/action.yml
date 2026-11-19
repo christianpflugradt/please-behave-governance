@@ -1,0 +1,27 @@
+name: Release candidate evidence
+description: Record or verify the hashes of the release candidate artifacts against the planned source and version
+inputs:
+  operation:
+    description: "`record` after the candidate was built and verified; `verify` before publication"
+    required: true
+  version:
+    description: The version planned by the plan action
+    required: true
+  target:
+    description: The candidate target to record, one of the targets of the policy file; not needed for `verify`
+    default: ''
+  policy:
+    description: The repository's policy file with the artifact `root` and the `targets` with their file lists
+    default: .github/release-artifacts.json
+runs:
+  using: composite
+  steps:
+    - name: Run the evidence operation
+      shell: bash
+      run: python3 -B "$ACTION_ROOT/lib/release_evidence.py" "$OPERATION"
+      env:
+        ACTION_ROOT: ${{ github.action_path }}/..
+        OPERATION: ${{ inputs.operation }}
+        EXPECTED_RELEASE_VERSION: ${{ inputs.version }}
+        RELEASE_TARGET: ${{ inputs.target }}
+        RELEASE_ARTIFACTS_POLICY: ${{ inputs.policy }}

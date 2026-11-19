@@ -8,9 +8,12 @@ build and verification steps.
 | --- | --- |
 | `actions/release/plan` | Calculates the next release without publishing; outputs `release`, `version`, `source-sha`, `mode` |
 | `actions/release/publish` | Publishes the planned version; refuses if the version or `main` changed since planning |
+| `actions/release/check-ci` | Proves that CI succeeded for the exact source commit within one trusted workflow run, including reruns |
+| `actions/release/evidence` | `record`s the hashes of a release candidate per target and `verify`s the complete set before publication |
 
-Both need Node 24.10+ on `PATH` (for example `install_args: node` in `jdx/mise-action`) and install their
-pinned dependencies from `package-lock.json` themselves. The repository must not keep its own
+`plan` and `publish` need Node 24.10+ on `PATH` (for example `install_args: node` in `jdx/mise-action`) and install their
+pinned dependencies from `package-lock.json` themselves. `check-ci` and `evidence` need only Python 3.
+Pin every action to the same full commit SHA. The repository must not keep its own
 `release.config.*`, `.releaserc*` or `release` key in `package.json`; the actions refuse to run with one.
 
 ## Modes
@@ -64,8 +67,15 @@ moves the pin.
 `mise run setup` installs the locked dependencies, then `node --test` in this directory runs the offline tests.
 The `node-tests` check runs them at `pre-push` and `check`.
 
+## Repository files
+
+Everything else is derived from the workflow context. A repository keeps only:
+
+- `.github/release-artifacts.json` for `evidence`: `{"root": "dist", "targets": {"macos": ["App-{version}.zip", "metadata.json"]}}`.
+  `{version}` is the only substitution; `repository` and `workflow` (`.github/workflows/release.yml`) are not repeated.
+- The CI job names in the `required-jobs` input of `check-ci`.
+
 ## Not covered yet
 
-CI and evidence verification (`check-release-ci.py`, `release-evidence.py`), local publication hooks such as the
-GHCR push, asset labels, and the 0.x development series of `please-behave/cli`. The Renovate managers for the
+Local publication hooks such as the GHCR push, asset labels, and the 0.x development series of `please-behave/cli`. The Renovate managers for the
 `uses:` lines are untested against a live Renovate run.
