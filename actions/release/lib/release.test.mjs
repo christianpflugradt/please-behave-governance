@@ -42,7 +42,14 @@ test("local Semantic Release configuration is rejected", () => {
 });
 
 test("inputs have defaults and are validated", () => {
-  assert.deepEqual(settings({ GITHUB_REPOSITORY: "o/r" }), { mode: "release", tagFormat: "v${version}", assets: [], force: false, repository: "o/r" });
+  assert.deepEqual(settings({ GITHUB_REPOSITORY: "o/r" }), {
+    mode: "release",
+    tagFormat: "v${version}",
+    assets: [],
+    force: false,
+    repository: "o/r",
+    hooks: { verify: "", prepare: "", publish: "" },
+  });
   assert.equal(settings({ RELEASE_FORCE: "true" }).force, true);
   assert.deepEqual(settings({ RELEASE_ASSETS: "dist/*.zip\n\n dist/SHA256SUMS \n" }).assets, ["dist/*.zip", "dist/SHA256SUMS"]);
   assert.throws(() => settings({ RELEASE_MODE: "nightly" }));

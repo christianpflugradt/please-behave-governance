@@ -54,6 +54,20 @@ on:
 
 `mise run release --force` and `--prerelease` set the `force` and `mode` dispatch inputs.
 
+## Hooks
+
+A repository whose release has more to do than tagging, for example publishing a container image, passes shell
+commands to `publish` instead of carrying its own Semantic Release plugin. They run in the repository root with the
+release environment (`EXPECTED_RELEASE_VERSION` and the `GITHUB_*` variables), and a failing command refuses the release:
+
+| Input | Runs |
+| --- | --- |
+| `verify-command` | with every verification of the release, after the shared source checks |
+| `prepare-command` | before the tag is created, followed by another source check |
+| `publish-command` | after the tag is created |
+
+Hooks apply to the `release` mode only.
+
 ## Updates
 
 Pin both actions to the same full commit SHA. Like rulesets, providers and mise task groups, `actions/release`
@@ -77,5 +91,5 @@ Everything else is derived from the workflow context. A repository keeps only:
 
 ## Not covered yet
 
-Local publication hooks such as the GHCR push, asset labels, and the 0.x development series of `please-behave/cli`. The Renovate managers for the
+Asset labels, and the 0.x development series of `please-behave/cli`. The Renovate managers for the
 `uses:` lines are untested against a live Renovate run.
