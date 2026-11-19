@@ -10,7 +10,7 @@ that apply to a repository; each bundle adds to the others.
 | `rulesets/repository-conventions` | Every repository, public or private, software or otherwise | `pre-commit`, `check`; `commit-msg` for commit rules | `AGENTS.md` size limit, EditorConfig baseline, Conventional Commit syntax and advisory header wording, mise governor pin with `format`, `verify` and `setup` tasks, Renovate baseline, workflow syntax with `actionlint`, portable POSIX `sh` scripts checked with ShellCheck |
 | `rulesets/open-source-software` | Open-source software | `check`, `pre-push` | Approved license, CI and Statistics workflow structure, GitHub metadata |
 | `rulesets/private-repositories` | Private repositories on the free Actions minutes, instead of open-source software | `check`, `pre-push` | Pull-request-only CI with bounded jobs, Renovate rebase policy, private visibility |
-| `rulesets/releasable-open-source-software` | Releasable open-source software | `check`, `pre-push` | Semantic Release baseline, `release` task, Release workflow structure |
+| `rulesets/releasable-open-source-software` | Releasable open-source software | `check`, `pre-push` | `release` task |
 | `rulesets/security` | Repositories adopting the security policy | `check`, `pre-push` | Sensitive filenames, secret scanning, pinned workflow actions and Dependency Audit workflow structure |
 
 Repository conventions stay lightweight and work through Git hooks alone; `check` adds the same checks to CI.
@@ -85,7 +85,7 @@ the Gemini operations themselves still require network access.
 | Repository conventions | `agents-size.max_tokens`; `commit-message.scopes_file`; independent `gemini-flash-lite` and `gemini-flash` provider imports | Python 3.9+ (3.11+ for the mise checks), Git, `actionlint`, ShellCheck and `GEMINI_API_KEY` for the wording and `AGENTS.md` reviews |
 | Open-source software | `license.target`, usually `LICENSE` | Python 3.9+, Git, `yq`; network and optionally `GITHUB_TOKEN` for `github-metadata` at `check` |
 | Private repositories | `private-ci-workflow.max_job_minutes` | Python 3.9+, Git, `yq`; `GITHUB_REPOSITORY` and `GITHUB_TOKEN` for `private-visibility` at `check` |
-| Releasable open-source software | `semantic-release.tag_format` | Python 3.11+, Git, Node 24+, `yq` |
+| Releasable open-source software | none | Python 3.11+, Git |
 | Security | `dependency-audit-workflow.dependencies`, `audited` or `none` | Python 3.9+, Git, `yq`, Gitleaks v8 with `gitleaks dir` |
 
 The Gemini adapters accept adapter protocol versions `0` and `1` and return the
@@ -102,11 +102,12 @@ See complete import examples, parameters, evidence boundaries and limitations:
 - [Repository conventions and Gemini](docs/repository-conventions.md)
 - [Open-source software and license policy](docs/open-source-software.md)
 - [Private repositories and Actions minutes](docs/private-repositories.md)
-- [Semantic Release baseline](docs/releases.md)
+- [Release task and policy](docs/releases.md)
 - [Security and scanner configuration](docs/security.md)
 - [Compatibility and path migration](docs/migration.md)
 - [Shared Renovate governor preset](docs/governor-updates.md)
 - [Shared mise tasks](docs/mise-tasks.md)
+- [Shared release actions](actions/release/README.md)
 
 ## Validation
 

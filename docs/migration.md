@@ -19,7 +19,7 @@ canonical paths; old aliases are not retained:
 | --- | --- | --- |
 | `commit-msg/conventional-commits` | `rulesets/commit-msg/repository-conventions` | Universal conventions, unchanged syntax Check and advisory Review |
 | `repository-conventions`, `multi-point/license` | `rulesets/open-source-software` | License policy belongs to open-source software |
-| `release/releasable-project` | `rulesets/releasable-open-source-software` | Now only the Semantic Release baseline; the release contract and its custom points were removed |
+| `release/releasable-project` | `rulesets/releasable-open-source-software` | Now only the `release` task check; the release contract and its custom points were removed, and the Semantic Release and Release workflow checks were retired in favor of the shared release action and workflow |
 | `multi-point/security` | `rulesets/security` | Unchanged independent security bundle |
 | `release/readiness` | Retired | Legacy mixed bundle; full-commit pins retain it |
 

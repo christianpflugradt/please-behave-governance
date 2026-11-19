@@ -16,8 +16,7 @@ success_criteria:
   - What the task runs is free and never causes a FAIL.
 out_of_scope:
   - description: What the task actually does, and whether it starts the workflow on main.
-  - description: The structure of the release workflow.
-    owner: release-workflow
+  - description: The structure of the release workflow, which the shared release workflow owns.
 limitations:
   - Only the existence of the task is verified, not what it does.
 placement: >-
