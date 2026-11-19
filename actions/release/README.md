@@ -7,12 +7,14 @@ build and verification steps.
 | Action | Purpose |
 | --- | --- |
 | `actions/release/plan` | Calculates the next release without publishing; outputs `release`, `version`, `source-sha`, `mode` |
-| `actions/release/publish` | Publishes the planned version; refuses if the version or `main` changed since planning |
+| `actions/release/publish-release` | Publishes the planned version as a GitHub release with files; refuses if the version or `main` changed since planning |
+| `actions/release/export-image` | Exports the candidate container images as archives with a receipt bound to version, source and run |
+| `actions/release/publish-image` | Pushes the verified candidate images to `ghcr.io` and publishes the planned release without files |
 | `actions/release/check-ci` | Proves that CI succeeded for the exact source commit within one trusted workflow run, including reruns |
 | `actions/release/evidence` | `record`s the hashes of a release candidate per target and uploads them as `release-evidence-<run>-<attempt>-<target>`, together with the candidate files as `release-candidate-<run>-<attempt>-<target>`; `verify` downloads both for every target, restores the candidate files below the policy `root` and verifies the complete set before publication |
 | `actions/release/governance` | verifies the repository at the `release` point of Please Behave and uploads the governance report; it has no inputs |
 
-`plan` and `publish` need Node 24.10+ on `PATH` (for example `install_args: node` in `jdx/mise-action`) and install their
+`plan`, `publish-release` and `publish-image` need Node 24.10+ on `PATH` (for example `install_args: node` in `jdx/mise-action`) and install their
 pinned dependencies from `package-lock.json` themselves. `check-ci` and `evidence` need only Python 3.
 Pin every action to the same full commit SHA. The repository must not keep its own
 `release.config.*`, `.releaserc*` or `release` key in `package.json`; the actions refuse to run with one.
@@ -43,7 +45,7 @@ on:
     mode: ${{ github.event_name == 'schedule' && 'release' || inputs.mode }}
     force: ${{ inputs.force }}
 # publish job, after the candidate was built and verified
-- uses: christianpflugradt/please-behave-governance/actions/release/publish@<FULL_COMMIT_SHA>
+- uses: christianpflugradt/please-behave-governance/actions/release/publish-release@<FULL_COMMIT_SHA>
   with:
     version: ${{ needs.plan.outputs.version }}
     mode: ${{ needs.plan.outputs.mode }}
@@ -90,19 +92,18 @@ The calling job grants the permissions, because a called workflow cannot hold mo
 as strings (`'true'`), so a scheduled run, which has no inputs, also works. `release-readiness` only proves CI; governance rules at the `release` point run in the candidate job. The workflows pin the actions of this directory to a full commit SHA, which Renovate keeps current in this
 repository; consumers pin the workflow files and receive the tracking branch `updates/workflows/release`.
 
-## Hooks
+## Two ways to publish
 
-A repository whose release has more to do than tagging, for example publishing a container image, passes shell
-commands to `publish` instead of carrying its own Semantic Release plugin. They run in the repository root with the
-release environment (`EXPECTED_RELEASE_VERSION` and the `GITHUB_*` variables), and a failing command refuses the release:
+A repository publishes either files or images, and each way has its own action instead of one action with switches.
 
-| Input | Runs |
-| --- | --- |
-| `verify-command` | with every verification of the release, after the shared source checks |
-| `prepare-command` | before the tag is created, followed by another source check |
-| `publish-command` | after the tag is created |
-
-Hooks apply to the `release` mode only.
+- **GitHub release with files** (`publish-release`): inputs `version`, `assets` (globs), `mode`, `tag-format`, `force`. `mode: prerelease`
+  publishes a development release `<stable>-dev.<yyyymmdd>.<n>` of the latest stable release instead of an official one.
+- **Container images** (`export-image` in the candidate job, `publish-image` in the publish job): input `images`, one name per line.
+  Each name is a repository below `ghcr.io/<owner>`. The repository builds `<name>:candidate` for linux/amd64 with the OCI labels
+  `org.opencontainers.image.version=v<version>` and `org.opencontainers.image.revision=<sha>`. `export-image` saves the images
+  to `dist/<name>.tar` and writes `dist/metadata.json`, which the evidence policy lists. `publish-image` verifies the archives,
+  loads the images before the tag is created, pushes `:v<version>` and `:latest` after it, and compares the pushed digest with
+  the candidate. The calling job grants `packages: write`. Images are published with official releases only.
 
 ## Updates
 

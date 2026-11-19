@@ -36,9 +36,6 @@ test("the hooks run in the Semantic Release lifecycle against a real repository"
     GITHUB_REPOSITORY: "owner/repo",
     GITHUB_SHA: git("rev-parse", "HEAD").trim(),
     EXPECTED_RELEASE_VERSION: "1.0.1",
-    RELEASE_VERIFY_COMMAND: `echo verify >> ${log}`,
-    RELEASE_PREPARE_COMMAND: `echo prepare >> ${log}`,
-    RELEASE_PUBLISH_COMMAND: `echo "publish $EXPECTED_RELEASE_VERSION" >> ${log}`,
     GIT_CONFIG_COUNT: "1",
     GIT_CONFIG_KEY_0: `url.${join(dir, "origin.git")}.insteadOf`,
     GIT_CONFIG_VALUE_0: "https://github.com/owner/repo.git",
@@ -53,7 +50,11 @@ test("the hooks run in the Semantic Release lifecycle against a real repository"
   // Git reads the rewrite of the GitHub URL to the local remote from the process environment.
   Object.assign(process.env, { GIT_CONFIG_COUNT: "1", GIT_CONFIG_KEY_0: lifecycleEnv.GIT_CONFIG_KEY_0, GIT_CONFIG_VALUE_0: lifecycleEnv.GIT_CONFIG_VALUE_0 });
   try {
-    await publish(lifecycleEnv, release, execFileSync, join(dir, "work"));
+    await publish(lifecycleEnv, release, execFileSync, join(dir, "work"), {
+      verify: `echo verify >> ${log}`,
+      prepare: `echo prepare >> ${log}`,
+      publish: `echo "publish $EXPECTED_RELEASE_VERSION" >> ${log}`,
+    });
   } finally {
     for (const key of ["GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_0", "GIT_CONFIG_VALUE_0"]) delete process.env[key];
   }

@@ -18,7 +18,7 @@ export function settings(env) {
     assets: (env.RELEASE_ASSETS ?? "").split("\n").map(line => line.trim()).filter(Boolean),
     force: env.RELEASE_FORCE === "true",
     repository: env.GITHUB_REPOSITORY,
-    hooks: { verify: env.RELEASE_VERIFY_COMMAND || "", prepare: env.RELEASE_PREPARE_COMMAND || "", publish: env.RELEASE_PUBLISH_COMMAND || "" },
+    images: (env.RELEASE_IMAGES ?? "").split("\n").map(line => line.trim()).filter(Boolean),
   };
 }
 

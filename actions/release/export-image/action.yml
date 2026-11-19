@@ -1,0 +1,19 @@
+name: Export image candidate
+description: Export the candidate images of a release as archives with a receipt bound to the version, source and workflow run
+inputs:
+  version:
+    description: The version planned by the plan action
+    required: true
+  images:
+    description: Newline-separated image names; the candidate was built as <name>:candidate for linux/amd64 with the OCI labels version (v<version>) and revision
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Export and verify the candidate images
+      shell: bash
+      run: python3 -B "$ACTION_ROOT/lib/release_image.py" export
+      env:
+        ACTION_ROOT: ${{ github.action_path }}/..
+        EXPECTED_RELEASE_VERSION: ${{ inputs.version }}
+        RELEASE_IMAGES: ${{ inputs.images }}

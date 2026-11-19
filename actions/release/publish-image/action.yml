@@ -1,0 +1,36 @@
+name: Publish image
+description: Push the verified candidate images to the GitHub Container Registry and publish the planned release without files
+inputs:
+  version:
+    description: The version planned by the plan action
+    required: true
+  images:
+    description: Newline-separated image names; each is the repository name below ghcr.io/<owner> and the candidate was built as <name>:candidate
+    required: true
+  force:
+    description: Must equal the value given to the plan action
+    default: 'false'
+runs:
+  using: composite
+  steps:
+    - name: Log in to the GitHub Container Registry
+      uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
+    - name: Install the release tooling
+      shell: bash
+      run: npm ci --ignore-scripts --omit=dev --no-audit --no-fund --prefix "$ACTION_ROOT"
+      env:
+        ACTION_ROOT: ${{ github.action_path }}/..
+    - name: Publish the images and the release
+      shell: bash
+      run: node "$ACTION_ROOT/lib/publish.mjs"
+      env:
+        ACTION_ROOT: ${{ github.action_path }}/..
+        EXPECTED_RELEASE_VERSION: ${{ inputs.version }}
+        RELEASE_FORCE: ${{ inputs.force }}
+        RELEASE_IMAGES: ${{ inputs.images }}
+        GITHUB_TOKEN: ${{ github.token }}
+        GH_TOKEN: ${{ github.token }}

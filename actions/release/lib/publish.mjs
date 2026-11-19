@@ -1,11 +1,20 @@
 import { execFileSync } from "node:child_process";
 import { globSync } from "node:fs";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import semanticRelease from "semantic-release";
 import { createConfig } from "./config.mjs";
 import { allReleases, latestStable, settings } from "./plan.mjs";
 import { assertNoLocalConfiguration, verifySource } from "./source.mjs";
 import { developmentVersion } from "./version.mjs";
+
+const IMAGE_SCRIPT = fileURLToPath(new URL("./release_image.py", import.meta.url));
+
+/** Publishing container images verifies the candidate archives, loads the images before the tag and pushes them after it. */
+export function hooksFor(images) {
+  if (!images.length) return {};
+  const command = operation => `python3 -B "${IMAGE_SCRIPT}" ${operation}`;
+  return { verify: command("verify"), prepare: command("load"), publish: command("push") };
+}
 
 /**
  * The inline plugin that refuses publication when the release differs from the planned one and runs the
@@ -34,10 +43,12 @@ export function guardFor(expected, env, cwd, run, hooks = {}) {
   };
 }
 
-export async function publish(env = process.env, release = semanticRelease, run = execFileSync, cwd = process.cwd()) {
+export async function publish(env = process.env, release = semanticRelease, run = execFileSync, cwd = process.cwd(), hooks = undefined) {
   const expected = env.EXPECTED_RELEASE_VERSION;
   if (!expected) throw new Error("Planned version is required");
-  const { mode, tagFormat, assets, force, repository, hooks } = settings(env);
+  const { mode, tagFormat, assets, force, repository, images } = settings(env);
+  if (images.length && mode !== "release") throw new Error("Container images are published with official releases only");
+  hooks ??= hooksFor(images);
   assertNoLocalConfiguration(cwd);
   verifySource(env, cwd, run);
   if (mode === "release") {

@@ -1,5 +1,5 @@
 name: Publish release
-description: Publish the planned release of a repository with the shared release policy
+description: Publish the planned release of a repository as a GitHub release with the shared release policy
 inputs:
   version:
     description: The version planned by the plan action
@@ -15,15 +15,6 @@ inputs:
     default: 'false'
   assets:
     description: Newline-separated globs of the files attached to the release
-    default: ''
-  verify-command:
-    description: Shell command run with every verification of the release, after the source checks; a failure refuses publication
-    default: ''
-  prepare-command:
-    description: Shell command run before the tag is created, followed by another source check; for example loading the verified candidate
-    default: ''
-  publish-command:
-    description: Shell command run after the tag is created, for example pushing the verified candidate somewhere else
     default: ''
 runs:
   using: composite
@@ -43,8 +34,5 @@ runs:
         RELEASE_TAG_FORMAT: ${{ inputs.tag-format }}
         RELEASE_FORCE: ${{ inputs.force }}
         RELEASE_ASSETS: ${{ inputs.assets }}
-        RELEASE_VERIFY_COMMAND: ${{ inputs.verify-command }}
-        RELEASE_PREPARE_COMMAND: ${{ inputs.prepare-command }}
-        RELEASE_PUBLISH_COMMAND: ${{ inputs.publish-command }}
         GITHUB_TOKEN: ${{ github.token }}
         GH_TOKEN: ${{ github.token }}

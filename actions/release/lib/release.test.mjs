@@ -6,7 +6,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { analysisPlugins, createConfig } from "./config.mjs";
 import { settings } from "./plan.mjs";
-import { publish } from "./publish.mjs";
+import { hooksFor, publish } from "./publish.mjs";
 import { assertNoLocalConfiguration, verifySource } from "./source.mjs";
 import { developmentVersion, stableFromTag } from "./version.mjs";
 
@@ -48,7 +48,7 @@ test("inputs have defaults and are validated", () => {
     assets: [],
     force: false,
     repository: "o/r",
-    hooks: { verify: "", prepare: "", publish: "" },
+    images: [],
   });
   assert.equal(settings({ RELEASE_FORCE: "true" }).force, true);
   assert.deepEqual(settings({ RELEASE_ASSETS: "dist/*.zip\n\n dist/SHA256SUMS \n" }).assets, ["dist/*.zip", "dist/SHA256SUMS"]);
@@ -113,4 +113,14 @@ test("a prerelease is refused for a stale version or without assets", async () =
   await assert.rejects(publish(prerelease, undefined, scriptedRun([]), cwd), /changed after planning/);
   const version = developmentVersion("1.2.3", []);
   await assert.rejects(publish({ ...prerelease, EXPECTED_RELEASE_VERSION: version, RELEASE_ASSETS: "nothing/*" }, undefined, scriptedRun([]), cwd), /No release assets/);
+});
+
+test("images are published with hooks that call the image script, and only with official releases", async () => {
+  const hooks = hooksFor(["app"]);
+  assert.match(hooks.verify, /release_image\.py" verify$/);
+  assert.match(hooks.prepare, /release_image\.py" load$/);
+  assert.match(hooks.publish, /release_image\.py" push$/);
+  assert.deepEqual(hooksFor([]), {});
+  const cwd = workdir();
+  await assert.rejects(publish({ ...publishEnv, RELEASE_IMAGES: "app", RELEASE_MODE: "prerelease" }, undefined, scriptedRun([]), cwd), /official releases only/);
 });
