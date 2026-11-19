@@ -3,5 +3,5 @@ name = "Workflow syntax"
 description = "GitHub workflow files have valid syntax and expressions"
 
 [check]
-command = "actionlint"
+command = "jactionlint --profile correctness"
 timeout_seconds = 120

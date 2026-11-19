@@ -148,8 +148,8 @@ no parameters.
 
 ## Workflow syntax
 
-The blocking `workflow-syntax` Check runs `actionlint` on the repository's GitHub workflows, in any
-repository that has them. It needs `actionlint` on `PATH`. Issues return FAIL; a missing tool
+The blocking `workflow-syntax` Check runs `jactionlint --profile correctness` on the repository's GitHub workflows, in any
+repository that has them. It needs `jactionlint` on `PATH`. Issues return FAIL; a missing tool
 returns ERROR.
 
 ## Shell scripts

@@ -21,7 +21,7 @@ and adds to `repository-conventions`. Why each rule and the set exist is recorde
   - Every job sets `timeout-minutes` of at most the `max_job_minutes` parameter, runs on a versioned
     Ubuntu runner such as `ubuntu-24.04` and uses no `strategy.matrix`. A versioned label instead of
     `ubuntu-latest` keeps runner changes reviewable: Renovate's github-actions manager proposes new
-    runner versions as PRs. Do not move to a runner that `actionlint` does not know yet; the
+    runner versions as PRs. Do not move to a runner that `jactionlint` does not know yet; the
     `workflow-syntax` check of `repository-conventions` fails such a PR on purpose.
   - The check needs `yq` (v4) and Python 3.9+.
 - `private-renovate` requires `rebaseWhen: "conflicted"` in `renovate.json` and a `packageRules`

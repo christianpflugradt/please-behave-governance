@@ -7,8 +7,8 @@ problem: >-
 value: >-
   Mistakes in workflows are found locally, before the push.
 conditions:
-  - statement: actionlint reports no problem for the workflows of the repository.
-    rationale: It is the established tool for the syntax and expressions of GitHub workflows.
+  - statement: jactionlint, with its correctness profile, reports no problem for the workflows of the repository.
+    rationale: It is a maintained successor of actionlint and keeps up with new runners and workflow syntax. Its correctness profile covers the actionlint checks without the security and policy rules.
 success_criteria:
   - A finding fails.
   - A missing tool is an ERROR.
@@ -18,10 +18,10 @@ out_of_scope:
     owner: ci-workflow
   - description: Whether a workflow runs or passes.
 limitations:
-  - Only what actionlint detects is found, and whether a workflow does the right thing is not judged.
+  - Only what jactionlint detects is found, and whether a workflow does the right thing is not judged.
 placement: >-
   Almost every repository has workflows, and using GitHub Actions is not a
   deliberate technology decision for each of them, so one shared check covers all.
 references:
   - docs/repository-conventions.md
-  - https://github.com/rhysd/actionlint
+  - https://github.com/jdx/jactionlint
