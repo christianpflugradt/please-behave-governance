@@ -12,7 +12,7 @@ build and verification steps.
 | `actions/release/publish-image` | Pushes the verified candidate images to `ghcr.io` and publishes the planned release without files |
 | `actions/release/check-ci` | Proves that CI succeeded for the exact source commit within one trusted workflow run, including reruns |
 | `actions/release/evidence` | `record`s the hashes of a release candidate per target and uploads them as `release-evidence-<run>-<attempt>-<target>`, together with the candidate files as `release-candidate-<run>-<attempt>-<target>`; `verify` downloads both for every target, restores the candidate files below the policy `root` and verifies the complete set before publication |
-| `actions/release/governance` | verifies the repository at the `release` point of Please Behave and uploads the governance report; it has no inputs |
+| `actions/release/governance` | verifies the repository at the `release` point of Please Behave and uploads the governance report; `target` is appended to the report name when a matrix of candidate jobs uploads several |
 
 `plan`, `publish-release` and `publish-image` need Node 24.10+ on `PATH` (for example `install_args: node` in `jdx/mise-action`) and install their
 pinned dependencies from `package-lock.json` themselves. `check-ci` and `evidence` need only Python 3.
