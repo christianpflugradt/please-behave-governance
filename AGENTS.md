@@ -43,6 +43,8 @@
   scripts directory, and duplicating a small helper across Rules is preferred over
   sharing code between them. Keep provider definitions and adapters together under
   `providers/<provider>/`.
+- Put shared mise task groups at `mise-tasks/<group>/`, one self-contained executable file per task
+  with `#MISE` headers; consumers include a group pinned to a commit SHA. See `docs/mise-tasks.md`.
 - Keep the catalog and setup in README and detailed usage in `docs/`. Update
   definitions, tests and documentation together.
 - Add offline unit tests only for a Rule script or provider adapter complex enough to

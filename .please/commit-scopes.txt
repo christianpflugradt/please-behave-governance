@@ -5,3 +5,4 @@ docs
 deps
 config
 ci
+mise-tasks

@@ -106,6 +106,7 @@ See complete import examples, parameters, evidence boundaries and limitations:
 - [Security and scanner configuration](docs/security.md)
 - [Compatibility and path migration](docs/migration.md)
 - [Shared Renovate governor preset](docs/governor-updates.md)
+- [Shared mise tasks](docs/mise-tasks.md)
 
 ## Validation
 

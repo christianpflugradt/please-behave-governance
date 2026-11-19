@@ -1,7 +1,8 @@
-"""Require the release task in the root mise.toml."""
+"""Require the release task in the root mise.toml, defined locally or included from the shared task group."""
 
 import json
 from pathlib import Path
+import re
 import stat
 import subprocess
 import sys
@@ -54,6 +55,19 @@ def read_file(selected, name):
 TARGET = "mise.toml"
 TOOLS = []
 TASKS = ["release"]
+# The shared release task group, pinned to a full commit SHA, defines the release task.
+SHARED = {
+    "release": re.compile(
+        r"git::https://github\.com/christianpflugradt/please-behave-governance\.git//mise-tasks/release\?ref=[0-9a-f]{40}"
+    ),
+}
+
+
+def included(document, name):
+    config = document.get("task_config")
+    entries = config.get("includes") if isinstance(config, dict) else None
+    entries = entries if isinstance(entries, list) else []
+    return any(isinstance(entry, str) and SHARED[name].fullmatch(entry) for entry in entries)
 
 
 def runnable(task):
@@ -80,7 +94,7 @@ def violations(document, tools=TOOLS, tasks=TASKS):
     defined = document.get("tasks")
     defined = defined if isinstance(defined, dict) else {}
     for name in tasks:
-        if not runnable(defined.get(name)):
+        if not runnable(defined.get(name)) and not (name in SHARED and included(document, name)):
             found.append(f"task {name} is missing or has neither run nor depends")
     return found
 

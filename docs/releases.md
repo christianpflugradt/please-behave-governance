@@ -57,9 +57,9 @@ Local plugin contents, `assets`, versions and engine bounds are not standardized
 
 The blocking `mise-release` Check requires a `release` task in the root `mise.toml` (same
 rules as the [Mise baseline](repository-conventions.md#mise-baseline); it needs Python 3.11+).
-Its body is the repository's own; normally it starts the release workflow, for example
-`gh workflow run release.yml --ref main`. The task runs on the remote `main`, never on local
-state.
+Either define it locally, or include the shared task group `mise-tasks/release` pinned to a
+full commit SHA; see [Shared mise tasks](mise-tasks.md). The task starts the release workflow on
+the remote `main`, never on local state.
 
 ## Release workflow
 

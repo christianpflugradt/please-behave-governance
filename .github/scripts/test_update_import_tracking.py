@@ -36,6 +36,7 @@ class TrackingTests(unittest.TestCase):
         self.write("rules/checks/example/check.py", 'print("original")\n')
         self.write("providers/sample/provider.toml", 'command = "python3"\n')
         self.write("providers/sample/adapter.py", 'print("provider")\n')
+        self.write("mise-tasks/sample/task", "#!/bin/sh\necho task\n")
         self.initial = self.commit()
         for package in tracking.packages(self.root, self.initial):
             self.track(package, self.initial)
@@ -79,6 +80,16 @@ class TrackingTests(unittest.TestCase):
         self.write("providers/sample/adapter.py", 'print("changed")\n')
         changed = self.commit()
         self.assertEqual(self.updates(), [f"{changed}:refs/heads/updates/providers/sample"])
+
+    def test_task_group_change_updates_only_that_group(self):
+        self.write("mise-tasks/sample/task", "#!/bin/sh\necho changed\n")
+        self.write("mise-tasks/sample/helper", "helper\n")
+        changed = self.commit()
+        self.assertEqual(self.updates(), [f"{changed}:refs/heads/updates/mise-tasks/sample"])
+        self.track("mise-tasks/sample", changed)
+        self.write("mise-tasks/other/task", "#!/bin/sh\n")
+        added = self.commit()
+        self.assertEqual(self.updates(), [f"{added}:refs/heads/updates/mise-tasks/other"])
 
     def test_resource_addition_deletion_and_mode_change_count(self):
         for operation in ("add", "delete", "mode"):
