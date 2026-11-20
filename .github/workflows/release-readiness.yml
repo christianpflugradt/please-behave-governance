@@ -37,6 +37,6 @@ jobs:
         with:
           install_args: python
       - name: Verify exact-source CI prerequisites
-        uses: christianpflugradt/please-behave-governance/actions/release/check-ci@aac69047735dc836135df914b7833b6f64e380df # updates/actions/release
+        uses: christianpflugradt/please-behave-governance/actions/release/check-ci@18cc081af6ac3b3d76a55856b6de3fad62b1725a # updates/actions/release
         with:
           required-jobs: ${{ inputs.required-jobs }}
