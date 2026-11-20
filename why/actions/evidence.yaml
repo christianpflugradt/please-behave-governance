@@ -1,0 +1,70 @@
+purpose: >-
+  Bind the candidate built in one job to the planned version, source and workflow run, carry its files to the
+  publishing job and verify that they are unchanged before anything is published.
+problem: >-
+  The candidate that is verified and the files that are published are made in different jobs, and without a
+  binding nothing says that they are the same, that they belong to this run, or that a rerun did not mix
+  files of several attempts.
+value: >-
+  What is published is exactly what the candidate job built and checked for this version, source and run
+  attempt, and a repository needs no steps of its own to carry or compare artifacts.
+principles:
+  - principle: predictability
+    how: Publication restores the candidate files and compares them with recorded hashes, and a mismatch stops it.
+  - principle: reproducibility
+    how: Nothing is rebuilt at publication, and artifacts are named by run and attempt, so reruns cannot mix attempts.
+  - principle: consistency
+    how: One binding and one carry mechanism for every kind of candidate.
+  - principle: frugality
+    how: The policy names the files per target, and everything else, such as the identity, comes from the workflow context.
+steps:
+  - step: Record the hashes of the files the policy lists for a target and upload them with the files.
+    why: The evidence and the files travel together and per target, so that publication gets what was recorded.
+  - step: Download both for every target, restore the files and verify the complete set.
+    why: Publication then works on the restored files, and anything missing or foreign fails.
+decisions:
+  - decision: The binding consists of the repository, the workflow, the source commit, the version and the run with its attempt.
+    why: These identify the candidate completely, and they are known from the workflow context, so the repository repeats none of them.
+  - decision: The files of the candidate are carried by this action as archives per target.
+    why: A repository needs no artifact steps around it, and restoring only what the policy lists refuses anything foreign.
+    rejected: Artifact steps in every repository. They are repeated code that can drift and can forget a file.
+  - decision: Restored files must be regular files named in the policy, and symlinks are forbidden.
+    why: The restored files are published, so nothing outside the policy may be smuggled in.
+  - decision: A rerun needs a complete new attempt, because artifacts are bound to the current attempt.
+    why: Mixing files of different attempts would break the binding that the evidence provides.
+  - decision: Publication verifies the evidence and does not inspect the files again.
+    why: >-
+      The artifact transfer is integrity-checked, and the workflow that produced the files is the one that
+      publishes them, with no other party in between. Repeating format checks at publication would be a
+      second control for the same threat. Product-specific checks belong to the candidate job, before the
+      files are recorded.
+supported_variations:
+  - requirement: A release has several candidates, for example per platform, architecture or runtime version.
+    why: Each candidate is a target in the policy, so the same mechanism covers one candidate and many.
+  - requirement: Only some of several equivalent candidates are published.
+    why: The policy lists only the published targets, and the other candidates are verified in their own job without being recorded.
+out_of_scope:
+  - description: What the candidate contains and whether it is correct.
+    owner: the candidate job
+  - description: Publishing.
+    owner: publish-release and publish-image
+limitations:
+  - It binds files to a run and does not judge them.
+  - It cannot defend against a compromised job of the same workflow, because such a job could record any evidence.
+placement: >-
+  The binding is the same for every product, and its subtle parts, such as attempts, archives and the refusal
+  of foreign files, are easy to get wrong in each repository separately.
+revisit_when:
+  - A candidate needs files that cannot be named by the policy.
+  - >-
+    A new requirement would need one more input. It is first weighed: unless it is a real edge case, it is
+    solved here once instead of in a repository.
+inputs:
+  operation: Selects whether the candidate is recorded in the candidate job or verified in the publishing job.
+  version: The planned version, which is part of the binding and of the file names.
+  target: The candidate to record; verification covers every target of the policy and needs none.
+requirements:
+  Python: The tooling is a Python program using only the standard library.
+  checkout: The job has the source checked out, because the binding contains the commit.
+references:
+  - actions/release/README.md

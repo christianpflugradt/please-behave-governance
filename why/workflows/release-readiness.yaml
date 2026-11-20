@@ -1,0 +1,78 @@
+purpose: >-
+  Prove that CI succeeded for exactly the commit that is planned for release, so that no candidate is
+  published from a commit that nobody has seen green.
+problem: >-
+  The commit that is released can differ from the one CI last looked at, and a green run of an earlier commit,
+  of another workflow or of another attempt says nothing about it. Without a proof tied to the exact commit,
+  a release can ship code that failed or never ran its checks.
+value: >-
+  A release can only proceed from a commit with a successful, trusted CI run, and the proof is the same for
+  every repository.
+principles:
+  - principle: predictability
+    how: A release never starts from a commit whose CI was not green, and a failing proof says why.
+  - principle: reproducibility
+    how: The proof reads CI runs of the exact commit and keeps what CI already verified instead of repeating it.
+  - principle: consistency
+    how: The second job of every release is the same call, and only the names of the required CI jobs differ.
+  - principle: frugality
+    how: It installs only Python and has read access only.
+flow:
+  - job: readiness
+    why: >-
+      One job that runs in parallel to the candidate. It does not depend on the candidate and the candidate
+      does not depend on it, so neither delays the other; publication needs both.
+decisions:
+  - decision: The proof is a reusable workflow that calls the check-ci action.
+    why: >-
+      The job is the same for every repository, including checkout, tool installation and permissions, so one
+      call replaces it.
+  - decision: It checks out the planned commit and not the branch tip.
+    why: The proof is about that commit, and the branch may have moved since the plan.
+  - decision: It only proves CI and does not run any governance rules.
+    why: >-
+      The rules of the release point need the built candidate, so they run in the candidate job. Checks that
+      CI already ran are reused and not repeated, which would only cost time.
+    rejected: Running the quality checks again here. CI already proved them for the same commit.
+  - decision: It does not start CI and does not wait for it.
+    why: >-
+      A proof that triggered or awaited CI would hide that CI had not run. Waiting belongs to the command that
+      starts the release.
+  - decision: Read access to Actions is the only permission beyond reading the repository.
+    why: The proof needs to read workflow runs and jobs, nothing else.
+supported_variations:
+  - requirement: A repository's CI has several jobs, or a matrix of entries, that all have to succeed.
+    why: >-
+      Required jobs are a list of names, so a matrix is covered by listing each entry by a stable and unique
+      name. The default is the single job that is the standard.
+out_of_scope:
+  - description: Running or waiting for CI.
+    owner: the command that starts the release
+  - description: Building, testing and verifying the candidate.
+    owner: the candidate job
+  - description: The rules of the release point.
+    owner: governance action
+limitations:
+  - The proof is observed when it runs and does not lock CI against a later rerun.
+  - It does not judge what CI checks, only that the named jobs succeeded.
+placement: >-
+  Every repository needs exactly this proof, and a divergent proof would be a gap in only one place, so it is
+  shared.
+revisit_when:
+  - A repository needs a proof beyond named CI jobs.
+  - >-
+    A new requirement would need one more input. It is first weighed: unless it is a real edge case, it is
+    solved here once instead of in a repository.
+inputs:
+  source-sha: The commit that the plan produced, so that the proof is about the commit that will be released.
+  required-jobs: >-
+    Names the CI jobs that have to succeed. The default is the standard single job, and a repository with
+    several jobs or a matrix lists them.
+permissions:
+  contents: Read, to check out the planned commit.
+  actions: Read, to read the CI runs and jobs of the commit.
+callers: >-
+  A calling repository passes the planned commit, and the required job names only when they differ from the
+  standard. It grants the job permissions.
+references:
+  - actions/release/README.md

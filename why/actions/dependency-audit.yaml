@@ -1,0 +1,62 @@
+purpose: >-
+  Scan the dependencies of a repository, render the findings, fail from a chosen severity and keep the report.
+problem: >-
+  Each repository would otherwise script its own scan, report and threshold, so audits are incomparable, a
+  scan that could not complete can look like a clean result, and findings of unknown severity can slip through.
+value: >-
+  Every audit has the same report, the same summary and the same meaning of success, and a repository
+  chooses only its threshold and what to scan.
+principles:
+  - principle: predictability
+    how: A scan that cannot complete is a technical error and never a clean result, and findings of unknown severity always fail.
+  - principle: consistency
+    how: One report format, one summary and one failure rule for all ecosystems and repositories.
+  - principle: frugality
+    how: The inputs name what to scan, and a repository without dependencies states that instead of scanning nothing.
+  - principle: stability
+    how: The threshold is an input that the repository states, so it cannot drift into a default.
+steps:
+  - step: Scan, then report and upload even if the scan failed.
+    why: The report of a failed scan is the one that has to be looked at.
+decisions:
+  - decision: Scanning and judging are separate steps with a report file between them.
+    why: The scan can be a technical failure, and the judgement of findings must be possible from the report alone.
+  - decision: The failure threshold is an input with a default, and unknown severity always fails.
+    why: A repository decides deliberately which findings it accepts, and an unknown severity cannot be accepted by a threshold.
+  - decision: A repository without dependencies states that, and an empty report is recorded.
+    why: The audit stays present and uniform, and a rule fails the repository if a manifest appears later.
+  - decision: Reports of tools that run earlier in the job are read, and not rerun.
+    why: Some ecosystems have their own scanner, and the action judges its output instead of replacing it.
+supported_variations:
+  - requirement: A repository has dependencies in one or several ecosystems.
+    why: Each ecosystem has its input, and a repository gives the directories or files that hold the dependency lists.
+  - requirement: A repository has no dependencies.
+    why: The statement is an input, and it is honest only as long as no manifest exists, which a rule checks.
+  - requirement: A scanner produces further reports that help a reader.
+    why: They are uploaded with the common report, and are never judged.
+out_of_scope:
+  - description: Installing the audit tools and scheduling the audit.
+    owner: the repository's audit workflow
+  - description: Deciding which findings matter beyond the threshold.
+    owner: the repository
+limitations:
+  - It knows only the ecosystems it has an input for, and its result depends on the vulnerability data at the time of the run.
+placement: >-
+  The scan, the report and the rule for success have to be the same for all repositories, while the ecosystems
+  and the threshold differ.
+revisit_when:
+  - A repository has an ecosystem that no input covers. It is weighed centrally, since each ecosystem adds one input and one scanner.
+  - The workflow around the action should become shared as well. That is a separate step.
+inputs:
+  npm: Directories with a lockfile of this ecosystem.
+  cargo: Directories with a lockfile of this ecosystem.
+  requirements: Requirements files of this ecosystem.
+  owasp-report: Reports of a scanner that ran earlier in the job, for ecosystems with their own scanner.
+  none: States that nothing has dependencies to audit, and records an empty report.
+  fail-on: The lowest severity that fails the run; the repository states it.
+  extra-report-paths: Further files that are uploaded with the report and never judged.
+requirements:
+  Python: The tooling is a Python program using only the standard library.
+  scanners: The tools for the chosen ecosystems have to be installed by the job, because the action installs none.
+references:
+  - docs/security.md

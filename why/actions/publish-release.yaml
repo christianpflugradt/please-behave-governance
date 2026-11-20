@@ -1,0 +1,67 @@
+purpose: >-
+  Publish the planned version as a GitHub release with files, but only if nothing changed since the plan.
+problem: >-
+  Between the plan and the publication the version could be calculated differently, the main branch could
+  move, or the files could differ from what was verified. Publishing anyway would release something nobody
+  planned or checked.
+value: >-
+  The tag, the notes and the files of a release are exactly the planned and verified ones, and the repository
+  is not changed by the release.
+principles:
+  - principle: predictability
+    how: It refuses when the recalculated version, the checkout, the dispatched commit or the main branch differ from the plan.
+  - principle: stability
+    how: It uses the same policy as the plan, so notes and levels cannot drift between planning and publishing.
+  - principle: reproducibility
+    how: It tags the tested source and attaches the verified files without rebuilding anything.
+  - principle: frugality
+    how: It creates no commit, no changelog and no labels or comments.
+steps:
+  - step: Install the release tooling from the lock file without install scripts.
+    why: Pinned, reproducible dependencies, and no code of a dependency runs during installation.
+  - step: Publish with Semantic Release and a guard.
+    why: The guard compares the plan with the current state before anything is created.
+decisions:
+  - decision: It recalculates the version and requires it to equal the planned one.
+    why: A plan that no longer holds means the state changed, and publishing would release something unplanned.
+  - decision: It checks the local checkout, the dispatched commit and the remote main branch before tagging.
+    why: The tag must point to the tested commit, and a branch that moved means the tested commit is not what would be released.
+  - decision: It creates no version commit, changelog, release label or comment.
+    why: A release must not change the repository it releases, and the version is the tag.
+  - decision: Files are attached from globs given by the repository.
+    why: Which files make a release is the product's decision; the action only attaches what the repository names.
+  - decision: Development prereleases are possible and images are not part of them.
+    why: See publish-image for images; a development release is a file release of the latest stable version.
+supported_variations:
+  - requirement: A repository publishes development prereleases besides official releases.
+    why: The mode is given to publication as well, so that it publishes what was planned.
+  - requirement: A repository has to keep a tag format that differs from the standard.
+    why: The same input as in the plan, so that plan and publication agree.
+  - requirement: A repository publishes no files and only a tag with notes.
+    why: The assets input defaults to empty.
+out_of_scope:
+  - description: Building, verifying and carrying the files to this job.
+    owner: the candidate job and evidence
+  - description: Publishing container images.
+    owner: publish-image
+limitations:
+  - The action trusts the files it is given; it does not inspect them.
+placement: >-
+  Every repository that publishes files needs the same guarded publication, and a divergent one would be a
+  gap in one place only.
+revisit_when:
+  - >-
+    A new requirement would need one more input. It is first weighed: unless it is a real edge case, it is
+    solved here once instead of in a repository.
+  - A new publication target is needed. It is added centrally as its own action that shares the common library, unless it is a real edge case.
+inputs:
+  version: The planned version, so that publication can compare it with the recalculated one.
+  mode: Must equal the planned mode; official is the normal case.
+  tag-format: Must equal the plan's tag format.
+  force: Must equal the plan's value, because a forced plan has no releasable commit that publication could find.
+  assets: The files that belong to the release, as globs; none by default.
+requirements:
+  Node: The tooling is a Node program, so Node has to be on the path.
+  contents write: The caller grants it, because publishing creates a tag and a release.
+references:
+  - actions/release/README.md

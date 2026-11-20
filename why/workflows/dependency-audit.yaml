@@ -1,0 +1,54 @@
+purpose: >-
+  Scan the dependencies of this repository on a schedule and on demand, show the findings and fail from a
+  chosen severity.
+problem: >-
+  Vulnerabilities in dependencies are published long after the code is merged, so a repository that audits
+  only when it changes learns about them late or never.
+value: >-
+  Findings appear daily without anyone having to remember, and the audit has the same recognizable shape as
+  in every other repository.
+principles:
+  - principle: predictability
+    how: The audit runs daily at a fixed early time, so that a result is ready at the start of the day.
+  - principle: consistency
+    how: The scan, the report and the summary come from one shared action, and the workflow shape is checked by a rule.
+  - principle: frugality
+    how: It installs only the tools it needs, has read-only permissions and runs on a schedule and on demand only.
+  - principle: stability
+    how: The severity threshold is stated once in the workflow, so it cannot drift silently.
+flow:
+  - job: audit
+    why: One job; the audit is a single scan with a single result.
+decisions:
+  - decision: The audit runs on a schedule and on manual dispatch, never on push or pull requests.
+    why: >-
+      Vulnerabilities appear without any code change, so a timer finds them. An audit that blocked ordinary
+      changes would be switched off.
+  - decision: The schedule is daily, early in UTC and off the top of the hour.
+    why: >-
+      An early hour has the result ready before the working day, and a minute off the hour avoids the busiest
+      slot of GitHub's scheduler.
+  - decision: The severity from which the run fails is stated in the workflow.
+    why: Each repository decides deliberately which findings it accepts, so the threshold is visible and reviewed.
+  - decision: Only the tools of the audited ecosystems are installed.
+    why: A job that installs only what it names has no hidden tools.
+  - decision: The scan, the report and the upload are the shared dependency-audit action.
+    why: One report format and one summary make audits comparable between repositories.
+out_of_scope:
+  - description: Deciding which vulnerabilities matter beyond the threshold.
+    owner: the repository
+  - description: The structure check of the workflow.
+    owner: dependency-audit-workflow rule
+limitations:
+  - The audit knows only the ecosystems the shared action supports.
+  - The result depends on the freshness of the vulnerability databases at the time of the run.
+placement: >-
+  This is the repository's own audit and follows the same shape that consumers use, so that the catalog
+  keeps its own standard.
+revisit_when:
+  - The audit would become a reusable workflow shared by all repositories. That is a separate step.
+permissions:
+  contents: Read only, because the audit scans and does not change the repository.
+callers: The schedule and a manual dispatch start it; there are no inputs.
+references:
+  - docs/security.md

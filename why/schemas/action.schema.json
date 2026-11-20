@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/christianpflugradt/please-behave-governance/why/schemas/action.schema.json",
+  "title": "Action why document",
+  "description": "Guiding question: Why does this action exist and why does it take these inputs?\n\nIt records why, and never repeats what the definition already states, such as types, defaults and the order of steps.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "purpose",
+    "problem",
+    "value",
+    "decisions",
+    "principles",
+    "placement"
+  ],
+  "properties": {
+    "purpose": {
+      "type": "string",
+      "minLength": 1,
+      "description": "One sentence stating what it is meant to achieve."
+    },
+    "problem": {
+      "type": "string",
+      "minLength": 1,
+      "description": "What goes wrong without it and why that matters: the risk and its consequence."
+    },
+    "value": {
+      "type": "string",
+      "minLength": 1,
+      "description": "The benefit while it works as intended."
+    },
+    "decisions": {
+      "$ref": "common.schema.json#/$defs/decisions"
+    },
+    "out_of_scope": {
+      "$ref": "common.schema.json#/$defs/out_of_scope"
+    },
+    "limitations": {
+      "$ref": "common.schema.json#/$defs/limitations"
+    },
+    "placement": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Why it is shared in the governance repository and not local to each repository, or why it is local."
+    },
+    "revisit_when": {
+      "$ref": "common.schema.json#/$defs/revisit_when"
+    },
+    "references": {
+      "$ref": "common.schema.json#/$defs/references"
+    },
+    "inputs": {
+      "$ref": "common.schema.json#/$defs/named_reasons",
+      "description": "Why each input exists and why its default is what it is."
+    },
+    "outputs": {
+      "$ref": "common.schema.json#/$defs/named_reasons",
+      "description": "What each output is used for."
+    },
+    "requirements": {
+      "$ref": "common.schema.json#/$defs/named_reasons",
+      "description": "What the action needs on the runner and why, by requirement."
+    },
+    "steps": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Why the steps are there, where that is not obvious.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "step",
+          "why"
+        ],
+        "properties": {
+          "step": {
+            "type": "string",
+            "minLength": 1
+          },
+          "why": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "supported_variations": {
+      "$ref": "common.schema.json#/$defs/supported_variations"
+    },
+    "principles": {
+      "$ref": "common.schema.json#/$defs/principles"
+    }
+  }
+}

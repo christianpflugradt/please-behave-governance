@@ -11,13 +11,12 @@ the workflow must declare them.
 """
 
 import json
-import os
 import subprocess
 import sys
 import time
 
-WORKFLOW = os.environ.get("RELEASE_WORKFLOW", "release.yml")
-CI_WORKFLOW = os.environ.get("RELEASE_CI_WORKFLOW", "ci.yml")
+WORKFLOW = "release.yml"
+CI_WORKFLOW = "ci.yml"
 CI_POLL_SECONDS = 15
 
 

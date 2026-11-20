@@ -29,8 +29,8 @@ process. `--prerelease` publishes a development prerelease of the latest stable 
 the `force` and `mode` inputs of the `workflow_dispatch` trigger, which the workflow must declare and hand to
 the [release action](../actions/release/README.md).
 
-The `release` task reads `RELEASE_WORKFLOW` (default `release.yml`) and `RELEASE_CI_WORKFLOW`
-(default `ci.yml`) for repositories with other workflow file names.
+The task starts `.github/workflows/release.yml` and waits for `.github/workflows/ci.yml`; the release workflow
+structure is fixed by the `release-workflow` Check and the shared evidence action, so these names are not configurable.
 
 ## Updates
 

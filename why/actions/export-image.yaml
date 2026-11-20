@@ -1,0 +1,60 @@
+purpose: >-
+  Export the container images that the candidate job built and tested as archives with a receipt, so that the
+  publishing job can push exactly these images.
+problem: >-
+  A registry push in the publishing job would either rebuild the image, which nobody tested, or depend on the
+  state of a builder that no longer exists. Without a receipt there is no way to tell that the pushed image is
+  the tested one.
+value: >-
+  The images that are pushed are byte for byte the ones that were built and verified in the candidate job.
+principles:
+  - principle: reproducibility
+    how: Images are saved once as archives and loaded again at publication, and nothing is rebuilt.
+  - principle: predictability
+    how: The receipt binds each archive to its version, source and run, and the export verifies itself before it ends.
+  - principle: consistency
+    how: Every repository that ships images uses the same names, labels, platform and receipt.
+  - principle: frugality
+    how: The input is the list of images, and the rest is derived.
+steps:
+  - step: Save each image as an archive, then verify the archives and write the receipt.
+    why: The receipt carries the digests that publication compares, and verifying at export finds a broken export early.
+decisions:
+  - decision: Candidates are named `<name>:candidate`, built for linux/amd64, and carry the version and the source commit as standard labels.
+    why: >-
+      A fixed name and platform let the action find the image, and the labels let a pulled image state its
+      version and source without any other file.
+  - decision: The images are exported as archives with a receipt and not pushed from the candidate job.
+    why: >-
+      Pushing in the candidate job would publish before the candidate is verified as a whole, before readiness
+      and before the tag exists.
+    rejected: Pushing a candidate tag from the candidate job. It would put an unverified image into a registry.
+  - decision: The images are compared by their configuration digest.
+    why: Image identifiers differ between container stores, while the configuration digest is the same for the same image.
+  - decision: The export starts from an empty output directory.
+    why: Anything left over would be treated as part of the candidate.
+supported_variations:
+  - requirement: A repository ships one image or several.
+    why: The input is a list, and the receipt has an entry per image.
+out_of_scope:
+  - description: Building and testing the images.
+    owner: the candidate job
+  - description: Pushing the images and tagging the release.
+    owner: publish-image
+limitations:
+  - It supports one platform, which is the one the images are built for.
+placement: >-
+  The export format is the contract between the candidate job and publication, so it has to be defined once.
+revisit_when:
+  - An image has to be shipped for a second platform. It is weighed centrally, since a second platform changes the receipt.
+  - >-
+    A new requirement would need one more input. It is first weighed: unless it is a real edge case, it is
+    solved here once instead of in a repository.
+inputs:
+  version: The planned version, which the labels and the receipt must carry.
+  images: The names of the images that the repository built, one per line; there is no other source of this list.
+requirements:
+  Docker: The job has the images built in its container store.
+  Python: The tooling is a Python program using only the standard library.
+references:
+  - actions/release/README.md

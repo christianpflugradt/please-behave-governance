@@ -1,0 +1,72 @@
+purpose: >-
+  Calculate the next release with the shared release policy, without creating a tag, a commit or a release.
+problem: >-
+  A release policy that lives in each repository drifts: commit types, release levels, version series and
+  notes differ, and a repository can quietly keep its own configuration that wins over the agreed one.
+value: >-
+  The version and the notes of every release follow one policy, and a repository cannot deviate from it by
+  accident.
+principles:
+  - principle: stability
+    how: The policy is code in one place, including the rules for the initial development series and for forced test releases.
+  - principle: reproducibility
+    how: The tooling is installed from a lock file without running install scripts, so a run does not depend on moving versions.
+  - principle: predictability
+    how: The action refuses to run when a repository carries its own release configuration, so there is one policy and not two.
+  - principle: frugality
+    how: The inputs are the few that differ between releases and nothing else.
+steps:
+  - step: Install the release tooling from the lock file without install scripts.
+    why: Pinned, reproducible dependencies, and no code of a dependency runs during installation.
+  - step: Plan the release by running Semantic Release programmatically with inline plugins.
+    why: >-
+      The policy is part of the action and not a configuration file of the repository, so the repository has
+      no file that could override it.
+decisions:
+  - decision: The policy is inline code with a commit analyzer, a notes generator and a guard, not a shared configuration file.
+    why: A configuration file in the repository would be one more place where the policy could differ.
+    rejected: A shared configuration package. A repository would still hold a file that references it and could extend it.
+  - decision: While the latest official release is a 0.x version, a breaking change raises the minor version.
+    why: The 0.x series allows breaking changes, and the step to 1.0.0 is a deliberate, manual decision and not a side effect of a commit.
+  - decision: A forced plan releases a patch version when no commit would release by itself.
+    why: A release process can only be tested by running it, so tests need a release without a releasable commit.
+  - decision: A development prerelease is `<stable>-dev.<yyyymmdd>.<n>` with a tag prefixed `dev-`, counted per day in Europe/Berlin.
+    why: >-
+      Development versions sort below the next official release, are recognizable by their tag, and the
+      counter keeps several on one day apart. The day follows the maintainer's calendar and not UTC.
+  - decision: The plan outputs whether a release is planned, its version, its source commit and its mode.
+    why: Later jobs need exactly these, and the version and the commit are what bind them together.
+supported_variations:
+  - requirement: A repository publishes development prereleases besides official releases.
+    why: Sharing and testing a build before an official release is legitimate, and the mode input selects it without a second policy.
+  - requirement: A repository has to keep a tag format that differs from the standard.
+    why: Existing consumers may read tag names, and the tag format input costs one line.
+  - requirement: A release has to be planned although no commit would release by itself.
+    why: See the forced plan above; it is a test aid and off by default.
+out_of_scope:
+  - description: Publishing.
+    owner: publish-release and publish-image
+  - description: Proving CI and verifying the candidate.
+    owner: release-readiness and evidence
+limitations:
+  - A plan is a forecast; publication recalculates and refuses if the result or the main branch changed.
+placement: >-
+  The policy must be the same for every repository, and only one place can guarantee that.
+revisit_when:
+  - >-
+    A new requirement would need one more input. It is first weighed: unless it is a real edge case, it is
+    solved here once instead of in a repository.
+  - The version series needs a different rule than the initial development series.
+inputs:
+  mode: Selects between an official release and a development prerelease; official is the normal case.
+  tag-format: Carries the one variation of the tag name, with the standard format as default.
+  force: Plans a patch release without a releasable commit, to test the process; off by default.
+outputs:
+  release: Whether anything is planned.
+  version: The version to stamp and publish.
+  source-sha: The commit to build and to prove CI for.
+  mode: Whether the release is official or a prerelease.
+requirements:
+  Node: The tooling is a Node program, so Node has to be on the path.
+references:
+  - actions/release/README.md

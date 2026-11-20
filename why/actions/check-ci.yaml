@@ -1,0 +1,56 @@
+purpose: >-
+  Prove that CI succeeded for exactly the commit that is released, within one trusted workflow run.
+problem: >-
+  A green run of another commit, another workflow or another repository says nothing about the commit that
+  is about to be published, and a loose lookup lets an old green run hide a newer failure.
+value: >-
+  A release proceeds only from a commit whose CI is observably and unambiguously successful.
+principles:
+  - principle: predictability
+    how: Missing, pending, failed and ambiguous evidence all block, and the message names which.
+  - principle: reproducibility
+    how: It reads the runs of the exact commit and reuses what CI proved instead of repeating it.
+  - principle: stability
+    how: One definition of what counts as proof, for every repository.
+  - principle: frugality
+    how: It needs Python only and a read token.
+steps:
+  - step: Run the proof script with the required jobs and the token.
+    why: The script keeps raw API output out of the logs because it can contain credentials.
+decisions:
+  - decision: The proof is tied to the exact commit, the repository, the workflow file and the main branch.
+    why: Unrelated runs must never combine, and a run of an old commit proves nothing.
+  - decision: The newest matching run is selected without filtering for success.
+    why: An older green run must not replace a newer failed or incomplete run.
+  - decision: Partial reruns count, and the newest execution of each required job within the same run must succeed.
+    why: A flaky job is rerun on its own, and retained successes of earlier attempts are legitimate; requiring a complete new run would waste CI.
+  - decision: API failures, ambiguous identities and incomplete evidence are errors and not a pass.
+    why: The proof has to fail closed, because a pass without evidence is worse than a block.
+  - decision: It never starts CI and never waits.
+    why: A proof that triggered or awaited CI would hide that CI had not run.
+supported_variations:
+  - requirement: A repository's CI has several jobs or a matrix, all of which must succeed.
+    why: The required jobs are a list of names, and each matrix entry is listed by a stable unique name.
+out_of_scope:
+  - description: Running or waiting for CI.
+    owner: the command that starts the release
+  - description: Judging what CI checks.
+    owner: the repository's CI
+limitations:
+  - The evidence is observed when the proof runs and is not a lock against later reruns.
+  - Evidence is bounded to a number of attempts and listing entries, beyond which the proof fails.
+placement: >-
+  The definition of "CI succeeded for this commit" has to be the same for every repository and has to be
+  maintained once, since it is the subtle part of the release.
+revisit_when:
+  - A repository needs a proof beyond named CI jobs.
+  - >-
+    A new requirement would need one more input. It is first weighed: unless it is a real edge case, it is
+    solved here once instead of in a repository.
+inputs:
+  required-jobs: Names the jobs that must have succeeded, with the standard single job as default.
+requirements:
+  Python: The proof is a Python program using only the standard library.
+  actions read: The caller grants read access to workflow runs, because the proof reads them.
+references:
+  - actions/release/README.md

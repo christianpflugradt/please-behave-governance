@@ -1,0 +1,51 @@
+purpose: >-
+  Move the tracking branches of the importable parts of this repository to a commit that CI has tested, and
+  only when something in that part changed.
+problem: >-
+  Consumers pin imports to full commit SHAs. If their update tool followed the main branch, every commit would
+  move every pin, even for parts that did not change, and a commit that CI has not tested could be rolled out.
+value: >-
+  A consumer receives one update per changed part, and only for a commit with a successful CI run.
+principles:
+  - principle: stability
+    how: A pin moves only when the part it points to changed.
+  - principle: predictability
+    how: Only a tested commit is offered, and tracking branches are named by the part they follow.
+  - principle: reproducibility
+    how: Pins stay full commit SHAs, and the branches only tell the update tool which SHA is current.
+  - principle: frugality
+    how: The job publishes tracking branches and nothing else, and runs only after a successful CI run of the repository itself.
+flow:
+  - job: publish
+    why: A single job that follows a finished CI run.
+decisions:
+  - decision: It runs after a successful CI run on a push to the main branch of this repository.
+    why: >-
+      A tracking branch must point to a commit that CI has tested, and a run from a fork or a pull request
+      must never move it.
+  - decision: Runs are serialized and never cancelled.
+    why: Two runs moving the same branches at once could leave them in an order that no run intended.
+  - decision: Credentials are persisted for the job.
+    why: >-
+      The job has to push branches. The token is the job token and the script publishes tracking branches only.
+  - decision: The workflow checks out the commit that CI tested and not the branch tip.
+    why: The branches must point to the tested commit even if the branch has moved on.
+limitations:
+  - >-
+    Update tools do not order digests, so a stale update that is merged late can move a pin backwards. The
+    pins have to be checked after rapid moves.
+out_of_scope:
+  - description: Opening and merging the update requests in consumers.
+    owner: the consumers' update tool
+placement: >-
+  The branches belong to the repository that publishes the importable parts, and only it knows which commits
+  CI has tested and which part changed.
+revisit_when:
+  - A new kind of importable part is added.
+  - The update tool offers a way to order digests.
+permissions:
+  contents: Write, only to publish tracking branches.
+callers: A finished CI run starts it; there are no inputs.
+references:
+  - docs/governor-updates.md
+  - docs/mise-tasks.md

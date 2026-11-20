@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/christianpflugradt/please-behave-governance/why/schemas/common.schema.json",
+  "title": "Shared definitions of the why documents",
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1
+    },
+    "named_reasons": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "A reason for each named member. The names stay in the definition; only the reason is written here."
+    },
+    "decisions": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "The design decisions with their reasons, so that a later change can tell what it overturns. Never name a repository or project; describe the requirement.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "decision",
+          "why"
+        ],
+        "properties": {
+          "decision": {
+            "type": "string",
+            "minLength": 1,
+            "description": "One decision, short and verifiable."
+          },
+          "why": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Why this decision and not the obvious alternative."
+          },
+          "rejected": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The alternative that was considered and why it was not taken. Omit it when none was."
+          }
+        }
+      }
+    },
+    "out_of_scope": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Plausible expectations that this deliberately does not cover, and who owns them.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "description"
+        ],
+        "properties": {
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "owner": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The workflow, action, task, rule or repository that is responsible instead."
+          }
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "What a successful run does not prove, so that success is not mistaken for more."
+    },
+    "revisit_when": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Situations in which the design should be questioned again, for example a case that would need one more input."
+    },
+    "references": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "supported_variations": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Legitimate requirements that the design supports on purpose, described as requirements and never by naming a repository or project. A variation without a reason does not belong here; a deviation that was not justified is removed instead.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "requirement",
+          "why"
+        ],
+        "properties": {
+          "requirement": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The requirement that some repositories can have, stated generally."
+          },
+          "why": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Why it is a legitimate interest to deviate, and how the design supports it."
+          }
+        }
+      }
+    },
+    "principles": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "The principles of the catalog that this design serves, each with how it does. Principles are predictability, stability, simplicity, consistency, frugality and reproducibility.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "principle",
+          "how"
+        ],
+        "properties": {
+          "principle": {
+            "enum": [
+              "predictability",
+              "stability",
+              "simplicity",
+              "consistency",
+              "frugality",
+              "reproducibility"
+            ]
+          },
+          "how": {
+            "type": "string",
+            "minLength": 1,
+            "description": "How the design serves the principle, or what it gives up for it."
+          }
+        }
+      }
+    }
+  },
+  "description": "Documents never name a repository or project, because that makes them age. They describe requirements, and say why a requirement is supported or why a variation was removed."
+}

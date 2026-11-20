@@ -1,0 +1,109 @@
+purpose: >-
+  Calculate the next release, its version and its source commit once and without publishing anything, so
+  that every later job of the run builds and publishes the same thing.
+problem: >-
+  If every repository calculates the version itself, each one carries its own Semantic Release configuration
+  and the commit rules, release levels and notes drift apart. And if later jobs resolve the version or the
+  commit themselves, they can end up building different commits or stamping a version that is not the one
+  that is published.
+value: >-
+  One planned version and one source commit are bound for the whole run, and the release rules exist once for
+  all repositories.
+principles:
+  - principle: predictability
+    how: Every release starts the same way and every later job receives the same version and source commit.
+  - principle: stability
+    how: The commit rules, release levels and version policy exist once, so they cannot drift between repositories.
+  - principle: consistency
+    how: The first job of a release is the same call everywhere, and only its inputs differ.
+  - principle: frugality
+    how: The plan installs only what it needs, and its only elevated permission is the one the dry run requires.
+flow:
+  - job: plan
+    why: >-
+      A single job, so that its outputs are available to readiness, candidate and publish, which all start
+      from it.
+decisions:
+  - decision: The plan is a dry run of Semantic Release; it creates no tag, commit or release.
+    why: >-
+      Every job needs the version before anything is built, but nothing may be published before the candidate
+      is verified. A dry run gives the version without any effect.
+    rejected: >-
+      Calculating the version at publication. The candidate would have to be built without knowing the
+      version it is stamped with.
+  - decision: The plan is a reusable workflow and not an action.
+    why: >-
+      The job is identical for every repository, including checkout, tool installation and permissions. A
+      reusable workflow replaces the whole job with one call.
+    rejected: >-
+      A composite action. Every repository would still repeat checkout, tool installation and permissions
+      around it.
+  - decision: It checks out the dispatched commit explicitly, with the full history and without persisted credentials.
+    why: >-
+      Semantic Release needs the history and the tags. Naming the dispatched commit binds the plan to it even
+      if the branch moves while the run is queued. The ambiguity this removes is small, and the choice is a
+      convenience and not a requirement.
+  - decision: It runs only on the main branch.
+    why: Releases are made from the main branch only, and the planned source must be a commit of it.
+  - decision: Only Node is installed, and mise does not install anything else automatically.
+    why: The plan needs nothing else, and a job that installs only what it names has no hidden tools.
+  - decision: Switches are inputs of type string with a default and not booleans.
+    why: >-
+      A scheduled run has no inputs, and a caller that forwards an absent input to a boolean can fail. A string
+      with a default works for dispatched and scheduled runs alike. The choice is a technical convenience and
+      carries no further meaning.
+supported_variations:
+  - requirement: A repository wants to publish development prereleases besides its official releases.
+    why: >-
+      Testing a release path and sharing a build before an official release are legitimate needs. The mode
+      input plans a development version of the latest stable release, so the variation stays a choice of the
+      caller and the plan itself does not change.
+  - requirement: A repository has to keep a tag format that differs from the standard.
+    why: >-
+      Consumers of existing releases may read the tag name, and changing it would break them. The tag format
+      is an input with the standard as its default, so the exception costs one line and no code.
+  - requirement: A release has to be planned although no commit would release by itself.
+    why: >-
+      The release process can only be tested by running it. The force input plans a patch release for that
+      purpose and is off by default.
+out_of_scope:
+  - description: Building, testing and packaging the candidate.
+    owner: the calling repository
+  - description: Proving that CI succeeded for the planned source.
+    owner: release-readiness
+  - description: Verifying the candidate and publishing it.
+    owner: publish-release and publish-image
+limitations:
+  - A planned version can still be refused at publication, for example when the main branch moved after the plan.
+  - The plan says nothing about whether CI passed.
+placement: >-
+  The job is the same for every repository and only a few inputs differ, so one shared workflow replaces many
+  copies and keeps the release rules in one place.
+revisit_when:
+  - A repository needs a different checkout or another tool in the plan.
+  - >-
+    A new requirement would need one more input. It is first weighed: unless it is a real edge case, it is
+    solved here once instead of in a repository.
+inputs:
+  mode: >-
+    Selects between an official release and a development prerelease of the latest stable release. The default
+    is the official release, which is the normal case.
+  tag-format: >-
+    Carries the one variation of the tag name. The default is the standard format.
+  force: >-
+    Plans a patch release even if no commit would raise the version, so that the release process can be
+    tested end to end. It is off by default because it is a test aid.
+outputs:
+  release: Tells the later jobs whether there is anything to build and publish.
+  version: The version that the candidate is stamped with and that is published.
+  source_sha: The commit that the candidate is built from and that readiness proves CI for.
+  mode: Tells publication whether the release is official or a development prerelease.
+permissions:
+  contents: >-
+    Write, because Semantic Release verifies push access during its dry run. The permission is granted by
+    the calling job, because a called workflow cannot hold more than its caller.
+callers: >-
+  A calling repository decides when a release starts and passes the few inputs. It grants the job permissions,
+  reads the outputs and builds the candidate itself.
+references:
+  - actions/release/README.md

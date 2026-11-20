@@ -1,0 +1,56 @@
+purpose: >-
+  Run all applicable Please Behave checks and reviews for this repository at the check point, on every push
+  to the main branch and on every pull request.
+problem: >-
+  Checks that only run in local hooks can be skipped, and a repository whose checks nobody runs centrally
+  drifts. Without a CI run, there is also no exact-source proof that a release can rely on.
+value: >-
+  Every change is checked the same way in a neutral environment, and the result of the run is the proof that
+  releases use.
+principles:
+  - principle: reproducibility
+    how: The checks run in a fresh environment with the tools installed from the pinned configuration.
+  - principle: consistency
+    how: CI runs the same governor and the same rules as local hooks, only at the check point.
+  - principle: predictability
+    how: The job has a stable name, so that other workflows can name it as a requirement.
+  - principle: frugality
+    how: Read-only permissions, no persisted credentials and a time limit.
+flow:
+  - job: check
+    why: A single job, because the check point is one governed run, and its name is what release readiness requires.
+decisions:
+  - decision: The job installs every configured tool and runs the setup task before the checks.
+    why: >-
+      The checks must find every tool they need, and a missing tool must fail the run instead of skipping a
+      check. Installing explicitly keeps tool use visible.
+  - decision: The governor is installed with the other tools, the action installs nothing, and imports are synchronized.
+    why: >-
+      The governor is pinned by the repository, so the action must use that one and not install another.
+      Synchronizing the imports makes the rules of the pinned commits available to the run.
+  - decision: The report is uploaded even if the run fails.
+    why: A failing run is the one whose report is needed.
+  - decision: Checkout keeps the full history and persists no credentials.
+    why: >-
+      Commit rules need the history, and CI does not push, so it has no use for stored credentials.
+supported_variations:
+  - requirement: A repository's checks need a secret, for example for reviews.
+    why: The secret is passed to the governor step only and to no other step.
+out_of_scope:
+  - description: Releasing, which has its own workflow with its own proof of CI.
+    owner: release workflow
+  - description: What the rules check.
+    owner: the rules and rule sets
+limitations:
+  - The workflow runs what the repository configures, so a repository with few rules gets little from it.
+placement: >-
+  This is the repository's own CI. Consumers of the catalog have their own, checked against the shared
+  structure by the CI workflow rule, and this one follows the same shape.
+revisit_when:
+  - The check point needs a second job, for example a matrix.
+  - A tool or secret is needed that the job does not provide.
+permissions:
+  contents: Read only, because CI checks and does not change the repository.
+callers: A push to the main branch or a pull request starts it; there are no inputs.
+references:
+  - docs/open-source-software.md

@@ -1,0 +1,64 @@
+purpose: >-
+  Give every releasable repository the same command to start a release, one that cannot start from a state
+  that CI has not seen.
+problem: >-
+  Starting a release by hand differs between repositories and people, and starting it while CI on the main
+  branch is still running makes the proof of CI fail or, worse, makes the release start from a commit that
+  CI has not finished.
+value: >-
+  One command starts a release in every repository, with the same options and the same behavior, and it never
+  uses the local state.
+principles:
+  - principle: predictability
+    how: The command waits for CI and starts the workflow on the remote main branch, so the same thing happens everywhere.
+  - principle: consistency
+    how: The options carry the same names and meanings in every repository.
+  - principle: frugality
+    how: Four options and no configuration; the workflow names are fixed because the release structure is fixed.
+  - principle: stability
+    how: The task is shared and pinned, so it cannot drift between repositories.
+flags:
+  --follow: Watches the dispatched run until it ends, so that the command's result is the result of the release.
+  --force: Releases a patch version even if no commit would raise the version, to test the release process.
+  --prerelease: Publishes a development prerelease of the latest stable release, for repositories that have them.
+  --release: Publishes an official release even if the workflow defaults to a prerelease.
+waits_for: >-
+  CI runs on the main branch that are queued or in progress, because the proof of CI in the release looks at
+  the newest CI run and fails if it is not finished.
+safety:
+  - statement: It starts the release workflow on the remote main branch and never on local state.
+    why: A release must come from what the remote has, and local commits or changes must not leak into it.
+  - statement: It refuses unknown options and the combination of prerelease and release.
+    why: A mistyped option must not start a different release than intended.
+  - statement: Every accepted option is declared in the usage header.
+    why: mise validates arguments against the header, so an option that is not declared is rejected before it runs.
+decisions:
+  - decision: The release workflow and the CI workflow have fixed names.
+    why: >-
+      The structure of the release workflow is fixed by a rule and by the shared evidence action, so a
+      configurable name could not work, and an option nobody uses is a cost.
+  - decision: The task is a shared task group that repositories include, pinned to a commit.
+    why: A task that lives in each repository drifts, and an included one is defined once.
+  - decision: The task starts the workflow and does not wait for the release unless asked.
+    why: Starting is the common case, and following a long release is a choice.
+supported_variations:
+  - requirement: A repository releases only as development prereleases, or only as official releases.
+    why: The options select the mode, so the task covers both without a variant of the task.
+out_of_scope:
+  - description: Planning, building, verifying and publishing the release.
+    owner: the release workflow
+  - description: Deciding whether a release is useful.
+    owner: the maintainer
+limitations:
+  - The task needs an authenticated GitHub command line and does not check that CI succeeded, only that it is not running.
+placement: >-
+  Starting a release is the same act in every repository, and a command defined once removes the variation
+  between people and repositories.
+revisit_when:
+  - A repository has to start its release differently. It is weighed centrally, unless it is a real edge case.
+  - >-
+    A new requirement would need one more option. It is first weighed: unless it is a real edge case, it is
+    solved here once instead of in a repository.
+references:
+  - docs/mise-tasks.md
+  - docs/releases.md

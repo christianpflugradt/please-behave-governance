@@ -1,0 +1,54 @@
+purpose: >-
+  Verify the candidate with the rules of the release point and keep the report, so that what the repository
+  has to prove about a candidate is decided by its rules and run the same way everywhere.
+problem: >-
+  Checks on a candidate that are written as workflow steps differ between repositories, can be left out
+  unnoticed and leave no report to inspect when they fail.
+value: >-
+  The candidate passes the rules the repository declares for the release point, and the report of the run is
+  available afterwards, whether it passed or failed.
+principles:
+  - principle: consistency
+    how: Every repository verifies its candidate by running the governor at the release point.
+  - principle: predictability
+    how: The report is uploaded even when the run fails, under a name that identifies run, attempt and candidate.
+  - principle: reproducibility
+    how: The governor and its rules are the pinned ones of the repository, and the action installs nothing itself.
+  - principle: frugality
+    how: One input, and it only exists for candidate matrices.
+steps:
+  - step: Run the governor at the release point with the repository's pinned installation, synchronizing the imports.
+    why: The repository decides which governor and which rules apply, and the action only runs them.
+  - step: Upload the report whatever the outcome.
+    why: A failing run is the one whose report is needed.
+decisions:
+  - decision: The action runs rules and does not contain checks of its own.
+    why: What a candidate must prove is the repository's rules at the release point, so a check never needs a change of the action.
+  - decision: The report name contains the run, the attempt and, in a matrix, the candidate.
+    why: Names that are not unique make matrix entries overwrite or fail each other.
+  - decision: A missing report is a warning and not an error.
+    why: The run's verdict is the governor's, and a missing report must not hide it by failing differently.
+supported_variations:
+  - requirement: The candidate is built as a matrix of platforms, architectures or runtime versions.
+    why: Every entry verifies its own candidate and uploads its own report, and the target input keeps the report names apart.
+out_of_scope:
+  - description: Which rules apply at the release point and what they check.
+    owner: the repository's rules and rule sets
+  - description: Building, packaging and recording the candidate.
+    owner: the candidate job and evidence
+limitations:
+  - The action verifies only what the rules of the release point verify, so a repository without such rules passes.
+placement: >-
+  The way a candidate is verified is the same for every repository, while what is verified depends on the
+  product, so the way is shared and the rules stay with the repository.
+revisit_when:
+  - A candidate needs a verification that cannot be expressed as a rule at the release point.
+  - >-
+    A new requirement would need one more input. It is first weighed: unless it is a real edge case, it is
+    solved here once instead of in a repository.
+inputs:
+  target: Names the matrix entry in the report name, so that several entries can upload a report in one run.
+requirements:
+  governor: The governor and its tools have to be installed by the job, because the action installs nothing.
+references:
+  - actions/release/README.md
