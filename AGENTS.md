@@ -47,8 +47,7 @@
   with `#MISE` headers; consumers include a group pinned to a commit SHA. See `docs/mise-tasks.md`.
 - Put the tools a ruleset's Rules run in `rulesets/<bundle>/mise.toml`; consumers include it pinned to the
   same commit SHA as the ruleset import. See `docs/mise-tools.md`.
-- Keep the catalog and setup in README and detailed usage in `docs/`. Update
-  definitions, tests and documentation together.
+- Keep the catalog and setup in README and detailed usage in `docs/`.
 - Add offline unit tests only for a Rule script or provider adapter complex enough to
   justify them. Keep each suite next to the code it tests, as `test_*.py` in the
   Rule or provider directory, and limited to that one Rule or provider. Do not write tests that span several Rules or
