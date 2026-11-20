@@ -7,6 +7,9 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Trust the shared governance repository
+      shell: bash
+      run: please trust https://github.com/christianpflugradt/please-behave-governance.git
     - name: Verify the repository at the release point
       uses: please-behave/action@98c72fdf0ff5c1a9ec5b815c07b1a38745e50bc3 # v1.5.2
       with:
