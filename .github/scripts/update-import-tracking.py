@@ -9,8 +9,8 @@ import tomllib
 
 
 PREFIX = "refs/remotes/origin/updates/"
-PACKAGE = re.compile(r"(?:(?:rulesets|providers|mise-tasks|actions)/[a-z0-9][a-z0-9-]*|workflows/(?:release|statistics))")
-WORKFLOW = re.compile(r"\.github/workflows/(release|statistics)-[a-z-]+\.yml")
+PACKAGE = re.compile(r"(?:(?:rulesets|providers|mise-tasks|actions)/[a-z0-9][a-z0-9-]*|workflows/(?:ci|release|statistics))")
+WORKFLOW = re.compile(r"\.github/workflows/(ci|release|statistics)-[a-z-]+\.yml")
 RULE = re.compile(r"rules/(?:checks|reviews)/[a-z0-9][a-z0-9-]*")
 
 

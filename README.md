@@ -84,7 +84,7 @@ the Gemini operations themselves still require network access.
 | --- | --- | --- |
 | Repository conventions | `agents-size.max_tokens`; `commit-message.scopes_file`; independent `gemini-flash-lite` and `gemini-flash` provider imports | Python 3.9+ (3.11+ for the mise checks), Git, `jactionlint`, ShellCheck and `GEMINI_API_KEY` for the wording and `AGENTS.md` reviews |
 | Open-source software | `license.target`, usually `LICENSE` | Python 3.9+, Git, `yq`; network and optionally `GITHUB_TOKEN` for `github-metadata` at `check` |
-| Private repositories | `private-ci-workflow.max_job_minutes` | Python 3.9+, Git, `yq`; `GITHUB_REPOSITORY` and `GITHUB_TOKEN` for `private-visibility` at `check` |
+| Private repositories | none | Python 3.9+, Git, `yq`; `GITHUB_REPOSITORY` and `GITHUB_TOKEN` for `private-visibility` at `check` |
 | Releasable open-source software | none | Python 3.11+, Git |
 | Security | `dependency-audit-workflow.dependencies`, `audited` or `none` | Python 3.9+, Git, `yq`, Gitleaks v8 with `gitleaks dir` |
 

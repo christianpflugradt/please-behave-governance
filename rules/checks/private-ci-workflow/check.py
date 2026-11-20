@@ -1,4 +1,4 @@
-"""Require the lean CI workflow for private repositories: pull requests only, bounded minutes, Ubuntu runners that Renovate maintains."""
+"""Require the lean CI workflow for private repositories: pull requests only, calling the shared CI workflow without reviews."""
 
 import json
 import re
@@ -89,41 +89,6 @@ def jobs(document):
     return {name: as_dict(job) for name, job in as_dict(document.get("jobs")).items()}
 
 
-def steps(job):
-    return [as_dict(step) for step in as_list(job.get("steps"))]
-
-
-def uses(step, action):
-    """True when the step uses the action, whatever its version reference."""
-    return str(step.get("uses", "")).split("@", 1)[0] == action
-
-
-def with_value(step, key):
-    return as_dict(step.get("with")).get(key)
-
-
-def runs(step, command):
-    return str(step.get("run", "")).strip() == command
-
-
-def please_behave(step, point):
-    return uses(step, "please-behave/action") and with_value(step, "execution-point") == point
-
-
-def expect_steps(job_id, job, expected):
-    """Report each expected (description, test) step missing after its predecessor; extra steps may interleave."""
-    found, position = [], 0
-    listed = steps(job)
-    for description, test in expected:
-        for index in range(position, len(listed)):
-            if test(listed[index]):
-                position = index + 1
-                break
-        else:
-            found.append(f"job {job_id} lacks the step: {description}")
-    return found
-
-
 def common(document):
     """Rules every shared workflow follows: read-only default permissions and timeouts."""
     found = []
@@ -154,32 +119,35 @@ def run(argv, name, violations):
     return 1 if found else 0
 
 
-RUNNER = re.compile(r"ubuntu-\d{2}\.\d{2}")
+RUNNER = re.compile(r"(?:ubuntu|macos|windows)-\d+(?:\.\d+)*")
 EVENTS = {"pull_request", "workflow_dispatch"}
+GOVERNANCE = "christianpflugradt/please-behave-governance"
+CHECK = ".github/workflows/ci-check-private.yml"
 
 
-def max_minutes(value):
-    """Return the positive timeout ceiling from the rule parameter."""
-    if not value.isdecimal() or int(value) < 1:
-        raise ValueError("max_job_minutes must be a positive integer")
-    return int(value)
+def governed(job, path):
+    """True when the job calls the shared workflow of the governance repository, pinned to a full commit SHA."""
+    return re.fullmatch(rf"{re.escape(GOVERNANCE)}/{re.escape(path)}@[0-9a-f]{{40}}( #.*)?", str(job.get("uses", ""))) is not None
 
 
-def job_limits(job_id, job, ceiling):
-    """Bound what one job can bill: its timeout, a versioned Ubuntu runner and no matrix."""
+def check_violations(job):
+    """The caller job only calls the shared workflow, which runs no reviews, and hands over no secret."""
     found = []
-    timeout = job.get("timeout-minutes")
-    if not isinstance(timeout, int) or isinstance(timeout, bool) or timeout > ceiling:
-        if "uses" not in job:
-            found.append(f"job {job_id} must set timeout-minutes to at most {ceiling}")
-    if "uses" not in job and not (isinstance(job.get("runs-on"), str) and RUNNER.fullmatch(job["runs-on"])):
-        found.append(f"job {job_id} must run on a versioned Ubuntu runner such as ubuntu-24.04, not {job.get('runs-on')!r}")
+    if not governed(job, CHECK):
+        found.append(f"job check must use the shared workflow {CHECK} pinned to a full commit SHA")
+    if "steps" in job:
+        found.append("job check must not define its own steps; the shared workflow runs the checks")
+    inputs = as_dict(job.get("with"))
+    if inputs.get("runner") is not None and not RUNNER.fullmatch(str(inputs["runner"])):
+        found.append(f"input runner must name a versioned runner such as ubuntu-26.04, not {inputs['runner']!r}")
+    if job.get("secrets"):
+        found.append("job check must pass no secrets, because the reviews stay out of private CI")
     if "matrix" in as_dict(job.get("strategy")):
-        found.append(f"job {job_id} must not use a matrix")
+        found.append("job check must not use a matrix")
     return found
 
 
-def violations(document, ceiling):
+def violations(document):
     found = []
     if document.get("name") != "CI":
         found.append('name must be "CI"')
@@ -195,36 +163,12 @@ def violations(document, ceiling):
     if job is None:
         found.append("job check is missing")
     else:
-        found += expect_steps(
-            "check",
-            job,
-            [
-                (
-                    "actions/checkout with persist-credentials: false",
-                    lambda s: uses(s, "actions/checkout") and flag(with_value(s, "persist-credentials")) == "false",
-                ),
-                ("jdx/mise-action without install_args", lambda s: uses(s, "jdx/mise-action") and with_value(s, "install_args") is None),
-                (
-                    "please-behave/action with execution-point: check, install: false, sync: true and checks-only: true",
-                    lambda s: (
-                        please_behave(s, "check")
-                        and flag(with_value(s, "install")) == "false"
-                        and flag(with_value(s, "sync")) == "true"
-                        and flag(with_value(s, "checks-only")) == "true"
-                    ),
-                ),
-            ],
-        )
-    for job_id, each in jobs(document).items():
-        found += job_limits(job_id, each, ceiling)
+        found += check_violations(job)
     return found + common(document)
 
 
 def main():
-    if len(sys.argv) != 3:
-        raise ValueError("expected arguments: context file, max_job_minutes")
-    ceiling = max_minutes(sys.argv[2])
-    return run(sys.argv[:2], "ci.yml", lambda document: violations(document, ceiling))
+    return run(sys.argv, "ci.yml", violations)
 
 
 if __name__ == "__main__":

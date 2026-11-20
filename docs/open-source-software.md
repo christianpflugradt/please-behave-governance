@@ -43,15 +43,16 @@ ERROR (2).
 - `ci-workflow` requires `.github/workflows/ci.yml` to follow the shared structure:
   - `name: CI`, triggered by `push` to `main` and by `pull_request`; further triggers are allowed.
   - Top-level `permissions` are exactly `contents: read`.
-  - A job with the id `check` that sets `timeout-minutes` and contains, in this order, with other
-    steps allowed in between: `actions/checkout` with `persist-credentials: false`,
-    `jdx/mise-action` without `install_args`, `run: mise run setup`, and `please-behave/action`
-    with `execution-point: check`, `install: 'false'` and `sync: 'true'`.
-  - Every job sets `timeout-minutes`.
+  - A job with the id `check` that calls the shared workflow `ci-check.yml`, pinned to a full commit SHA, and hands over
+    exactly `GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}`. It defines no steps of its own; the shared workflow runs the reviews and limits the job to 30 minutes.
+    The shared workflow checks out, installs the tools with `jdx/mise-action`, runs `mise run setup`, runs Please Behave at
+    `check` and uploads the report; a repository that needs preparation, such as environment variables, does it in its mise
+    tasks or passes them as the input `env` (`NAME=value` per line). The input `runner` (default `ubuntu-26.04`) may be set,
+    to a versioned runner, and Renovate keeps it current. The check appears as `<caller job name> / Check`.
+  - Every job that is no call of a shared workflow sets `timeout-minutes`; the shared workflow sets its own.
 
-  Runners, matrices, timeout values, extra jobs and steps, secrets and artifact names are the
-  repository's own. The rule checks structure only; it does not verify that CI ran or passed.
-  It needs `yq` (v4) on `PATH` and Python 3.9+, and a missing tool or invalid YAML returns ERROR.
+  Triggers beyond these, the runner version and further jobs are the repository's own. The rule checks structure only; it does
+  not verify that CI ran or passed. It needs `yq` (v4) on `PATH` and Python 3.9+, and a missing tool or invalid YAML returns ERROR.
 
 - `statistics-workflow` passes when `.github/workflows/statistics.yml` does not exist. Otherwise the workflow follows
   the shared structure for sending statistics to a central repository:

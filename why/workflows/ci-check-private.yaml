@@ -1,0 +1,78 @@
+purpose: >-
+  Run the Please Behave checks, without the reviews, for a private repository at the check point in one uniform
+  sequence, within a few minutes, so that the free Actions allowance of private repositories lasts.
+problem: >-
+  If every repository spells out the sequence itself, the order of installing the tools, fetching the
+  dependencies and running the checks, the handling of the report and the secrets drift apart, and a change
+  to the sequence has to be repeated in every repository. A copy that is wrong for one repository silently
+  checks less than the others.
+value: >-
+  The sequence exists once. A repository decides only when CI runs, which is a matter of cost, and on which
+  runner.
+principles:
+  - principle: consistency
+    how: Every private repository runs the same steps in the same order, and only the runner and the environment differ.
+  - principle: reproducibility
+    how: The tools come from the pinned mise configuration and the governor installed with them runs the checks.
+  - principle: frugality
+    how: Read-only permissions, no persisted credentials, no reviews and a limit of 5 minutes.
+  - principle: safety
+    how: No secret is passed, so nothing in the job can reach the paid model API.
+flow:
+  - job: check
+    why: >-
+      A single job, because the check point is one governed run. Its name is what release readiness requires,
+      prefixed with the name of the calling job.
+decisions:
+  - decision: It is the private counterpart of ci-check.yml and shares its sequence, but runs no reviews and takes 5 minutes at most.
+    why: >-
+      Reviews call a paid model API, and the free allowance of private repositories is limited. Fixing the timeout and the
+      missing reviews in the workflow keeps the cost policy out of every caller and out of reach of a single repository.
+    rejected: >-
+      Inputs on ci-check.yml for the timeout and the reviews. They would be visible and changeable in every repository.
+  - decision: The sequence is shared; the triggers and concurrency stay in the calling workflow.
+    why: >-
+      Private repositories run CI on pull requests only and cancel superseded runs. A called workflow cannot set its
+      own triggers, so each repository states them in its shell.
+  - decision: The runner is an input with ubuntu-26.04 as its default.
+    why: A versioned runner that Renovate keeps current in the callers and the default here makes runner changes reviewable.
+  - decision: Preparation of the environment belongs in the mise setup task, and a generic env input covers variables.
+    why: >-
+      Installing dependencies and tools is what the setup task is for. Variables such as options for a build tool are
+      plain data that every repository can state.
+    rejected: An input for each build tool. It would grow with every stack.
+  - decision: The environment variables are written to the environment of the job by a guarded step.
+    why: >-
+      The variables must reach the setup and the checks. Names that change how the runner or the shell behave are refused.
+  - decision: The report is uploaded for every run, even a failing one.
+    why: A failing run is the one whose report is needed.
+  - decision: Checkout keeps the full history and persists no credentials.
+    why: Commit rules need the history, and CI does not push.
+out_of_scope:
+  - description: When CI runs, and the cancellation of superseded runs.
+    owner: the calling workflow
+  - description: Artifacts beyond the governance report, such as test reports.
+    owner: the repository
+  - description: What the rules check.
+    owner: the rules and rule sets
+limitations:
+  - A repository that needs a display server or system packages before its checks handles them in its mise tasks, since the shared job has no extra steps.
+  - The timeout of 5 minutes is the same for every private repository, so a repository whose checks take longer needs this workflow changed first.
+placement: >-
+  Every private repository needs exactly this job, so a divergent copy would be a gap in one place and is shared.
+  Triggers differ between public and private repositories and stay in the repository.
+revisit_when:
+  - A private repository regularly needs more than 5 minutes.
+  - A requirement would need another input; it is first weighed, and unless it is a real edge case it is solved here once.
+inputs:
+  runner: >-
+    The runner image. The default is a versioned Ubuntu image, and a repository that needs another system names
+    it with a version so that Renovate can keep it current.
+  env: Further environment variables, one NAME=value per line, for the setup and the checks.
+permissions:
+  contents: Read, which is all the job needs; uploading the report needs no extra permission.
+callers: >-
+  A private repository calls it from a job named check on pull requests, with concurrency that cancels superseded runs,
+  and, when it needs to, sets the runner and the environment. It passes no secret.
+references:
+  - docs/private-repositories.md

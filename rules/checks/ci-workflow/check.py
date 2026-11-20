@@ -1,4 +1,4 @@
-"""Require the shared structure of ci.yml; runners, matrices, timeouts' values and extra steps stay with consumers."""
+"""Require ci.yml to call the shared CI workflow; triggers and the runner input stay with consumers."""
 
 import json
 import re
@@ -89,41 +89,6 @@ def jobs(document):
     return {name: as_dict(job) for name, job in as_dict(document.get("jobs")).items()}
 
 
-def steps(job):
-    return [as_dict(step) for step in as_list(job.get("steps"))]
-
-
-def uses(step, action):
-    """True when the step uses the action, whatever its version reference."""
-    return str(step.get("uses", "")).split("@", 1)[0] == action
-
-
-def with_value(step, key):
-    return as_dict(step.get("with")).get(key)
-
-
-def runs(step, command):
-    return str(step.get("run", "")).strip() == command
-
-
-def please_behave(step, point):
-    return uses(step, "please-behave/action") and with_value(step, "execution-point") == point
-
-
-def expect_steps(job_id, job, expected):
-    """Report each expected (description, test) step missing after its predecessor; extra steps may interleave."""
-    found, position = [], 0
-    listed = steps(job)
-    for description, test in expected:
-        for index in range(position, len(listed)):
-            if test(listed[index]):
-                position = index + 1
-                break
-        else:
-            found.append(f"job {job_id} lacks the step: {description}")
-    return found
-
-
 def common(document):
     """Rules every shared workflow follows: read-only default permissions and timeouts."""
     found = []
@@ -154,6 +119,34 @@ def run(argv, name, violations):
     return 1 if found else 0
 
 
+RUNNER = re.compile(r"(?:ubuntu|macos|windows)-\d+(?:\.\d+)*")
+
+
+GOVERNANCE = "christianpflugradt/please-behave-governance"
+CHECK = ".github/workflows/ci-check.yml"
+GEMINI = {"GEMINI_API_KEY": "${{ secrets.GEMINI_API_KEY }}"}
+
+
+def governed(job, path):
+    """True when the job calls the shared workflow of the governance repository, pinned to a full commit SHA."""
+    return re.fullmatch(rf"{re.escape(GOVERNANCE)}/{re.escape(path)}@[0-9a-f]{{40}}( #.*)?", str(job.get("uses", ""))) is not None
+
+
+def check_violations(job):
+    """The caller job only calls the shared workflow, which runs the reviews, and hands over the key of their model API."""
+    found = []
+    if not governed(job, CHECK):
+        found.append(f"job check must use the shared workflow {CHECK} pinned to a full commit SHA")
+    if "steps" in job:
+        found.append("job check must not define its own steps; the shared workflow runs the checks")
+    inputs = as_dict(job.get("with"))
+    if inputs.get("runner") is not None and not RUNNER.fullmatch(str(inputs["runner"])):
+        found.append(f"input runner must name a versioned runner such as ubuntu-26.04, not {inputs['runner']!r}")
+    if as_dict(job.get("secrets")) != GEMINI:
+        found.append("job check must pass exactly GEMINI_API_KEY as ${{ secrets.GEMINI_API_KEY }}")
+    return found
+
+
 def violations(document):
     found = []
     if document.get("name") != "CI":
@@ -168,24 +161,7 @@ def violations(document):
     if job is None:
         found.append("job check is missing")
     else:
-        found += expect_steps(
-            "check",
-            job,
-            [
-                (
-                    "actions/checkout with persist-credentials: false",
-                    lambda s: uses(s, "actions/checkout") and flag(with_value(s, "persist-credentials")) == "false",
-                ),
-                ("jdx/mise-action without install_args", lambda s: uses(s, "jdx/mise-action") and with_value(s, "install_args") is None),
-                ("run: mise run setup", lambda s: runs(s, "mise run setup")),
-                (
-                    "please-behave/action with execution-point: check, install: false and sync: true",
-                    lambda s: (
-                        please_behave(s, "check") and flag(with_value(s, "install")) == "false" and flag(with_value(s, "sync")) == "true"
-                    ),
-                ),
-            ],
-        )
+        found += check_violations(job)
     return found + common(document)
 
 

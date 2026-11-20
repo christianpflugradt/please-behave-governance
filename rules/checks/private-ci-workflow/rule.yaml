@@ -15,16 +15,14 @@ conditions:
     rationale: Checking needs no write access.
   - statement: Concurrency cancels runs in progress.
     rationale: A pull request superseded by a force push must not keep billing minutes for old runs.
-  - statement: A job check contains, in this order, checkout without persisted credentials, mise setup and the Please Behave action at the check execution point limited to checks.
-    rationale: Reviews are advisory and call a paid model API, so they stay out of CI.
-  - statement: Every job sets a timeout of at most the value of max_job_minutes.
-    rationale: The usage per run is bounded from above.
-  - statement: Every job runs on a versioned Ubuntu runner such as ubuntu-24.04 and uses no matrix.
+  - statement: A job check calls the shared workflow ci-check-private.yml pinned to a full commit SHA, without secrets and without steps of its own; that workflow runs the checks only and limits the job to 5 minutes.
+    rationale: Reviews are advisory and call a paid model API, so they stay out of CI, and the sequence of the checks exists once, together with its timeout.
+  - statement: An input runner, if set, names a versioned runner and no job uses a matrix.
     rationale: A fixed version makes runner changes reviewable, since Renovate proposes new versions, and a matrix multiplies the usage.
 success_criteria:
   - A deviating structure fails and the message names the violated part.
-  - Additional steps, secrets and artifact names are free and never cause a FAIL.
-  - A missing tool, invalid YAML or an invalid parameter is an ERROR.
+  - Triggers beyond the pull request, additional jobs and the runner version are free and never cause a FAIL.
+  - A missing tool or invalid YAML is an ERROR.
 out_of_scope:
   - description: Whether the allowance suffices, because billing is not visible to the Rule.
   - description: Syntax and expressions of the workflow.
@@ -35,9 +33,7 @@ out_of_scope:
 limitations:
   - Only the structure is verified, not the actual usage; only the account's spending limit protects against exceeding the allowance.
 placement: >-
-  The restriction is the same for all private repositories. Only the limit per job
-  is project-specific and remains a parameter.
-parameters:
-  max_job_minutes: Sets the upper bound for the timeout of every job, so that the usage stays controllable.
+  The restriction is the same for all private repositories. The timeout of the check
+  is set once in the shared workflow, to 5 minutes.
 references:
   - docs/private-repositories.md

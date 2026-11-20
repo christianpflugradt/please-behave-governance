@@ -14,15 +14,13 @@ and adds to `repository-conventions`. Why each rule and the set exist is recorde
     `main`, so a push run would only bill the same checks twice.
   - Top-level `permissions` are exactly `contents: read`, and `concurrency` sets
     `cancel-in-progress: true` so a force-pushed PR branch does not keep billing superseded runs.
-  - A job `check` with, in this order, `actions/checkout` with `persist-credentials: false`,
-    `jdx/mise-action` without `install_args`, and `please-behave/action` with
-    `execution-point: check`, `install: 'false'`, `sync: 'true'` and `checks-only: 'true'`. Reviews
-    are advisory and call a paid model API, so they stay out of CI.
-  - Every job sets `timeout-minutes` of at most the `max_job_minutes` parameter, runs on a versioned
-    Ubuntu runner such as `ubuntu-24.04` and uses no `strategy.matrix`. A versioned label instead of
-    `ubuntu-latest` keeps runner changes reviewable: Renovate's github-actions manager proposes new
-    runner versions as PRs. Do not move to a runner that `jactionlint` does not know yet; the
-    `workflow-syntax` check of `repository-conventions` fails such a PR on purpose.
+  - A job `check` that calls the shared workflow `ci-check-private.yml` pinned to a full commit SHA with no
+    secrets and no steps of its own. The workflow runs the checks without reviews, because reviews are
+    advisory and call a paid model API, and limits the job to 5 minutes. An input `runner`, if set, names a versioned runner such
+    as `ubuntu-26.04` (default), and no job uses `strategy.matrix`. A versioned label instead of
+    `ubuntu-latest` keeps runner changes reviewable: Renovate proposes new runner versions as PRs,
+    including the `runner` input of a calling job. Do not move to a runner that `jactionlint` does
+    not know yet; the `workflow-syntax` check of `repository-conventions` fails such a PR on purpose.
   - The check needs `yq` (v4) and Python 3.9+.
 - `private-renovate` requires `rebaseWhen: "conflicted"` in `renovate.json` and a `packageRules`
   entry with `rebaseWhen: "behind-base-branch"` for `please-behave/cli`, `please-behave/action` and
@@ -47,7 +45,4 @@ Renovate PRs without a check until the month resets.
 git = "https://github.com/christianpflugradt/please-behave-governance.git"
 path = "rulesets/private-repositories"
 ref = "<FULL_REVIEWED_COMMIT_SHA>"
-
-[imports.rule_parameters.private-ci-workflow]
-max_job_minutes = "5"
 ```

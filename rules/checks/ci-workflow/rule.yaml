@@ -16,13 +16,13 @@ conditions:
     rationale: Every change that reaches or wants to reach main is verified. Further triggers are allowed.
   - statement: Top-level permissions are exactly contents read.
     rationale: Checking needs no write access.
-  - statement: A job check with a timeout contains, in this order, checkout without persisted credentials, mise setup, the setup task and the Please Behave action at the check execution point.
-    rationale: This is the shared sequence in which tools are installed, dependencies fetched and the checks run.
-  - statement: Every job sets a timeout.
+  - statement: A job check calls the shared workflow ci-check.yml pinned to a full commit SHA, hands over exactly GEMINI_API_KEY and defines no steps of its own; the shared workflow runs the reviews and limits the job to 30 minutes. An input runner, if set, names a versioned runner.
+    rationale: The sequence in which tools are installed, dependencies fetched and the checks run exists once, and it cannot drift between repositories.
+  - statement: Every job that is not a call of a shared workflow sets a timeout.
     rationale: A hanging job must not consume minutes unnoticed.
 success_criteria:
   - A missing or deviating structure fails and the message names the violated part.
-  - Runners, matrices, timeout values, additional jobs and steps, secrets and artifact names are free and never cause a FAIL.
+  - Further triggers, the runner version, additional jobs and their steps are free and never cause a FAIL.
   - A missing tool or invalid YAML is an ERROR.
 out_of_scope:
   - description: Whether CI actually ran or passed.
@@ -33,6 +33,7 @@ out_of_scope:
   - description: All other workflows.
 limitations:
   - Only the structure is verified, so a CI that runs but does nothing useful still passes.
+  - A repository that needs preparation before the checks, such as a display server, cannot express it in the shared job and handles it in its mise tasks.
 placement: >-
   The structure is the same for all open-source repositories and needs no project
   knowledge. Runners and additional steps remain local.
