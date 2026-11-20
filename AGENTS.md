@@ -67,14 +67,4 @@
 
 ## Changes and compatibility
 
-- Keep solutions small, dependencies lean and all source/output in English.
-- Before moving public import paths, verify affected consumers use reviewed full
-  commit pins. Old commits preserve their old layouts. Migrate consumers only
-  when explicitly requested; do not add duplicate compatibility bundles.
-- Tests use mocked network responses and synthetic credentials. Never call
-  paid/live providers or network APIs from tests; provider tests never reach a
-  real model and use mocks where needed. Test affected behavior only where a Rule
-  or provider has its own tests; configured Git hooks remain authoritative gates.
-  Missing tools or skipped tests are validation limitations.
-- Work on `main`; commit and push each coherent authorized change. Preserve
-  unrelated edits, avoid history rewrites, and stop after a successful push.
+- Before moving public import paths, verify affected consumers use reviewed full commit pins. Old commits preserve their old layouts. Migrate consumers only when explicitly requested; do not add duplicate compatibility bundles.
