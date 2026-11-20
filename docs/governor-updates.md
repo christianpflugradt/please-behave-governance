@@ -68,7 +68,8 @@ CI and auto-merge policy.
 After successful push CI on `main`, the `Update import tracking` workflow advances
 these branches to the tested source commit only when package content differs.
 A ruleset includes its directory and the complete directories of its referenced
-Rules; a provider includes its complete directory. Git blob identities, paths and
+Rules; a provider includes its complete directory. The reusable workflows of one
+family (`release-*.yml`, `statistics-*.yml`) form the package `workflows/<family>`. Git blob identities, paths and
 file modes are compared, so additions, removals and executable changes count.
 Changes to `.please/`, documentation outside packages, tooling or unrelated
 packages do not advance a package branch. A pin-only merge therefore causes no

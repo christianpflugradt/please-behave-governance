@@ -39,3 +39,4 @@ placement: >-
   in a generally reusable set.
 references:
   - docs/open-source-software.md
+  - why/workflows/statistics-publish.yaml
