@@ -1,0 +1,8 @@
+id = "release-workflow"
+name = "Release workflow"
+description = "The Release workflow calls the shared release workflows and actions in the shared standard structure"
+enabled = true
+
+[check]
+command = "python3 @rule/check.py @context"
+timeout_seconds = 60

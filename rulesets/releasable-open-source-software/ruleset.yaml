@@ -5,10 +5,13 @@ audience: >-
 commonality: >-
   Release policy, version calculation and publication are carried out by the shared release
   action and workflow, so that releases behave the same in every repository. What remains
-  in the repository is the command that starts a release.
+  in the repository is the command that starts a release, the call of the shared workflows
+  and actions in a fixed flow, and what the candidate builds and verifies.
 rules:
   - rule: mise-release
     role: Fixes the command that starts a release.
+  - rule: release-workflow
+    role: Fixes the flow of the release workflow and its calls of the shared workflows and actions.
 admission:
   - The rule concerns publishing releases and applies only to repositories that publish them.
   - It standardizes where there is no legitimate interest in deviating per repository.
@@ -17,7 +20,7 @@ admission:
 excluded:
   - description: Repositories without releases.
     rationale: The rules would demand a release machinery they do not use.
-  - description: Release policy, workflow structure and what is built, tested and verified in a release.
+  - description: Release policy and what is built, tested and verified in a release.
     rationale: The shared release action and workflow own the policy; build and verification stay local.
 complements:
   - ruleset: open-source-software

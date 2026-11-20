@@ -10,7 +10,7 @@ that apply to a repository; each bundle adds to the others.
 | `rulesets/repository-conventions` | Every repository, public or private, software or otherwise | `pre-commit`, `check`; `commit-msg` for commit rules | `AGENTS.md` size limit, EditorConfig baseline, Conventional Commit syntax and advisory header wording, mise governor pin with `format`, `verify` and `setup` tasks, Renovate baseline, workflow syntax with `jactionlint`, portable POSIX `sh` scripts checked with ShellCheck |
 | `rulesets/open-source-software` | Open-source software | `check`, `pre-push` | Approved license, CI and Statistics workflow structure, GitHub metadata |
 | `rulesets/private-repositories` | Private repositories on the free Actions minutes, instead of open-source software | `check`, `pre-push` | Pull-request-only CI with bounded jobs, Renovate rebase policy, private visibility |
-| `rulesets/releasable-open-source-software` | Releasable open-source software | `check`, `pre-push` | `release` task |
+| `rulesets/releasable-open-source-software` | Releasable open-source software | `check`, `pre-push` | `release` task, release workflow structure |
 | `rulesets/security` | Repositories adopting the security policy | `check`, `pre-push` | Sensitive filenames, secret scanning, pinned workflow actions and Dependency Audit workflow structure |
 
 Repository conventions stay lightweight and work through Git hooks alone; `check` adds the same checks to CI.

@@ -1,7 +1,7 @@
 # Releasable open-source software
 
 Import `rulesets/releasable-open-source-software` in addition to the other bundles.
-It runs the blocking `mise-release` Check at `pre-push` (`HEAD`) and `check` (working tree).
+It runs the blocking `mise-release` and `release-workflow` Checks at `pre-push` (`HEAD`) and `check` (working tree).
 The bundle takes no parameters. Example for the consumer's `.please/config.toml`:
 
 ```toml
@@ -19,7 +19,17 @@ Either define it locally, or include the shared task group `mise-tasks/release` 
 full commit SHA; see [Shared mise tasks](mise-tasks.md). The task starts the release workflow on
 the remote `main`, never on local state.
 
-## Release policy and workflow
+## Release workflow
+
+The blocking `release-workflow` Check requires `.github/workflows/release.yml` in the standard flow:
+the jobs `plan` and `release-readiness`, which call the shared workflows `release-plan.yml` and
+`release-readiness.yml` pinned to a full commit SHA, then `release-candidate` and `publish`. Readiness and
+candidate need only `plan` and run in parallel; the candidate runs the shared `governance` action and records the
+candidate with `evidence`; `publish` needs all three, verifies the evidence and publishes once with `publish-release`
+(files) or `publish-image` (images). The check also requires `.github/release-artifacts.json` and rejects an own
+Semantic Release configuration. It judges structure only; what the candidate builds and verifies stays local.
+
+## Release policy
 
 Release policy (commit types and release levels, release notes), version calculation,
 CI and evidence verification and publication are not checked in the consuming repository: the
