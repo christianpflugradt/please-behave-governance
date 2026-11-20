@@ -46,7 +46,9 @@ placement: >-
   This is the repository's own audit and follows the same shape that consumers use, so that the catalog
   keeps its own standard.
 revisit_when:
-  - The audit would become a reusable workflow shared by all repositories. That is a separate step.
+  - >-
+    The audit is examined for centralization as a reusable workflow. It is a standard workflow, but it has
+    more per-repository parts, such as installed tools and scanned ecosystems, than the others.
 permissions:
   contents: Read only, because the audit scans and does not change the repository.
 callers: The schedule and a manual dispatch start it; there are no inputs.

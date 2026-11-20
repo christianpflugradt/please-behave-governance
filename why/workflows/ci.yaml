@@ -47,6 +47,9 @@ placement: >-
   This is the repository's own CI. Consumers of the catalog have their own, checked against the shared
   structure by the CI workflow rule, and this one follows the same shape.
 revisit_when:
+  - >-
+    The CI workflow is examined for centralization like the release workflow, since it is a standard workflow
+    of the catalog's repositories.
   - The check point needs a second job, for example a matrix.
   - A tool or secret is needed that the job does not provide.
 permissions:

@@ -4,8 +4,11 @@ purpose: >-
 problem: >-
   Consumers pin imports to full commit SHAs. If their update tool followed the main branch, every commit would
   move every pin, even for parts that did not change, and a commit that CI has not tested could be rolled out.
+  Worse, a repository that pins its own parts would then offer an update for every update it applies, because
+  each applied update is itself a new commit, and the updates would never end.
 value: >-
-  A consumer receives one update per changed part, and only for a commit with a successful CI run.
+  A consumer receives one update request, and only when the files of a pinned part changed in content, and
+  only for a commit with a successful CI run. Updates do not trigger further updates.
 principles:
   - principle: stability
     how: A pin moves only when the part it points to changed.
@@ -19,6 +22,15 @@ flow:
   - job: publish
     why: A single job that follows a finished CI run.
 decisions:
+  - decision: Tracking branches exist so that the update tool can propagate updates properly.
+    why: >-
+      The update tool follows a branch and not a commit range. A branch that moves only when a part changed
+      turns "a commit exists" into "this part changed", which is what a consumer wants to be told.
+    rejected: Letting the update tool follow the main branch. Every commit would be an update for every pin, including the updates of the pins themselves.
+  - decision: A branch moves only when files of its part changed.
+    why: >-
+      Applying an update creates a commit, and that commit must not count as a change of the part, or each
+      update would offer the next one without end.
   - decision: It runs after a successful CI run on a push to the main branch of this repository.
     why: >-
       A tracking branch must point to a commit that CI has tested, and a run from a fork or a pull request
@@ -41,6 +53,9 @@ placement: >-
   The branches belong to the repository that publishes the importable parts, and only it knows which commits
   CI has tested and which part changed.
 revisit_when:
+  - >-
+    The implementation is reviewed for safety against endless updates and for simplicity. It is known to
+    work, but its details were not designed against these goals and may be solvable more simply.
   - A new kind of importable part is added.
   - The update tool offers a way to order digests.
 permissions:
