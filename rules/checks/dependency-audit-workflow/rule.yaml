@@ -16,6 +16,8 @@ conditions:
     rationale: A recurring audit finds vulnerabilities that appear without any code change, and an audit that blocks ordinary changes would be disabled.
   - statement: The schedule is daily or weekly at a fixed minute off the hour and an early UTC hour.
     rationale: Off-peak times avoid GitHub's busiest slot, and an early hour has the result ready at the start of the day, before anyone is up.
+  - statement: Every audit job calls at least one audit action of actions/dependency-audit and ends with its report action, all pinned to one full commit SHA, and the report runs with !cancelled() and takes fail-on from AUDIT_FAIL_ON.
+    rationale: The report is what judges the scans, so a job without it audits nothing, and a report that does not run after a failed scan would hide it.
   - statement: AUDIT_FAIL_ON names a severity from which the audit fails.
     rationale: Each repository must decide its threshold deliberately; the rule only requires that the decision exists.
   - statement: Permissions are read-only, checkout does not persist credentials and jobs have a timeout.
@@ -34,7 +36,7 @@ out_of_scope:
   - description: Secrets in the repository.
     owner: secret-scan
 limitations:
-  - Only the structure of the workflow is verified, so a workflow that is present but does not audit anything passes.
+  - Only the structure of the workflow is verified, so a workflow that forgets to audit an ecosystem it contains passes.
   - The manifest list names candidate files only and may miss an ecosystem it does not list.
 placement: >-
   The need to decide how dependencies are audited is common to repositories, while

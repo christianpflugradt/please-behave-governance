@@ -1,0 +1,27 @@
+purpose: >-
+  Audit the npm lockfile of one directory and record the result for the dependency audit report.
+problem: >-
+  The output of npm audit is not the shared report, and a repository that parsed it itself would also decide
+  alone what an empty or broken output means.
+value: >-
+  An npm audit has the same recorded shape as every other audit, and a broken run is never read as clean.
+principles:
+  - principle: predictability
+    how: Findings never fail the step, a tool that fails or answers with an error document is recorded as a failed scan, and nothing is judged here.
+  - principle: consistency
+    how: The severities and advisory identifiers are the same as in the other audits.
+decisions:
+  - decision: One call audits one directory, and a repository with several calls the action several times.
+    why: Each target is a recorded scan of its own, so the report names where a finding is.
+  - decision: Entries that only propagate through other dependencies add no finding.
+    why: The advisory is reported once for the package it belongs to, and the dependants are named in it.
+  - decision: Advisories are identified by their GHSA id, with the npm source id as a fallback.
+    why: A GHSA id is the same across ecosystems, and an advisory without one still needs a stable id.
+limitations:
+  - It audits what npm audit knows, which is the lockfile and not the code.
+placement: >-
+  The reading of the npm audit output is the same for every repository and is easy to get subtly wrong.
+inputs:
+  directory: The directory with the lockfile, because a repository can have several.
+requirements:
+  npm: The tool is not installed by the action, because the repository decides which tools its job installs.

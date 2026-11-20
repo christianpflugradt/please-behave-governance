@@ -1,0 +1,25 @@
+purpose: >-
+  Audit the Cargo lockfile of one directory and record the result for the dependency audit report.
+problem: >-
+  cargo audit reports a severity only as a CVSS vector, and mixes vulnerabilities with warnings, so every
+  repository would have to decide alone what counts and how severe it is.
+value: >-
+  A Cargo audit has the same recorded shape as every other audit, with a severity that can be compared.
+principles:
+  - principle: predictability
+    how: Findings never fail the step, and a tool that fails or answers with something unreadable is recorded as a failed scan.
+  - principle: consistency
+    how: The severity is derived from the CVSS v3 vector with the standard formula, so it means the same as elsewhere.
+decisions:
+  - decision: Warnings such as unmaintained crates are not findings.
+    why: They are no vulnerabilities, and a threshold on severity cannot judge them.
+  - decision: An advisory without a complete CVSS v3 vector has the severity unknown.
+    why: Guessing a severity would hide the finding below a threshold, and unknown always fails.
+limitations:
+  - A CVSS v4 vector is not read, so such an advisory is unknown.
+placement: >-
+  The reading of the cargo audit output and the severity derivation are the same for every repository.
+inputs:
+  directory: The directory with the lockfile, because a repository can have several.
+requirements:
+  cargo-audit: The tool is not installed by the action, because the repository decides which tools its job installs.

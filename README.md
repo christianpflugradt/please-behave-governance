@@ -109,7 +109,7 @@ See complete import examples, parameters, evidence boundaries and limitations:
 - [Shared mise tasks](docs/mise-tasks.md)
 - [Shared mise tools](docs/mise-tools.md)
 - [Shared release actions](actions/release/README.md)
-- [Shared dependency audit action](actions/dependency-audit/README.md)
+- [Shared dependency audit actions](actions/dependency-audit/README.md)
 
 ## Validation
 

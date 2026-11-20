@@ -1,0 +1,15 @@
+name: Dependency audit for Python
+description: Audit the locked versions of the uv.lock of one directory with pip-audit and record the result for the dependency audit report
+inputs:
+  directory:
+    description: Directory with a pyproject.toml and a uv.lock
+    default: .
+runs:
+  using: composite
+  steps:
+    - name: Audit the Python dependencies
+      shell: bash
+      run: python3 -B "$ACTION_ROOT/../lib/python_audit.py" --directory "$DIRECTORY"
+      env:
+        ACTION_ROOT: ${{ github.action_path }}
+        DIRECTORY: ${{ inputs.directory }}

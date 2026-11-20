@@ -1,0 +1,33 @@
+purpose: >-
+  Audit the locked versions of a Python project and record the result for the dependency audit report.
+problem: >-
+  A requirements file or a pyproject.toml without a lock lists ranges, so an audit of it checks what would be
+  resolved today and not what the project runs and tests with.
+value: >-
+  The audit covers exactly the versions that are used, and a Python project is audited the same way in every
+  repository.
+principles:
+  - principle: predictability
+    how: Only a locked project can be audited, so the result is about the versions in the repository and does not change with the day.
+  - principle: consistency
+    how: One layout, pyproject.toml with uv.lock, is the Python standard, so there is one way to audit it.
+  - principle: frugality
+    how: The audit resolves and installs nothing; it reads pinned versions.
+decisions:
+  - decision: The lock is exported as pinned requirements and audited without resolving.
+    why: Resolving would audit a different set than the lock names, and it needs an environment that the audit does not have.
+  - decision: A project without a uv.lock is a failed scan and not a fallback to its ranges.
+    why: A fallback would make an audit that looks clean while it audits something else, and the repository is meant to lock.
+    rejected: Inputs for requirements files and for pyproject.toml.
+  - decision: Every finding has the severity unknown.
+    why: pip-audit reports no severity, so a threshold cannot be applied, and unknown always fails.
+limitations:
+  - Without severities, every vulnerability fails the audit until it is fixed or the dependency leaves.
+placement: >-
+  The way a Python project is audited has to be the same everywhere, and the standard of locking with uv is a
+  decision of the catalog.
+inputs:
+  directory: The directory with the pyproject.toml and the uv.lock, because a repository can have several.
+requirements:
+  uv: Exports the lock; the repository installs it.
+  pip-audit: Audits the exported versions; the repository installs it.

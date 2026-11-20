@@ -12,6 +12,8 @@ mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 
 SHA = "0123456789abcdef0123456789abcdef01234567"
+OTHER = "76543210fedcba9876543210fedcba9876543210"
+AUDIT = "christianpflugradt/please-behave-governance/actions/dependency-audit"
 WORKFLOW = {
     "name": "Dependency Audit",
     "on": {"schedule": [{"cron": "17 3 * * *"}], "workflow_dispatch": None},
@@ -21,7 +23,11 @@ WORKFLOW = {
         "audit": {
             "runs-on": "ubuntu-24.04",
             "timeout-minutes": 30,
-            "steps": [{"uses": f"actions/checkout@{SHA}", "with": {"persist-credentials": False}}],
+            "steps": [
+                {"uses": f"actions/checkout@{SHA}", "with": {"persist-credentials": False}},
+                {"uses": f"{AUDIT}/npm@{SHA} # updates/actions/dependency-audit", "with": {"directory": "."}},
+                {"uses": f"{AUDIT}/report@{SHA}", "if": "${{ !cancelled() }}", "with": {"fail-on": "${{ env.AUDIT_FAIL_ON }}"}},
+            ],
         }
     },
 }
@@ -76,6 +82,29 @@ class DependencyAuditWorkflowTests(unittest.TestCase):
         self.assertTrue(changed(lambda d: d["jobs"]["audit"].update(permissions={"issues": "write"})))
         self.assertTrue(changed(lambda d: d["jobs"]["audit"]["steps"][0].pop("with")))
         self.assertTrue(changed(lambda d: d.update(permissions={"contents": "write"})))
+
+    def test_the_report_ends_the_job_and_follows_the_threshold(self):
+        steps = lambda d: d["jobs"]["audit"]["steps"]  # noqa: E731
+        self.assertTrue(changed(lambda d: steps(d).pop()))
+        self.assertTrue(changed(lambda d: steps(d).append(steps(d)[1])))
+        self.assertTrue(changed(lambda d: steps(d)[2].pop("if")))
+        self.assertTrue(changed(lambda d: steps(d)[2].update({"if": "success()"})))
+        self.assertTrue(changed(lambda d: steps(d)[2]["with"].update({"fail-on": "high"})))
+        self.assertTrue(changed(lambda d: steps(d)[2].update(uses=f"{AUDIT}/report@{SHA}", **{"with": {}})))
+
+    def test_at_least_one_audit_action_is_called(self):
+        self.assertTrue(changed(lambda d: d["jobs"]["audit"]["steps"].pop(1)))
+
+    def test_several_audits_are_fine_when_they_share_one_commit(self):
+        def add(document):
+            document["jobs"]["audit"]["steps"].insert(2, {"uses": f"{AUDIT}/cargo@{SHA}", "with": {"directory": "backend"}})
+
+        self.assertEqual(changed(add), [])
+        self.assertTrue(changed(lambda d: (add(d), d["jobs"]["audit"]["steps"][2].update(uses=f"{AUDIT}/cargo@{OTHER}"))))
+
+    def test_audit_actions_must_be_pinned_to_a_full_commit(self):
+        self.assertTrue(changed(lambda d: d["jobs"]["audit"]["steps"][1].update(uses=f"{AUDIT}/npm@main")))
+        self.assertTrue(changed(lambda d: d["jobs"]["audit"]["steps"][2].update(uses=f"{AUDIT}/report@v1")))
 
     def test_name_and_timeout_fail(self):
         self.assertTrue(changed(lambda d: d.update(name="Audit")))

@@ -161,8 +161,44 @@ THRESHOLD = "AUDIT_FAIL_ON"
 LATEST_HOUR = 4  # 04:xx UTC is before 07:00 in Europe/Berlin in both summer and winter time.
 
 
+GOVERNANCE_ACTION = re.compile(r"christianpflugradt/please-behave-governance/actions/dependency-audit/([a-z0-9-]+)@([0-9a-f]{40})( #.*)?")
+
+
 def is_audit(job_id):
     return job_id == "audit" or job_id.startswith("audit-")
+
+
+def audit_action(step):
+    """The name and the commit of the shared audit action a step calls, or None for any other step."""
+    match = GOVERNANCE_ACTION.fullmatch(str(step.get("uses", "")))
+    return (match.group(1), match.group(2)) if match else None
+
+
+def audit_steps_violations(job_id, job):
+    """The audit job calls at least one audit action and ends with the report, all pinned to one commit of the governance repository."""
+    listed = steps(job)
+    calls = [audit_action(step) for step in listed]
+    if any(
+        str(step.get("uses", "")).startswith("christianpflugradt/please-behave-governance/actions/dependency-audit") and call is None
+        for step, call in zip(listed, calls)
+    ):
+        return [f"job {job_id} must pin every dependency audit action to a full commit SHA"]
+    found = []
+    if len({call[1] for call in calls if call}) > 1:
+        found.append(f"job {job_id} must call all dependency audit actions at the same commit")
+    if not any(call and call[0] != "report" for call in calls):
+        found.append(f"job {job_id} must call at least one audit action of actions/dependency-audit before the report")
+    if not listed or not calls[-1] or calls[-1][0] != "report":
+        found.append(f"job {job_id} must end with the report action of actions/dependency-audit")
+    else:
+        report = listed[-1]
+        if "!cancelled()" not in str(report.get("if", "")).replace(" ", ""):
+            found.append(f"job {job_id} must run the report with if: ${{{{ !cancelled() }}}}, so that it judges failed scans too")
+        if with_value(report, "fail-on") != f"${{{{ env.{THRESHOLD} }}}}":
+            found.append(f"the report of job {job_id} must take fail-on from ${{{{ env.{THRESHOLD} }}}}")
+    if sum(1 for call in calls if call and call[0] == "report") > 1:
+        found.append(f"job {job_id} must call the report action once")
+    return found
 
 
 def grants_write(job):
@@ -207,6 +243,8 @@ def violations(document):
     for job_id, job in listed.items():
         if grants_write(job):
             found.append(f"job {job_id} must not grant write permissions")
+        if is_audit(job_id):
+            found += audit_steps_violations(job_id, job)
         for step in steps(job):
             if uses(step, "actions/checkout") and flag(with_value(step, "persist-credentials")) != "false":
                 found.append(f"job {job_id} must check out with persist-credentials: false")

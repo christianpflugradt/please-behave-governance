@@ -22,7 +22,10 @@ The `rulesets/security` set runs four blocking checks at `check` and `pre-push`:
     - A top-level `env` entry `AUDIT_FAIL_ON` with one of the literals `low`, `medium`, `high` or `critical` states the
       severity from which the audit fails. The rule checks that it is declared and valid; how the audit applies it is up
       to the workflow. Projects start with `medium` and raise it individually.
-    - At least one job `audit` or `audit-<name>`. Top-level `permissions` are exactly `contents: read` and no job grants
+    - At least one job `audit` or `audit-<name>`, which calls at least one audit action of `actions/dependency-audit`
+      (`npm`, `cargo`, `python`, `owasp`) and ends with its `report` action. All calls are pinned to the same full commit
+      SHA, `report` runs with `if: ${{ !cancelled() }}` and takes `fail-on: ${{ env.AUDIT_FAIL_ON }}`. Python projects are
+      audited from their `uv.lock`. Top-level `permissions` are exactly `contents: read` and no job grants
       a write permission. Every `actions/checkout` sets `persist-credentials: false`, and every job sets `timeout-minutes`.
   - `none` declares that the repository has no dependencies. The rule then fails when any tracked or nonignored file in
     any directory has a name from the candidate list in `rules/checks/dependency-audit-workflow/manifests.txt` (for example

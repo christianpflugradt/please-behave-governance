@@ -1,0 +1,15 @@
+name: Dependency audit for OWASP Dependency-Check
+description: Read the JSON report of an earlier Dependency-Check run and record the result for the dependency audit report
+inputs:
+  report:
+    description: OWASP Dependency-Check JSON report that an earlier step produced
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Read the Dependency-Check report
+      shell: bash
+      run: python3 -B "$ACTION_ROOT/../lib/owasp_audit.py" --report "$REPORT"
+      env:
+        ACTION_ROOT: ${{ github.action_path }}
+        REPORT: ${{ inputs.report }}

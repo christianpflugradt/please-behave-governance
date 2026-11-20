@@ -11,7 +11,7 @@ principles:
   - principle: predictability
     how: The audit runs daily at a fixed early time, so that a result is ready at the start of the day.
   - principle: consistency
-    how: The scan, the report and the summary come from one shared action, and the workflow shape is checked by a rule.
+    how: The scans, the report and the summary come from the shared actions, and the workflow shape is checked by a rule.
   - principle: frugality
     how: It installs only the tools it needs, has read-only permissions and runs on a schedule and on demand only.
   - principle: stability
@@ -30,25 +30,28 @@ decisions:
       slot of GitHub's scheduler.
   - decision: The severity from which the run fails is stated in the workflow.
     why: Each repository decides deliberately which findings it accepts, so the threshold is visible and reviewed.
-  - decision: Only the tools of the audited ecosystems are installed.
-    why: A job that installs only what it names has no hidden tools.
-  - decision: The scan, the report and the upload are the shared dependency-audit action.
-    why: One report format and one summary make audits comparable between repositories.
+  - decision: Only the tools of the audited ecosystems are installed, and the workflow names them.
+    why: A job that installs only what it names has no hidden tools, and the shared actions install none.
+  - decision: The workflow calls one audit action per target and ends with the report action, which always runs.
+    why: The scans stay a choice of the repository, one report format and one summary make audits comparable, and the report judges failed scans too.
+    rejected: A shared reusable workflow, which could not take a different number of audit actions and would need a switch for each ecosystem.
+  - decision: All shared actions of the workflow are pinned to the same commit.
+    why: The actions share one report format, and different commits could disagree about it.
 out_of_scope:
   - description: Deciding which vulnerabilities matter beyond the threshold.
     owner: the repository
   - description: The structure check of the workflow.
     owner: dependency-audit-workflow rule
 limitations:
-  - The audit knows only the ecosystems the shared action supports.
+  - A scan that the workflow forgets to call is not noticed, because the rule checks the structure and not what the repository contains.
   - The result depends on the freshness of the vulnerability databases at the time of the run.
 placement: >-
   This is the repository's own audit and follows the same shape that consumers use, so that the catalog
   keeps its own standard.
 revisit_when:
   - >-
-    The audit is examined for centralization as a reusable workflow. It is a standard workflow, but it has
-    more per-repository parts, such as installed tools and scanned ecosystems, than the others.
+    Several repositories repeat the same scanner step that no audit action covers. It then becomes an action
+    of its own.
 permissions:
   contents: Read only, because the audit scans and does not change the repository.
 callers: The schedule and a manual dispatch start it; there are no inputs.

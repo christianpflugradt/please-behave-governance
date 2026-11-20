@@ -1,0 +1,24 @@
+purpose: >-
+  Read the report of an OWASP Dependency-Check run and record the result for the dependency audit report.
+problem: >-
+  Some ecosystems have a scanner of their own with a heavy preparation, such as a vulnerability database, and its
+  report is not the shared one.
+value: >-
+  A Dependency-Check run is judged with the same report, summary and threshold as every other audit.
+principles:
+  - principle: predictability
+    how: A missing or unreadable report is a failed scan and never an empty result.
+  - principle: consistency
+    how: The severity falls back from the finding to its CVSS v3 rating, and anything else is unknown, which always fails.
+decisions:
+  - decision: The action reads a report and does not run the scanner.
+    why: The preparation of the database, its cache and its keys differ by build tool and repository, so they stay where the build is.
+  - decision: Suppressed vulnerabilities are not findings.
+    why: A suppression is the repository's reviewed decision, and Dependency-Check already leaves them out of the list.
+out_of_scope:
+  - description: Running Dependency-Check and maintaining its database.
+    owner: the repository's workflow
+placement: >-
+  The reading of the Dependency-Check report is the same for every repository that uses the scanner.
+inputs:
+  report: The path of the JSON report, because the build decides where it writes it.
