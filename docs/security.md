@@ -98,5 +98,6 @@ These checks are complementary: a secret-free `.env` still violates the filename
 policy, while a secret in an ordinary source file can fail the content scan.
 Allowed template filenames remain subject to secret scanning. Filename matching
 and Gitleaks detection cannot establish that every secret has been found.
-Imported rules execute with the consumer's permissions; trust their source and
-pin their revision.
+Imported rules execute with the consumer's permissions; trust their source with
+`please trust` and pin their revision. See
+[governor updates](governor-updates.md#ruleset-pins) for the trust of this repository.

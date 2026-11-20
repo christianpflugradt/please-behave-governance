@@ -56,6 +56,8 @@ jobs:
         uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
       - name: Fetch locked dependencies
         run: mise run setup
+      - name: Trust the shared governance repository
+        run: please trust https://github.com/christianpflugradt/please-behave-governance.git
       - name: Run Please Behave checks
         uses: please-behave/action@98c72fdf0ff5c1a9ec5b815c07b1a38745e50bc3 # v1.5.2
         with:

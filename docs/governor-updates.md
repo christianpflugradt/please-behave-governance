@@ -47,6 +47,15 @@ needs a newer governor fails the PR instead of merging. Such a PR stays open and
 rebased once the governor update has merged. `git` and `ref` may appear in either
 order within an entry.
 
+Importing from a Git repository requires the user's trust in it (`please trust`), which
+the governor stores per user and never in a project. The reusable CI workflows
+`ci-check.yml` and `ci-check-private.yml` run `please trust` for this repository before
+`please sync`, so CI trusts only this repository and a change that imports from another
+one fails there until a person reviews it. On a developer machine, run
+`please trust https://github.com/christianpflugradt/please-behave-governance.git` once
+after updating to a governor that has the command. Trust the governor update first: a
+workflow revision with the trust step fails on a governor that predates `please trust`.
+
 When changing a `ref` by hand, run `please sync --yes` before committing; until the new
 revision is validated, hooks reject it with "external import has no validated revision".
 
