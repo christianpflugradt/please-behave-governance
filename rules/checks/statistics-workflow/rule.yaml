@@ -17,13 +17,13 @@ conditions:
     rationale: Calculating statistics needs no write access to the repository.
   - statement: At least one job collect or collect-<name> calculates the statistics.
     rationale: Calculating is separated from sending.
-  - statement: A job publish waits for every collect job, runs only on refs/heads/main and is the only job that uses secrets.STATISTICS_TOKEN.
-    rationale: Sending happens in one place and only from the state that counts.
+  - statement: A job publish waits for every collect job, runs only on refs/heads/main, passes its project name and hands over exactly secrets.STATISTICS_TOKEN to the shared workflow statistics-publish.yml pinned to a full commit SHA, and is the only job that uses the secret.
+    rationale: Sending happens in one shared place and only from the state that counts, and the payload and the receiver cannot drift between repositories.
   - statement: Every checkout sets persist-credentials to false, and every job sets a timeout.
     rationale: Later steps do not need the checkout credentials, and a hanging job must not consume minutes unnoticed.
 success_criteria:
   - A deviating structure fails and the message names the violated part.
-  - What the jobs calculate, the scripts they call, runners and the receiving repository are free and never cause a FAIL.
+  - What the collect jobs calculate, the scripts they call and their runners are free and never cause a FAIL.
   - A missing tool or invalid YAML is an ERROR.
 out_of_scope:
   - description: What is calculated and how it is displayed.

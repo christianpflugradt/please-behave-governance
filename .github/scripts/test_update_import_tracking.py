@@ -108,6 +108,11 @@ class TrackingTests(unittest.TestCase):
         added = self.commit()
         self.assertEqual(self.updates(), [f"{added}:refs/heads/updates/workflows/release"])
 
+    def test_statistics_workflows_form_their_own_package(self):
+        self.write(".github/workflows/statistics-publish.yml", "name: publish\n")
+        added = self.commit()
+        self.assertEqual(self.updates(), [f"{added}:refs/heads/updates/workflows/statistics"])
+
     def test_resource_addition_deletion_and_mode_change_count(self):
         for operation in ("add", "delete", "mode"):
             with self.subTest(operation=operation):

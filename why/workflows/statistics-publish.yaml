@@ -1,0 +1,76 @@
+purpose: >-
+  Send the statistics that a repository calculated on main to the central repository in one uniform
+  form, so that whatever displays them can rely on a single source.
+problem: >-
+  If every repository builds the payload and the dispatch itself, the format, the receiving repository
+  and the handling of the token drift apart, and a change in the receiver has to be repeated in every
+  repository. A copy that is wrong for one repository silently shows wrong or no statistics.
+value: >-
+  The payload and the destination exist once, and a repository only names itself and hands over the
+  metrics it collected.
+principles:
+  - principle: consistency
+    how: Every repository sends the same payload to the same receiver, and only the project name differs.
+  - principle: stability
+    how: A change in the receiving repository is made once here and not in every repository.
+  - principle: frugality
+    how: The job needs read access to the repository only and installs nothing.
+  - principle: safety
+    how: Only this job sees the token, and it runs only on main.
+flow:
+  - job: publish
+    why: >-
+      A single job that waits, in the caller, for every collect job. Sending after calculating means a
+      failed calculation sends nothing and a half-collected state is never shown.
+decisions:
+  - decision: Only publishing is shared; collecting the statistics stays in each repository.
+    why: >-
+      What is collected depends on the stack, such as the coverage format, the test runner and the runner
+      image. The metric files are the contract between the two halves, so the shared half needs nothing
+      else.
+    rejected: >-
+      A shared collect job. It would need an input for every stack difference and would become a
+      configuration language of its own.
+  - decision: It is a reusable workflow and not an action.
+    why: >-
+      The job is identical for every repository, including its runner, timeout and permissions, so one call
+      replaces the whole job.
+    rejected: >-
+      A composite action. Every repository would still repeat the job around it.
+  - decision: The token is passed as an explicit secret and not inherited.
+    why: >-
+      Repositories keep their own token because not every one belongs to an organization, and an explicit
+      secret shows in the caller which token leaves the repository.
+    rejected: An organization secret, which not every repository can use.
+  - decision: The job runs only on the main branch.
+    why: Only the state of main is shown, and the called workflow must not send anything from another ref.
+  - decision: The metric artifacts are selected by a name pattern that defaults to the standard.
+    why: >-
+      Repositories with several collect jobs upload one artifact per job, and the pattern merges them into
+      one payload without the caller listing them.
+out_of_scope:
+  - description: Calculating the metrics and uploading them as artifacts.
+    owner: the collect jobs of the repository
+  - description: Displaying the statistics.
+    owner: badges-and-stuff
+limitations:
+  - It does not check the content of the metric files, so a repository can send wrong values.
+  - A missing or revoked token fails only when the workflow runs.
+placement: >-
+  Every repository that sends statistics needs exactly this job, so a divergent copy would be a gap in
+  only one place and is shared. The collecting half differs per repository and stays local.
+revisit_when:
+  - A repository needs a receiver other than badges-and-stuff.
+  - A requirement would need another input; it is first weighed, and unless it is a real edge case it is solved here once.
+inputs:
+  project: Names the project under which the receiver files the statistics.
+  metrics-pattern: >-
+    Selects the metric artifacts. The default is the standard suffix, and a repository with other names
+    adapts it.
+permissions:
+  contents: Read, which is all the job needs; the artifacts of the run need no extra permission.
+callers: >-
+  A calling repository calls it from a job named publish that needs every collect job and runs only on main,
+  passes its project name and hands over STATISTICS_TOKEN explicitly.
+references:
+  - docs/open-source-software.md

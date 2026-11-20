@@ -58,10 +58,12 @@ ERROR (2).
   - `name: Statistics`, triggered only by `push` to `main`, never by `workflow_dispatch`, `pull_request` or any other event.
   - Top-level `permissions` are exactly `contents: read`, and no job grants a write permission.
   - At least one job `collect` or `collect-<name>` calculates the statistics. A job `publish` needs every such job, runs only on
-    `refs/heads/main` and is the only job that uses `secrets.STATISTICS_TOKEN`.
+    `refs/heads/main` and calls the shared workflow `statistics-publish.yml`, pinned to a full commit SHA, with the input
+    `project` and exactly `STATISTICS_TOKEN: ${{ secrets.STATISTICS_TOKEN }}`. It defines no steps of its own and is the only
+    job that uses the secret. The repository keeps its own token; the shared workflow sends the payload to `badges-and-stuff`.
   - Every `actions/checkout` sets `persist-credentials: false`, and every job sets `timeout-minutes`.
 
-  What the jobs calculate, the scripts they call, runners and the receiving repository are the repository's own. The rule
+  What the collect jobs calculate, the scripts they call and runners are the repository's own. The rule
   checks structure only. It needs `yq` (v4) on `PATH` and Python 3.9+, and a missing tool or invalid YAML returns ERROR.
 
 Requirements: Git, and Python 3.9+ for `github-metadata`, `ci-workflow` and `statistics-workflow`, plus the tools named above.

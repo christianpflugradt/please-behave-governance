@@ -155,6 +155,8 @@ def run(argv, name, violations):
 
 
 SECRET = "secrets.STATISTICS_TOKEN"
+GOVERNANCE = "christianpflugradt/please-behave-governance"
+PUBLISH = ".github/workflows/statistics-publish.yml"
 
 
 def is_collect(job_id):
@@ -163,6 +165,24 @@ def is_collect(job_id):
 
 def grants_write(job):
     return "write" in as_dict(job.get("permissions")).values()
+
+
+def governed(job, path):
+    """True when the job calls the shared workflow of the governance repository, pinned to a full commit SHA."""
+    return re.fullmatch(rf"{re.escape(GOVERNANCE)}/{re.escape(path)}@[0-9a-f]{{40}}( #.*)?", str(job.get("uses", ""))) is not None
+
+
+def publish_violations(job):
+    found = []
+    if not governed(job, PUBLISH):
+        found.append(f"job publish must use the shared workflow {PUBLISH} pinned to a full commit SHA")
+    if not str(as_dict(job.get("with")).get("project", "")).strip():
+        found.append("job publish must pass the project name as project")
+    if as_dict(job.get("secrets")) != {"STATISTICS_TOKEN": "${{ secrets.STATISTICS_TOKEN }}"}:
+        found.append(f"job publish must pass exactly STATISTICS_TOKEN as ${{{{ {SECRET} }}}}")
+    if "steps" in job:
+        found.append("job publish must not define its own steps; the shared workflow sends the statistics")
+    return found
 
 
 def violations(document):
@@ -189,8 +209,7 @@ def violations(document):
                 found.append(f"job publish must need {job_id}")
         if "refs/heads/main" not in " ".join(str(publish.get("if", "")).split()):
             found.append("job publish must run only on refs/heads/main")
-        if not any(SECRET in json.dumps(step) for step in steps(publish)):
-            found.append(f"job publish must use {SECRET}")
+        found += publish_violations(publish)
     for job_id, job in listed.items():
         if job_id != "publish" and SECRET in json.dumps(job):
             found.append(f"job {job_id} must not use {SECRET}; only publish may")

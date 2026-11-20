@@ -1,0 +1,47 @@
+name: Statistics publish
+
+on:
+  workflow_call:
+    inputs:
+      project:
+        description: The project identifier under which badges-and-stuff files the statistics
+        type: string
+        required: true
+      metrics-pattern:
+        description: Pattern of the artifact names that hold the metric files of the collect jobs
+        type: string
+        default: '*-metrics'
+    secrets:
+      STATISTICS_TOKEN:
+        description: Token that may dispatch events to the receiving repository
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish statistics
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Download metrics
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          pattern: ${{ inputs.metrics-pattern }}
+          merge-multiple: true
+          path: metrics
+      - name: Send statistics to badges-and-stuff
+        env:
+          GH_TOKEN: ${{ secrets.STATISTICS_TOKEN }}
+          PROJECT: ${{ inputs.project }}
+        run: |
+          set -euo pipefail
+          jq --slurp \
+            --arg project "$PROJECT" \
+            --arg commit "$GITHUB_SHA" \
+            --arg timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{event_type: "statistics", client_payload: {project: $project, commit: $commit, timestamp: $timestamp, metrics: .}}' \
+            metrics/*.json >payload.json
+          gh api --method POST repos/christianpflugradt/badges-and-stuff/dispatches --input payload.json
