@@ -1,4 +1,4 @@
-"""Require ci.yml to call the shared CI workflow; triggers and the runner input stay with consumers."""
+"""Require ci.yml to call the shared CI workflow; triggers and the runner input, also as a matrix, stay with consumers."""
 
 import json
 import re
@@ -119,7 +119,7 @@ def run(argv, name, violations):
     return 1 if found else 0
 
 
-RUNNER = re.compile(r"(?:ubuntu|macos|windows)-\d+(?:\.\d+)*")
+RUNNER = re.compile(r"(?:ubuntu|macos|windows)-\d+(?:\.\d+)*(?:-[a-z0-9]+)?")
 
 
 GOVERNANCE = "christianpflugradt/please-behave-governance"
@@ -132,6 +132,22 @@ def governed(job, path):
     return re.fullmatch(rf"{re.escape(GOVERNANCE)}/{re.escape(path)}@[0-9a-f]{{40}}( #.*)?", str(job.get("uses", ""))) is not None
 
 
+def runner_violations(job):
+    """The input runner names a versioned runner, or a matrix key of the job that lists only versioned runners."""
+    runner = as_dict(job.get("with")).get("runner")
+    if runner is None:
+        return []
+    key = re.fullmatch(r"\$\{\{ matrix\.([A-Za-z_][A-Za-z0-9_-]*) \}\}", str(runner))
+    if key is None:
+        if RUNNER.fullmatch(str(runner)):
+            return []
+        return [f"input runner must name a versioned runner such as ubuntu-26.04, not {runner!r}"]
+    listed = as_list(as_dict(as_dict(job.get("strategy")).get("matrix")).get(key.group(1)))
+    if listed and all(RUNNER.fullmatch(str(entry)) for entry in listed):
+        return []
+    return [f"matrix {key.group(1)} must list versioned runners such as ubuntu-26.04"]
+
+
 def check_violations(job):
     """The caller job only calls the shared workflow, which runs the reviews, and hands over the key of their model API."""
     found = []
@@ -139,9 +155,7 @@ def check_violations(job):
         found.append(f"job check must use the shared workflow {CHECK} pinned to a full commit SHA")
     if "steps" in job:
         found.append("job check must not define its own steps; the shared workflow runs the checks")
-    inputs = as_dict(job.get("with"))
-    if inputs.get("runner") is not None and not RUNNER.fullmatch(str(inputs["runner"])):
-        found.append(f"input runner must name a versioned runner such as ubuntu-26.04, not {inputs['runner']!r}")
+    found += runner_violations(job)
     if as_dict(job.get("secrets")) != GEMINI:
         found.append("job check must pass exactly GEMINI_API_KEY as ${{ secrets.GEMINI_API_KEY }}")
     return found

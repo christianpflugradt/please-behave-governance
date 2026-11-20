@@ -16,7 +16,7 @@ conditions:
     rationale: Every change that reaches or wants to reach main is verified. Further triggers are allowed.
   - statement: Top-level permissions are exactly contents read.
     rationale: Checking needs no write access.
-  - statement: A job check calls the shared workflow ci-check.yml pinned to a full commit SHA, hands over exactly GEMINI_API_KEY and defines no steps of its own; the shared workflow runs the reviews and limits the job to 30 minutes. An input runner, if set, names a versioned runner.
+  - statement: A job check calls the shared workflow ci-check.yml pinned to a full commit SHA, hands over exactly GEMINI_API_KEY and defines no steps of its own; the shared workflow runs the reviews and limits the job to 30 minutes. An input runner, if set, names a versioned runner or a matrix key of the job whose entries are versioned runners.
     rationale: The sequence in which tools are installed, dependencies fetched and the checks run exists once, and it cannot drift between repositories.
   - statement: Every job that is not a call of a shared workflow sets a timeout.
     rationale: A hanging job must not consume minutes unnoticed.

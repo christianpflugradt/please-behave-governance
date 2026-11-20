@@ -48,7 +48,9 @@ ERROR (2).
     The shared workflow checks out, installs the tools with `jdx/mise-action`, runs `mise run setup`, runs Please Behave at
     `check` and uploads the report; a repository that needs preparation, such as environment variables, does it in its mise
     tasks or passes them as the input `env` (`NAME=value` per line). The input `runner` (default `ubuntu-26.04`) may be set,
-    to a versioned runner, and Renovate keeps it current. The check appears as `<caller job name> / Check`.
+    to a versioned runner, optionally with a suffix such as `-arm`, and Renovate keeps it current. To check several platforms, the job `check` defines
+    `strategy.matrix` with a key that lists only versioned runners and passes `runner: ${{ matrix.<key> }}`. The check appears as
+    `<caller job name> / Check`, with the matrix entry appended to the caller job name, such as `check (ubuntu-26.04-arm) / Check`.
   - Every job that is no call of a shared workflow sets `timeout-minutes`; the shared workflow sets its own.
 
   Triggers beyond these, the runner version and further jobs are the repository's own. The rule checks structure only; it does
