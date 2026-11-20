@@ -4,9 +4,6 @@ inputs:
   version:
     description: The version planned by the plan action
     required: true
-  images:
-    description: Newline-separated image names; each is the repository name below ghcr.io/<owner> and the candidate was built as <name>:candidate
-    required: true
   force:
     description: Must equal the value given to the plan action
     default: 'false'
@@ -19,6 +16,15 @@ runs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ github.token }}
+    - name: Read the images of the candidate
+      id: images
+      shell: bash
+      run: |
+        {
+          echo 'names<<RELEASE_IMAGE_NAMES_END'
+          python3 -c "import json; print(*json.load(open('dist/metadata.json'))['images'], sep='\n')"
+          echo 'RELEASE_IMAGE_NAMES_END'
+        } >> "$GITHUB_OUTPUT"
     - name: Install the release tooling
       shell: bash
       run: npm ci --ignore-scripts --omit=dev --no-audit --no-fund --prefix "$ACTION_ROOT"
@@ -31,6 +37,6 @@ runs:
         ACTION_ROOT: ${{ github.action_path }}/..
         EXPECTED_RELEASE_VERSION: ${{ inputs.version }}
         RELEASE_FORCE: ${{ inputs.force }}
-        RELEASE_IMAGES: ${{ inputs.images }}
+        RELEASE_IMAGES: ${{ steps.images.outputs.names }}
         GITHUB_TOKEN: ${{ github.token }}
         GH_TOKEN: ${{ github.token }}

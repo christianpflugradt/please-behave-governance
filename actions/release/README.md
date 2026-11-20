@@ -13,6 +13,7 @@ build and verification steps.
 | `actions/release/check-ci` | Proves that CI succeeded for the exact source commit within one trusted workflow run, including reruns |
 | `actions/release/evidence` | `record`s the hashes of a release candidate per target and uploads them as `release-evidence-<run>-<attempt>-<target>`, together with the candidate files as `release-candidate-<run>-<attempt>-<target>`; `verify` downloads both for every target, restores the candidate files below the policy `root` and verifies the complete set before publication |
 | `actions/release/governance` | verifies the repository at the `release` point of Please Behave and uploads the governance report; `target` is appended to the report name when a matrix of candidate jobs uploads several |
+| `actions/dependency-audit` | scans the dependencies of a repository, renders the findings as a step summary, fails from a severity and uploads the report; see its own README |
 
 `plan`, `publish-release` and `publish-image` need Node 24.10+ on `PATH` (for example `install_args: node` in `jdx/mise-action`) and install their
 pinned dependencies from `package-lock.json` themselves. `check-ci` and `evidence` need only Python 3.
@@ -104,7 +105,8 @@ A repository publishes either files or images, and each way has its own action i
 
 - **GitHub release with files** (`publish-release`): inputs `version`, `assets` (globs), `mode`, `tag-format`, `force`. `mode: prerelease`
   publishes a development release `<stable>-dev.<yyyymmdd>.<n>` of the latest stable release instead of an official one.
-- **Container images** (`export-image` in the candidate job, `publish-image` in the publish job): input `images`, one name per line.
+- **Container images** (`export-image` in the candidate job, `publish-image` in the publish job): `export-image` takes the input `images`,
+  one name per line; `publish-image` reads the names from the `dist/metadata.json` that `export-image` wrote and `evidence` restored.
   Each name is a repository below `ghcr.io/<owner>`. The repository builds `<name>:candidate` for linux/amd64 with the OCI labels
   `org.opencontainers.image.version=v<version>` and `org.opencontainers.image.revision=<sha>`. `export-image` saves the images
   to `dist/<name>.tar` and writes `dist/metadata.json`, which the evidence policy lists. `publish-image` verifies the archives,
@@ -136,11 +138,18 @@ and hashes the restored files against the evidence. A repository therefore needs
 
 Everything else is derived from the workflow context. A repository keeps only:
 
-- `.github/release-artifacts.json` for `evidence`: `{"root": "dist", "targets": {"macos": ["App-{version}.zip", "metadata.json"]}}`.
+- `.github/release-artifacts.json` for `evidence`: `{"root": "dist", "targets": {"macos": ["App-{version}.zip"]}}`; a matrix of
+  candidate jobs lists one target per job whose files are published, and the other jobs record nothing.
   `{version}` is the only substitution; `repository` and `workflow` (`.github/workflows/release.yml`) are not repeated.
 - The CI job names in the `required-jobs` input of `check-ci`.
 
-## Not covered yet
+## Candidate matrices
 
-The 0.x development series of `please-behave/cli`. The Renovate managers for the
-`uses:` lines are untested against a live Renovate run.
+When the candidate job is a matrix (platforms, architectures, Java versions), every entry builds and verifies the candidate. The
+`governance` action takes the matrix entry as `target`, so that the entries upload their reports under different names. Entries
+whose files are not published, such as the older Java versions of a JAR that is built once for release, call `evidence` neither
+with `record` nor with a target of their own: the policy lists only the targets that are published, and `evidence` records each
+of them from the one entry that built it.
+
+The 0.x development series of `please-behave/cli` is covered: while the latest official release is a `0.x` version, a breaking
+change raises the minor version.
