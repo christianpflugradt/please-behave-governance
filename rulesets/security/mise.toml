@@ -1,0 +1,4 @@
+# Tools the Rules of this ruleset run. Include this file in the root mise.toml, pinned like the ruleset import.
+[tools]
+gitleaks = "8.30.1"
+yq = "4.54.3"

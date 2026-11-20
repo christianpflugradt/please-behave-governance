@@ -1,0 +1,3 @@
+# Tools the Rules of this ruleset run. Include this file in the root mise.toml, pinned like the ruleset import.
+[tools]
+yq = "4.54.3"

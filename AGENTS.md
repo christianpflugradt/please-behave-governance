@@ -45,6 +45,8 @@
   `providers/<provider>/`.
 - Put shared mise task groups at `mise-tasks/<group>/`, one self-contained executable file per task
   with `#MISE` headers; consumers include a group pinned to a commit SHA. See `docs/mise-tasks.md`.
+- Put the tools a ruleset's Rules run in `rulesets/<bundle>/mise.toml`; consumers include it pinned to the
+  same commit SHA as the ruleset import. See `docs/mise-tools.md`.
 - Keep the catalog and setup in README and detailed usage in `docs/`. Update
   definitions, tests and documentation together.
 - Add offline unit tests only for a Rule script or provider adapter complex enough to

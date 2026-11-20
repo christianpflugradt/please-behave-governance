@@ -17,12 +17,12 @@
     },
     {
       "customType": "regex",
-      "description": "Track pinned shared mise task groups in the root mise.toml.",
+      "description": "Track pinned shared mise task groups and ruleset tool files in the root mise.toml.",
       "managerFilePatterns": [
         "/^\\.?mise\\.toml$/"
       ],
       "matchStrings": [
-        "git::(?<packageName>https://github\\.com/christianpflugradt/please-behave-governance\\.git)//(?<importPath>mise-tasks/[a-z0-9-]+)\\?ref=(?<currentDigest>[0-9a-f]{40})"
+        "git::(?<packageName>https://github\\.com/christianpflugradt/please-behave-governance\\.git)//(?<importPath>mise-tasks/[a-z0-9-]+|rulesets/[a-z0-9-]+)(?:/mise\\.toml)?\\?ref=(?<currentDigest>[0-9a-f]{40})"
       ],
       "datasourceTemplate": "git-refs",
       "depNameTemplate": "please-behave-governance/{{{importPath}}}",

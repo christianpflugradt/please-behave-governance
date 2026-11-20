@@ -149,7 +149,7 @@ no parameters.
 ## Workflow syntax
 
 The blocking `workflow-syntax` Check runs `jactionlint --profile correctness` on the repository's GitHub workflows, in any
-repository that has them. It needs `jactionlint` on `PATH`. Issues return FAIL; a missing tool
+repository that has them. It needs `jactionlint` on `PATH`, which `rulesets/repository-conventions/mise.toml` provides. Issues return FAIL; a missing tool
 returns ERROR.
 
 ## Shell scripts

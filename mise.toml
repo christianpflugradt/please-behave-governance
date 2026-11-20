@@ -1,12 +1,13 @@
+include = [
+  "rulesets/repository-conventions/mise.toml",
+  "rulesets/security/mise.toml",
+  "rulesets/open-source-software/mise.toml",
+]
+
 [tools]
 "github:please-behave/cli" = "0.16.0"
 python = "3.15.2"
 node = "26.13.1"
-"github:jdx/jactionlint" = "2.6.0"
-yq = "4.54.3"
-shellcheck = "0.11.0"
-shfmt = "3.14.1"
-gitleaks = "8.30.1"
 ruff = "0.17.5"
 
 [tasks.setup]

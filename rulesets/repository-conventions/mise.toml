@@ -1,0 +1,5 @@
+# Tools the Rules of this ruleset run. Include this file in the root mise.toml, pinned like the ruleset import.
+[tools]
+"github:jdx/jactionlint" = "2.6.0"
+shellcheck = "0.11.0"
+shfmt = "3.14.1"
