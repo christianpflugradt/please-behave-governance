@@ -7,7 +7,7 @@ value: >-
   offline and without a test framework.
 conditions:
   - statement: The Node test runner runs every test file below actions/release.
-    rationale: The action carries its own tests next to the code, like every Rule and provider.
+    rationale: The action carries its own tests next to the code, like every Rule and adapter profile.
   - statement: Installed dependencies are required; missing ones are an ERROR.
     rationale: A missing setup is a tooling problem, not a verdict about the tests.
   - statement: A crash of the runner itself is an ERROR, not a FAIL.

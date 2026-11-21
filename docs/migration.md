@@ -1,5 +1,13 @@
 # Compatibility and migration
 
+## Adapter profile rename
+
+Provider definitions are now adapter profiles. Packages live in
+`adapters/<id>/adapter.toml`, imports use `[[adapter_imports]]` with
+`path = "adapters/<id>"`, the package token is `@adapter/` and reviews select a
+profile with `adapter = "<id>"`. IDs are unchanged. Consumers need the governor
+0.18.0 or later and must update pins and paths together.
+
 ## Policy bundle restructuring
 
 The repository is now `christianpflugradt/please-behave-governance`. New import

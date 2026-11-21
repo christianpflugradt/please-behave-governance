@@ -35,7 +35,7 @@ shared Renovate policies; Please Behave runtime imports retain immutable pins.
 ## Ruleset pins
 
 The same preset tracks the full-commit `ref` of every `[[imports]]` and
-`[[provider_imports]]` entry in `.please/config.toml` whose `git` is this
+`[[adapter_imports]]` entry in `.please/config.toml` whose `git` is this
 repository. Renovate follows `main` and opens one PR that moves all such pins to
 the latest commit, then auto-merges it after checks pass, without a cooldown.
 Git revisions carry no release timestamp, so the preset also sets
@@ -77,7 +77,7 @@ CI and auto-merge policy.
 After successful push CI on `main`, the `Update import tracking` workflow advances
 these branches to the tested source commit only when package content differs.
 A ruleset includes its directory and the complete directories of its referenced
-Rules; a provider includes its complete directory. The reusable workflows of one
+Rules; an adapter profile includes its complete directory. The reusable workflows of one
 family (`release-*.yml`, `statistics-*.yml`) form the package `workflows/<family>`. Git blob identities, paths and
 file modes are compared, so additions, removals and executable changes count.
 Changes to `.please/`, documentation outside packages, tooling or unrelated

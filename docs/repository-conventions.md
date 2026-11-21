@@ -204,9 +204,9 @@ without it. The advisory `agents-quality` Review runs only at `check` and only w
 file once, as context (`include_content = false`), sends no change set and evaluates it against the rubric embedded in the
 [prompt](../rules/reviews/agents-quality/prompt.md): contradictions, ambiguous precedence,
 unexecutable or unverifiable instructions and unsafe directions. Optional improvements do
-not cause FAIL. It needs its own provider import, `providers/gemini-flash`, besides
+not cause FAIL. It needs its own adapter profile import, `adapters/gemini-flash`, besides
 `gemini-flash-lite`, and `GEMINI_API_KEY`. The
-[adapter](../providers/gemini-flash/adapter.py) serves the unstable free tier: the review
+[adapter](../adapters/gemini-flash/adapter.py) serves the unstable free tier: the review
 lists two models (`gemini-3.8-flash`, `gemini-3.6-flash`) and starts with a random one. Each
 retry switches to the other model after a wait of 10, 20, 30 and 45 seconds, for at most five
 attempts. HTTP 429/500/502/503/504 and transient connection failures retry; other errors,
@@ -245,31 +245,31 @@ max_tokens = "1500"
 scopes_file = ".commit-scopes"
 ```
 
-Import the named provider independently; no provider configuration or adapter
+Import the named adapter profile independently; no adapter profile or adapter
 copy is needed in the consumer:
 
 ```toml
-[[provider_imports]]
+[[adapter_imports]]
 id = "gemini-flash-lite"
 git = "https://github.com/christianpflugradt/please-behave-governance.git"
-path = "providers/gemini-flash-lite"
+path = "adapters/gemini-flash-lite"
 ref = "<FULL_REVIEWED_COMMIT_SHA>"
 
-[[provider_imports]]
+[[adapter_imports]]
 id = "gemini-flash"
 git = "https://github.com/christianpflugradt/please-behave-governance.git"
-path = "providers/gemini-flash"
+path = "adapters/gemini-flash"
 ref = "<FULL_REVIEWED_COMMIT_SHA>"
 ```
 
 Pin both imports to reviewed full revisions. They use the same repository here,
-but a consumer can select a provider from a separate organization repository.
-The [provider package](../providers/gemini-flash-lite/provider.toml) references its
-[adapter](../providers/gemini-flash-lite/adapter.py) with `@provider/adapter.py`.
+but a consumer can select an adapter profile from a separate organization repository.
+The [adapter profile package](../adapters/gemini-flash-lite/adapter.toml) references its
+[adapter](../adapters/gemini-flash-lite/adapter.py) with `@adapter/adapter.py`.
 `please sync` validates the definitions and cached resources without running the adapter;
 subsequent hook execution uses the immutable cache offline for distribution.
 Gemini calls themselves still require network and credentials. No dependencies
-are installed automatically, and provider ID collisions are errors.
+are installed automatically, and adapter profile ID collisions are errors.
 
 Create `.commit-scopes` at the consuming repository root, for example:
 
@@ -279,7 +279,7 @@ config
 docs
 ```
 
-The named provider requires Python 3.9+ and `GEMINI_API_KEY` in the environment of
+The named adapter profile requires Python 3.9+ and `GEMINI_API_KEY` in the environment of
 the Git process. Keep credentials outside version control. Run `please sync` and
 confirm the import and managed hook installation. It does not call Gemini.
 Use a reviewed full commit hash to pin imported content.
@@ -302,24 +302,24 @@ required. Routine dependency updates and recognizable reverts remain valid.
 These are prompt acceptance examples, not deterministic predictions of an LLM's
 judgment. The [prompt](../rules/reviews/commit-message-quality/prompt.md) is the shared
 wording policy. The [Review](../rules/reviews/commit-message-quality/rule.toml) pins
-`gemini-3.5-flash-lite` through adapter parameters; provider-level model defaults
+`gemini-3.5-flash-lite` through adapter parameters; profile-level model defaults
 cannot override that pin. Google documents this stable model and structured-output
 support in the [model reference](https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite).
 
-The [adapter](../providers/gemini-flash-lite/adapter.py) uses Python's standard library and bounded HTTPS
+The [adapter](../adapters/gemini-flash-lite/adapter.py) uses Python's standard library and bounded HTTPS
 `generateContent` requests with the complete prepared prompt and supplied JSON
 Schema (`responseJsonSchema`). It has a 20-second HTTP timeout, a 2048-token output
 limit and no fallback model. Transient connection failures/timeouts and HTTP
 429/500/502/503/504 retry up to three total attempts, waiting 1 then 3 seconds.
 Authentication errors and invalid, blocked, truncated or malformed responses are
 not retried. A key that Google reports as invalid (HTTP 400, reason `API_KEY_INVALID`)
-is named in the ERROR reason. The provider deadline is 70 seconds for the whole process.
+is named in the ERROR reason. The adapter deadline is 70 seconds for the whole process.
 Redirects are rejected so the key is never forwarded to another endpoint. Non-successful HTTP
 responses, blocked/truncated candidates, invalid/duplicate JSON and responses over 64 KiB produce ERROR:
 the adapter writes the failure and Google's original error text to stderr, unmasked, and exits 2.
 Please retains that output with the ERROR result (`please status --details`). Authentication,
 network and availability failures remain visible as Review ERROR. The Review
-is advisory: wording FAIL and provider ERROR do not prevent a commit, while
+is advisory: wording FAIL and adapter ERROR do not prevent a commit, while
 deterministic syntax failures still block. Model judgment quality is not claimed
 to be established.
 

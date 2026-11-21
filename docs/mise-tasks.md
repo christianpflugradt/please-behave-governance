@@ -35,7 +35,7 @@ structure is fixed by the `release-workflow` Check and the shared evidence actio
 ## Updates
 
 The `Update import tracking` workflow publishes `updates/mise-tasks/<group>` like it does for
-rulesets and providers: the branch advances to a CI-tested commit only when a file below the
+rulesets and adapter profiles: the branch advances to a CI-tested commit only when a file below the
 group directory changed. Renovate, with the `renovate-content-aware` preset, tracks that branch
 and opens one grouped PR; with only `renovate-governor`, every commit on `main` moves the pin.
 Pin the SHA a tracking branch points to for the first import.

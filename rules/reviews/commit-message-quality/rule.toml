@@ -5,7 +5,7 @@ blocking = false
 
 [review]
 include_content = false
-provider = "gemini-flash-lite"
+adapter = "gemini-flash-lite"
 prompt = "prompt.md"
 
 [review.parameters]

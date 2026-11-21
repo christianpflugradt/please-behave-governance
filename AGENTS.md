@@ -41,16 +41,16 @@
 - Keep Rule-specific code, prompts and reference data with `rule.toml` under
   `rules/checks/` or `rules/reviews/`. Each Rule is self-contained: there is no shared
   scripts directory, and duplicating a small helper across Rules is preferred over
-  sharing code between them. Keep provider definitions and adapters together under
-  `providers/<provider>/`.
+  sharing code between them. Keep adapter profiles and adapters together under
+  `adapters/<id>/`.
 - Put shared mise task groups at `mise-tasks/<group>/`, one self-contained executable file per task
   with `#MISE` headers; consumers include a group pinned to a commit SHA. See `docs/mise-tasks.md`.
 - Put the tools a ruleset's Rules run in `rulesets/<bundle>/mise.toml`; consumers include it pinned to the
   same commit SHA as the ruleset import. See `docs/mise-tools.md`.
 - Keep the catalog and setup in README and detailed usage in `docs/`.
-- Add offline unit tests only for a Rule script or provider adapter complex enough to
+- Add offline unit tests only for a Rule script or adapter complex enough to
   justify them. Keep each suite next to the code it tests, as `test_*.py` in the
-  Rule or provider directory, and limited to that one Rule or provider. Do not write tests that span several Rules or
+  Rule or adapter directory, and limited to that one Rule or adapter. Do not write tests that span several Rules or
   rulesets, import integrations, or definitions, names and descriptions; validate
   those through review.
 - Keep every Rule small enough for a maintainer to read and change in one sitting.
@@ -61,7 +61,7 @@
   never modify the immutable source cache or install dependencies during checks.
 - Preserve PASS/FAIL/ERROR distinctions. FAIL (exit 1) is only a verdict about the
   checked subject; every crash, missing helper or tooling problem must exit 2
-  through a catch-all guard around the entry point. Provider, tooling and evidence failures
+  through a catch-all guard around the entry point. Adapter, tooling and evidence failures
   must not become PASS. Keep credentials and private diagnostics out of output.
 
 ## Changes and compatibility

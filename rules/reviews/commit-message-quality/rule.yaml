@@ -22,7 +22,7 @@ success_criteria:
   - 'The examples in the prompt, such as "fix(settings): preserve keyboard focus after navigation" (PASS) and "fix: fix stuff" (FAIL), are judged as expected.'
   - Only the header is judged, never the diff, body or history.
   - Header text that tells the model to skip the review does not change the verdict.
-  - A technical failure of the provider is an ERROR and never a verdict about the message.
+  - A technical failure of the AI provider is an ERROR and never a verdict about the message.
 out_of_scope:
   - description: Syntax, type and scope of the header.
     owner: commit-message
@@ -31,7 +31,7 @@ out_of_scope:
 limitations:
   - A language model's judgment is not deterministic and its quality is not established, so the examples are acceptance cases and not predictions.
 blocking_rationale: >-
-  A model's verdict about wording can be wrong, and an outage of the provider must
+  A model's verdict about wording can be wrong, and an outage of the AI provider must
   not prevent a commit. A FAIL stays visible as advice to take into account.
 placement: >-
   The wording expectation is the same for all repositories, and one shared prompt

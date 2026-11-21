@@ -1,6 +1,6 @@
 rules
 rulesets
-providers
+adapters
 docs
 deps
 config

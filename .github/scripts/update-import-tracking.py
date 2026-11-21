@@ -1,4 +1,4 @@
-"""Publish content-aware import branches for rulesets, providers, mise task groups and actions pointing to commits already tested by CI."""
+"""Publish content-aware import branches for rulesets, adapter profiles, mise task groups and actions pointing to commits already tested by CI."""
 
 import argparse
 from pathlib import Path
@@ -9,7 +9,7 @@ import tomllib
 
 
 PREFIX = "refs/remotes/origin/updates/"
-PACKAGE = re.compile(r"(?:(?:rulesets|providers|mise-tasks|actions)/[a-z0-9][a-z0-9-]*|workflows/(?:ci|release|statistics))")
+PACKAGE = re.compile(r"(?:(?:rulesets|adapters|mise-tasks|actions)/[a-z0-9][a-z0-9-]*|workflows/(?:ci|release|statistics))")
 WORKFLOW = re.compile(r"\.github/workflows/(ci|release|statistics)-[a-z-]+\.yml")
 RULE = re.compile(r"rules/(?:checks|reviews)/[a-z0-9][a-z0-9-]*")
 
@@ -27,14 +27,14 @@ def ancestor(root, older, newer):
 
 def packages(root, revision):
     names = (
-        git(root, "ls-tree", "-r", "--name-only", revision, "--", "rulesets", "providers", "mise-tasks", "actions", ".github/workflows")
+        git(root, "ls-tree", "-r", "--name-only", revision, "--", "rulesets", "adapters", "mise-tasks", "actions", ".github/workflows")
         .decode()
         .splitlines()
     )
     found = set()
     for name in names:
         if (name.startswith("rulesets/") and name.endswith("/ruleset.toml")) or (
-            name.startswith("providers/") and name.endswith("/provider.toml")
+            name.startswith("adapters/") and name.endswith("/adapter.toml")
         ):
             found.add(str(Path(name).parent))
         elif match := WORKFLOW.fullmatch(name):
@@ -73,8 +73,8 @@ def snapshot(root, revision, package):
                 raise ValueError(f"unsupported Rule path: {rule}")
             git(root, "cat-file", "-e", f"{revision}:{rule}/rule.toml")
             paths.add(rule)
-    elif package.startswith("providers/"):
-        git(root, "cat-file", "-e", f"{revision}:{package}/provider.toml")
+    elif package.startswith("adapters/"):
+        git(root, "cat-file", "-e", f"{revision}:{package}/adapter.toml")
     # Tree entries cover bytes, filenames and modes; commit metadata is excluded.
     return git(root, "ls-tree", "-r", "-z", revision, "--", *sorted(paths))
 

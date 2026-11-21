@@ -1,6 +1,6 @@
 command = "python3"
-args = ["@provider/adapter.py"]
-timeout_seconds = 70
+args = ["@adapter/adapter.py"]
+timeout_seconds = 0
 
 [requirements]
 executables = ["python3"]

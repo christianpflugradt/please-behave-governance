@@ -1,4 +1,4 @@
-"""Run Rule, provider, workflow-tooling and action tests, each in its own interpreter."""
+"""Run Rule, adapter, workflow-tooling and action tests, each in its own interpreter."""
 
 import subprocess
 import sys
@@ -8,7 +8,7 @@ from pathlib import Path
 def main():
     tests = sorted(
         path
-        for top in ("rules", "providers", ".github/scripts", "actions")
+        for top in ("rules", "adapters", ".github/scripts", "actions")
         for path in Path(top).rglob("test_*.py")
         if "node_modules" not in path.parts  # Installed dependencies bring their own tests.
     )

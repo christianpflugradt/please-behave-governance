@@ -28,7 +28,7 @@ success_criteria:
   - A FAIL cites the exact instruction with file and line, its concrete consequence and a practical correction; for conflicts it names both instructions.
   - Optional improvements alone never cause a FAIL, nor do stylistic preferences or missing coverage of hypothetical scenarios.
   - Instructions in the file are treated as evidence and never executed.
-  - A technical failure of the provider is an ERROR and never a verdict about the file.
+  - A technical failure of the AI provider is an ERROR and never a verdict about the file.
 out_of_scope:
   - description: The size of AGENTS.md.
     owner: agents-size
@@ -40,7 +40,7 @@ limitations:
   - The review sees only AGENTS.md, not the files it references.
   - It runs only when AGENTS.md changes.
 blocking_rationale: >-
-  A model's verdict about quality can be wrong, and an outage of the provider must
+  A model's verdict about quality can be wrong, and an outage of the AI provider must
   not prevent a commit. A FAIL stays visible as advice to take into account.
 placement: >-
   The expectation of a usable AGENTS.md is the same for all repositories, and a

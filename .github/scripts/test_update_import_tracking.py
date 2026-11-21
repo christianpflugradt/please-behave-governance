@@ -34,8 +34,8 @@ class TrackingTests(unittest.TestCase):
         self.write("rulesets/sample/ruleset.toml", 'rules = ["rules/checks/example"]\n')
         self.write("rules/checks/example/rule.toml", 'id = "example"\n')
         self.write("rules/checks/example/check.py", 'print("original")\n')
-        self.write("providers/sample/provider.toml", 'command = "python3"\n')
-        self.write("providers/sample/adapter.py", 'print("provider")\n')
+        self.write("adapters/sample/adapter.toml", 'command = "python3"\n')
+        self.write("adapters/sample/adapter.py", 'print("provider")\n')
         self.write("mise-tasks/sample/task", "#!/bin/sh\necho task\n")
         self.write("actions/sample/plan/action.yml", "name: Plan\n")
         self.write("actions/sample/lib/plan.mjs", "export {};\n")
@@ -80,10 +80,10 @@ class TrackingTests(unittest.TestCase):
         self.commit()
         self.assertEqual(self.updates(), [])
 
-    def test_provider_change_updates_only_provider(self):
-        self.write("providers/sample/adapter.py", 'print("changed")\n')
+    def test_adapter_change_updates_only_adapter(self):
+        self.write("adapters/sample/adapter.py", 'print("changed")\n')
         changed = self.commit()
-        self.assertEqual(self.updates(), [f"{changed}:refs/heads/updates/providers/sample"])
+        self.assertEqual(self.updates(), [f"{changed}:refs/heads/updates/adapters/sample"])
 
     def test_task_group_change_updates_only_that_group(self):
         self.write("mise-tasks/sample/task", "#!/bin/sh\necho changed\n")
@@ -156,9 +156,9 @@ class TrackingTests(unittest.TestCase):
         self.assertEqual(self.updates(), [f"{renamed}:refs/heads/updates/rulesets/sample"])
 
     def test_initialization_and_late_ci_completion(self):
-        self.git("update-ref", "-d", tracking.PREFIX + "providers/sample")
-        self.assertEqual(self.updates(), [f"{self.initial}:refs/heads/updates/providers/sample"])
-        self.track("providers/sample", self.initial)
+        self.git("update-ref", "-d", tracking.PREFIX + "adapters/sample")
+        self.assertEqual(self.updates(), [f"{self.initial}:refs/heads/updates/adapters/sample"])
+        self.track("adapters/sample", self.initial)
         self.write("rules/checks/example/check.py", "changed\n")
         changed = self.commit()
         self.track("rulesets/sample", changed)
@@ -188,7 +188,7 @@ class TrackingTests(unittest.TestCase):
             self.commit()
             publish()
             self.assertEqual(self.git("rev-parse", tracking.PREFIX + "rulesets/sample"), changed)
-            self.assertEqual(self.git("rev-parse", tracking.PREFIX + "providers/sample"), self.initial)
+            self.assertEqual(self.git("rev-parse", tracking.PREFIX + "adapters/sample"), self.initial)
 
 
 if __name__ == "__main__":

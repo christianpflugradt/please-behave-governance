@@ -115,7 +115,7 @@ A repository publishes either files or images, and each way has its own action i
 
 ## Updates
 
-Pin both actions to the same full commit SHA. Like rulesets, providers and mise task groups, `actions/release`
+Pin both actions to the same full commit SHA. Like rulesets, adapter profiles and mise task groups, `actions/release`
 has a content-aware tracking branch `updates/actions/release`, published by the `Update import tracking`
 workflow only when a file below the directory changed. The `renovate-content-aware` preset tracks it for
 `uses:` lines in the workflows and opens one grouped PR; with only `renovate-governor`, every commit on `main`

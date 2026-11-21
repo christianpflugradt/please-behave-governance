@@ -61,28 +61,28 @@ rulesets/
   <ruleset>/ruleset.yaml                   # Why the set exists and which Rules belong to it
 rules/checks/<rule>/                       # rule.toml, rule.yaml, implementation and resources
 rules/reviews/<rule>/                      # rule.toml, rule.yaml, prompt and resources
-providers/<provider>/                      # provider.toml and adapter
+adapters/<id>/                           # adapter.toml and adapter
 docs/                                     # Policy usage and compatibility details
 ```
 
 Sets reference Rule directories relative to this repository root. Multiple sets
-may reuse a Rule; consumers import provider packages independently. Commands run
+may reuse a Rule; consumers import adapter profile packages independently. Commands run
 in the consumer root: `@rule/` selects the Rule directory, `@source/` this source
-repository, and `@provider/` an independently imported provider directory.
+repository, and `@adapter/` an independently imported adapter profile directory.
 Imported source resources must remain immutable.
 
 ## Configuration
 
 Use published Please Behave 0.8.0 or later for the complete catalog. Install dependencies
-explicitly; rules and providers never install tools. Pin each ruleset and provider
+explicitly; rules and adapter profiles never install tools. Pin each ruleset and adapter profile
 import to a reviewed full Git commit, then run `please sync` to validate resources
 and confirm managed hook installation. Synchronization does not execute checks or
-call providers. Subsequent execution loads the immutable cached revision offline;
+call adapters. Subsequent execution loads the immutable cached revision offline;
 the Gemini operations themselves still require network access.
 
 | Bundle | Required consumer configuration | Tools and credentials |
 | --- | --- | --- |
-| Repository conventions | `agents-size.max_tokens`; `commit-message.scopes_file`; independent `gemini-flash-lite` and `gemini-flash` provider imports | Python 3.9+ (3.11+ for the mise checks), Git, `jactionlint`, ShellCheck and `GEMINI_API_KEY` for the wording and `AGENTS.md` reviews |
+| Repository conventions | `agents-size.max_tokens`; `commit-message.scopes_file`; independent `gemini-flash-lite` and `gemini-flash` adapter profile imports | Python 3.9+ (3.11+ for the mise checks), Git, `jactionlint`, ShellCheck and `GEMINI_API_KEY` for the wording and `AGENTS.md` reviews |
 | Open-source software | `license.target`, usually `LICENSE` | Python 3.9+, Git, `yq`; network and optionally `GITHUB_TOKEN` for `github-metadata` at `check` |
 | Private repositories | none | Python 3.9+, Git, `yq`; `GITHUB_REPOSITORY` and `GITHUB_TOKEN` for `private-visibility` at `check` |
 | Releasable open-source software | none | Python 3.11+, Git |
@@ -90,7 +90,7 @@ the Gemini operations themselves still require network access.
 
 The Gemini adapters accept adapter protocol versions `0` and `1` and return the
 version supplied in the request. Existing version `1` governors remain compatible;
-no additional provider call is made for version negotiation.
+no additional adapter call is made for version negotiation.
 
 The wording and `AGENTS.md` quality Reviews are advisory; its FAIL and ERROR results remain visible without
 blocking commits. Deterministic checks are blocking. Security and license checks
@@ -118,7 +118,7 @@ the `repository-conventions`, `security` and `open-source-software` bundles from
 repository's own published revisions, as any consumer does. It is not releasable, so
 it imports no release bundle. Local Rules format Python with Ruff and run the unit
 tests, which live next to the code as `test_*.py`. They use temporary local Git
-repositories and mocked HTTP and must never call live providers or network APIs.
+repositories and mocked HTTP and must never call live AI providers or network APIs.
 Workflow tooling and its offline tests live in `.github/scripts/` and run through
 the same test gate.
 Git hooks and the `CI` workflow are the validation gates; `mise run verify` gives quick
