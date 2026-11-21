@@ -43,6 +43,7 @@ out_of_scope:
   - description: Publishing files.
     owner: publish-release
 limitations:
+  - The first release of a repository is 0.1.0; publication seeds and removes the same local start tag as the plan, so both agree.
   - It publishes to one registry, the one of the platform the repository lives on.
 placement: >-
   Publishing images safely has to be done the same way everywhere, and the order of load, tag and push is the

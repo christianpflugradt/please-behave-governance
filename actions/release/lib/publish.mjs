@@ -3,6 +3,7 @@ import { globSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import semanticRelease from "semantic-release";
 import { createConfig } from "./config.mjs";
+import { removeSeed, seedFirstRelease } from "./first-release.mjs";
 import { allReleases, latestStable, settings } from "./plan.mjs";
 import { assertNoLocalConfiguration, verifySource } from "./source.mjs";
 import { developmentVersion } from "./version.mjs";
@@ -53,7 +54,13 @@ export async function publish(env = process.env, release = semanticRelease, run 
   verifySource(env, cwd, run);
   if (mode === "release") {
     const config = createConfig({ repository, tagFormat, assets, force, guard: guardFor(expected, env, cwd, run, hooks) });
-    const result = await release(config, { cwd, env });
+    seedFirstRelease(tagFormat, cwd, env, run);
+    let result;
+    try {
+      result = await release(config, { cwd, env });
+    } finally {
+      removeSeed(tagFormat, cwd, env, run);
+    }
     if (!result) throw new Error("Planned release disappeared; refuse publication.");
     return;
   }

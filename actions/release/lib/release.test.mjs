@@ -76,12 +76,18 @@ test("a breaking change raises the minor version while the latest release is 0.x
   assert.equal(await analysis(false, ["fix: small"], "0.16.0"), "patch");
 });
 
+test("the seed of a repository without release always releases the minor version 0.1.0", async () => {
+  assert.equal(await analysis(false, ["fix: small"], "0.0.0"), "minor");
+  assert.equal(await analysis(false, ["feat!: break"], "0.0.0"), "minor");
+  assert.equal(await analysis(false, ["docs: text"], "0.0.0"), null);
+});
+
 test("the configuration derives the repository and keeps the guard before GitHub", () => {
   const guard = { verifyRelease() {} };
   const config = createConfig({ repository: "owner/repo", tagFormat: "v${version}", assets: ["dist/*"], guard });
   assert.equal(config.repositoryUrl, "https://github.com/owner/repo.git");
-  assert.equal(config.plugins[2], guard);
-  assert.equal(config.plugins[3][0], "@semantic-release/github");
+  assert.equal(config.plugins[3], guard);
+  assert.equal(config.plugins[4][0], "@semantic-release/github");
 });
 
 // Publication: gh, git and Semantic Release are replaced, so nothing leaves the machine.
@@ -101,7 +107,7 @@ const workdir = () => {
 test("a release is refused when the version changed after planning", async () => {
   const cwd = workdir();
   const release = version => async (config, context) => {
-    config.plugins[2].verifyRelease({}, { nextRelease: { version }, env: context.env, cwd });
+    config.plugins[3].verifyRelease({}, { nextRelease: { version }, env: context.env, cwd });
     return { nextRelease: { version } };
   };
   await publish(publishEnv, release("1.2.4"), scriptedRun([]), cwd);

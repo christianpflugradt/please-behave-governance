@@ -2,6 +2,7 @@
 // Repositories only supply their tag format and release assets.
 
 import { analyzeCommits } from "@semantic-release/commit-analyzer";
+import { SEED_VERSION, seedRemoval } from "./first-release.mjs";
 
 // Share revert parsing between version calculation and release notes, including scopes.
 const parserOpts = {
@@ -38,12 +39,14 @@ const analyzerOptions = { preset: "conventionalcommits", parserOpts, releaseRule
 // With `force`, commits that would not release by themselves still yield a patch release; a repository uses this to
 // test the release process. While the latest official release is a 0.x version, a breaking change raises the minor
 // version, because Semver allows breaking changes in the 0.x series and the jump to 1.0.0 is a deliberate, manual step.
+// The seed version of a repository without a release (see first-release.mjs) always releases 0.1.0.
 function analyzer({ force }) {
   return {
     async analyzeCommits(pluginConfig, context) {
       let type = await analyzeCommits(pluginConfig, context);
       if (!type && force) type = "patch";
       if (type === "major" && context.lastRelease?.version?.startsWith("0.")) type = "minor";
+      if (type && context.lastRelease?.version === SEED_VERSION) type = "minor";
       return type;
     },
   };
@@ -53,6 +56,7 @@ function analyzer({ force }) {
 export function analysisPlugins({ force = false } = {}) {
   return [
     [analyzer({ force }), analyzerOptions],
+    seedRemoval,
     ["@semantic-release/release-notes-generator", { preset: "conventionalcommits", parserOpts, presetConfig: { types: noteTypes } }],
   ];
 }

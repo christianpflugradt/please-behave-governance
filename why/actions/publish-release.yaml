@@ -45,6 +45,7 @@ out_of_scope:
   - description: Publishing container images.
     owner: publish-image
 limitations:
+  - The first release of a repository is 0.1.0; publication seeds and removes the same local start tag as the plan, so both agree.
   - The action trusts the files it is given; it does not inspect them.
 placement: >-
   Every repository that publishes files needs the same guarded publication, and a divergent one would be a

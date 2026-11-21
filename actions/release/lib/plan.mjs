@@ -3,6 +3,7 @@ import { appendFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
 import semanticRelease from "semantic-release";
 import { analysisPlugins, createConfig } from "./config.mjs";
+import { removeSeed, seedFirstRelease } from "./first-release.mjs";
 import { assertNoLocalConfiguration, verifySource } from "./source.mjs";
 import { developmentVersion, stableFromTag } from "./version.mjs";
 
@@ -42,8 +43,13 @@ export async function plan(env = process.env, release = semanticRelease, run = e
   let version = "";
   if (mode === "release") {
     const config = createConfig({ repository, tagFormat, assets: [], force });
-    const result = await release({ ...config, dryRun: true, plugins: analysisPlugins({ force }) }, { cwd, env });
-    version = result ? result.nextRelease.version : "";
+    seedFirstRelease(tagFormat, cwd, env, run);
+    try {
+      const result = await release({ ...config, dryRun: true, plugins: analysisPlugins({ force }) }, { cwd, env });
+      version = result ? result.nextRelease.version : "";
+    } finally {
+      removeSeed(tagFormat, cwd, env, run);
+    }
   } else {
     const { stable } = latestStable(env, run, repository, tagFormat);
     version = developmentVersion(stable, allReleases(env, run, repository));

@@ -99,6 +99,11 @@ The release levels follow Conventional Commits. While the latest official releas
 the minor version instead of the major one, because Semver allows breaking changes in the `0.x` series. The step to `1.0.0`
 is a deliberate, manual one: tag it yourself.
 
+A repository without any release starts at `0.1.0`, whatever its commits, and there is no input for another start.
+Semantic Release would start at `1.0.0` and offers no setting for that. Plan and publish therefore tag the first
+commit locally with the seed `v0.0.0` (in the repository's tag format) before Semantic Release runs, and remove it before
+the release tag is created, so it never reaches the remote. The first release notes list the commits after the first commit.
+
 ## Two ways to publish
 
 A repository publishes either files or images, and each way has its own action instead of one action with switches.

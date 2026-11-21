@@ -74,6 +74,7 @@ out_of_scope:
   - description: Verifying the candidate and publishing it.
     owner: publish-release and publish-image
 limitations:
+  - A repository without any release plans 0.1.0; the plan action explains why, and there is no input to change it.
   - A planned version can still be refused at publication, for example when the main branch moved after the plan.
   - The plan says nothing about whether CI passed.
 placement: >-

@@ -28,6 +28,15 @@ decisions:
     rejected: A shared configuration package. A repository would still hold a file that references it and could extend it.
   - decision: While the latest official release is a 0.x version, a breaking change raises the minor version.
     why: The 0.x series allows breaking changes, and the step to 1.0.0 is a deliberate, manual decision and not a side effect of a commit.
+  - decision: A repository without any release starts at 0.1.0, and no input selects another start.
+    why: >-
+      Every new project starts in the 0.x series, and 1.0.0 is a deliberate, manual decision. Semantic Release
+      starts at 1.0.0 and has no setting for that, so the first commit is tagged locally with a seed version
+      0.0.0 that the analyzer turns into 0.1.0 and that is removed before the real tag is pushed.
+    rejected: >-
+      An input for the first version. It would be a flag that every repository has to set, while the answer
+      is the same for all of them. Overwriting the version in a plugin, which Semantic Release prevents by
+      handing plugins copies of its state.
   - decision: A forced plan releases a patch version when no commit would release by itself.
     why: A release process can only be tested by running it, so tests need a release without a releasable commit.
   - decision: A development prerelease is `<stable>-dev.<yyyymmdd>.<n>` with a tag prefixed `dev-`, counted per day in Europe/Berlin.
@@ -49,6 +58,8 @@ out_of_scope:
   - description: Proving CI and verifying the candidate.
     owner: release-readiness and evidence
 limitations:
+  - The first release notes omit the first commit, because the seed marks it as the starting point.
+  - The notes of the first release link to a comparison with the seed tag, which does not exist on the remote.
   - A plan is a forecast; publication recalculates and refuses if the result or the main branch changed.
 placement: >-
   The policy must be the same for every repository, and only one place can guarantee that.
@@ -57,6 +68,7 @@ revisit_when:
     A new requirement would need one more input. It is first weighed: unless it is a real edge case, it is
     solved here once instead of in a repository.
   - The version series needs a different rule than the initial development series.
+  - A project has to start at 1.0.0, for example when it takes over an already stable product.
 inputs:
   mode: Selects between an official release and a development prerelease; official is the normal case.
   tag-format: Carries the one variation of the tag name, with the standard format as default.
