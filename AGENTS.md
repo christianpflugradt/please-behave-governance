@@ -2,9 +2,9 @@
 
 ## Policy boundaries
 
-- Read the Architectural Boundaries of the Please Behave
-  [product vision](https://github.com/please-behave/cli/blob/main/docs/product-vision.md)
-  before adding or changing a Rule or bundle.
+- Read the boundaries of Please Behave in
+  [DEC-0001](https://github.com/please-behave/why/blob/main/why/decisions/DEC-0001.yaml)
+  of the central Why repository before adding or changing a Rule or bundle.
 - Bundles use only the built-in execution points (`pre-commit`, `commit-msg`,
   `pre-push`, `check`) and never declare custom points. `release` is the only custom
   point; consumers declare it for their own rules.
