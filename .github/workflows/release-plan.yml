@@ -62,7 +62,7 @@ jobs:
           version: 2026.11.11
       - name: Plan the release without publishing
         id: plan
-        uses: christianpflugradt/please-behave-governance/actions/release/plan@23c098e0071e5f564a89f5980ffbd199e114fd29 # updates/actions/release
+        uses: christianpflugradt/please-behave-governance/actions/release/plan@97a2570e70f0ae008ecde59f6878f44d55a399fa # updates/actions/release
         with:
           mode: ${{ inputs.mode }}
           tag-format: ${{ inputs.tag-format }}
