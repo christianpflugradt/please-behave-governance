@@ -39,6 +39,6 @@ jobs:
           install_args: python
           version: 2026.11.11
       - name: Verify exact-source CI prerequisites
-        uses: christianpflugradt/please-behave-governance/actions/release/check-ci@97a2570e70f0ae008ecde59f6878f44d55a399fa # updates/actions/release
+        uses: christianpflugradt/please-behave-governance/actions/release/check-ci@6722aaa5d75afa0418aa30e8fb4835779234e30e # updates/actions/release
         with:
           required-jobs: ${{ inputs.required-jobs }}
