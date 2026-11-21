@@ -112,11 +112,22 @@ A repository publishes either files or images, and each way has its own action i
   publishes a development release `<stable>-dev.<yyyymmdd>.<n>` of the latest stable release instead of an official one.
 - **Container images** (`export-image` in the candidate job, `publish-image` in the publish job): `export-image` takes the input `images`,
   one name per line; `publish-image` reads the names from the `dist/metadata.json` that `export-image` wrote and `evidence` restored.
-  Each name is a repository below `ghcr.io/<owner>`. The repository builds `<name>:candidate` for linux/amd64 with the OCI labels
-  `org.opencontainers.image.version=v<version>` and `org.opencontainers.image.revision=<sha>`. `export-image` saves the images
-  to `dist/<name>.tar` and writes `dist/metadata.json`, which the evidence policy lists. `publish-image` verifies the archives,
-  loads the images before the tag is created, pushes `:v<version>` and `:latest` after it, and compares the pushed digest with
-  the candidate. The calling job grants `packages: write`. Images are published with official releases only.
+  Each name is a repository below `ghcr.io/<owner>`. The repository builds each image as an OCI archive `dist/<name>.tar`, an image
+  index for exactly `linux/amd64` and `linux/arm64`, with the OCI labels `org.opencontainers.image.version=v<version>` and
+  `org.opencontainers.image.revision=<sha>` and with BuildKit's provenance and SBOM attestations:
+
+  ```sh
+  docker buildx build --platform linux/amd64,linux/arm64 --provenance=mode=max --sbom=true \
+    --label "org.opencontainers.image.version=v${EXPECTED_RELEASE_VERSION}" \
+    --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
+    --output type=oci,dest=dist/<name>.tar .
+  ```
+
+  How the platforms are built (emulation, or native runners whose results are merged into one index) is up to the repository; the
+  candidate is the finished index. `export-image` verifies the archives, identifies each image by the digest of its index and writes
+  `dist/metadata.json`, which the evidence policy lists. `publish-image` verifies the archives again and, after the tag, copies the
+  archived blobs and manifests unchanged to `:v<version>` and `:latest`, so the published digest is the candidate's. It needs no
+  Docker daemon and builds nothing. The calling job grants `packages: write`. Images are published with official releases only.
 
 ## Updates
 

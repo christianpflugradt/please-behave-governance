@@ -1,16 +1,16 @@
 name: Export image candidate
-description: Export the candidate images of a release as archives with a receipt bound to the version, source and workflow run
+description: Verify the candidate image archives of a release and write a receipt bound to the version, source and workflow run
 inputs:
   version:
     description: The version planned by the plan action
     required: true
   images:
-    description: Newline-separated image names; the candidate was built as <name>:candidate for linux/amd64 with the OCI labels version (v<version>) and revision
+    description: Newline-separated image names; the candidate was built into dist/<name>.tar as an OCI archive for linux/amd64 and linux/arm64 with the OCI labels version (v<version>) and revision, provenance and SBOM
     required: true
 runs:
   using: composite
   steps:
-    - name: Export and verify the candidate images
+    - name: Verify the candidate images and write the receipt
       shell: bash
       run: python3 -B "$ACTION_ROOT/lib/release_image.py" export
       env:

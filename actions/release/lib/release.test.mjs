@@ -136,7 +136,7 @@ test("a prerelease is refused for a stale version or without assets", async () =
 test("images are published with hooks that call the image script, and only with official releases", async () => {
   const hooks = hooksFor(["app"]);
   assert.match(hooks.verify, /release_image\.py" verify$/);
-  assert.match(hooks.prepare, /release_image\.py" load$/);
+  assert.equal(hooks.prepare, undefined);
   assert.match(hooks.publish, /release_image\.py" push$/);
   assert.deepEqual(hooksFor([]), {});
   const cwd = workdir();

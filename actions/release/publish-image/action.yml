@@ -1,5 +1,5 @@
 name: Publish image
-description: Push the verified candidate images to the GitHub Container Registry and publish the planned release without files
+description: Copy the verified candidate images unchanged to the GitHub Container Registry and publish the planned release without files
 inputs:
   version:
     description: The version planned by the plan action
@@ -10,12 +10,6 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Log in to the GitHub Container Registry
-      uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
-      with:
-        registry: ghcr.io
-        username: ${{ github.actor }}
-        password: ${{ github.token }}
     - name: Read the images of the candidate
       id: images
       shell: bash
@@ -38,5 +32,6 @@ runs:
         EXPECTED_RELEASE_VERSION: ${{ inputs.version }}
         RELEASE_FORCE: ${{ inputs.force }}
         RELEASE_IMAGES: ${{ steps.images.outputs.names }}
+        GITHUB_ACTOR: ${{ github.actor }}
         GITHUB_TOKEN: ${{ github.token }}
         GH_TOKEN: ${{ github.token }}

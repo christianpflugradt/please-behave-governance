@@ -1,8 +1,11 @@
-"""Export, verify, load and push the exact Docker candidates; publication never builds images.
+"""Verify and publish the exact multi-architecture image candidates; publication never builds images.
 
-The images are listed in RELEASE_IMAGES, one name per line. Each name is the repository name below ghcr.io/<owner>, and the
-repository builds the candidate as `<name>:candidate` for linux/amd64 with the OCI labels `version` (v<version>) and `revision`."""
+The images are listed in RELEASE_IMAGES, one name per line. Each name is the repository name below ghcr.io/<owner>. The
+repository builds each candidate as an OCI archive `dist/<name>.tar` (an image index) for linux/amd64 and linux/arm64, with the
+OCI labels `version` (v<version>) and `revision` and the provenance and SBOM attestations of BuildKit. The candidate is identified by
+the digest of its index, and publication copies exactly the archived blobs and manifests, so the published digest is the verified one."""
 
+import base64
 import hashlib
 import json
 import os
@@ -11,9 +14,17 @@ import re
 import subprocess
 import sys
 import tarfile
+import urllib.error
+import urllib.parse
+import urllib.request
 
 
 DIST = Path("dist")
+REGISTRY = "https://ghcr.io"
+PLATFORMS = {"linux/amd64", "linux/arm64"}
+INDEX = "application/vnd.oci.image.index.v1+json"
+MANIFEST = "application/vnd.oci.image.manifest.v1+json"
+ATTESTATION_TYPES = ("https://slsa.dev/provenance/", "https://spdx.dev/Document")
 
 
 def components():
@@ -54,46 +65,94 @@ def binding():
     return {"version": version, "source_sha": source, "run_id": run_id, "attempt": attempt}
 
 
-def archive_image(path, tag, expected, engine_id=None):
-    with tarfile.open(path, "r:") as archive:
-        names = set()
+def blob_name(digest_value):
+    if not re.fullmatch(r"sha256:[0-9a-f]{64}", digest_value):
+        raise ValueError("Invalid image digest")
+    return "blobs/sha256/" + digest_value.removeprefix("sha256:")
+
+
+class Layout:
+    """A verified read-only view of an OCI image layout archive."""
+
+    def __init__(self, archive):
+        self.archive = archive
+        self.members = {}
         for member in archive:
             name = PurePosixPath(member.name)
-            if name.is_absolute() or ".." in name.parts or member.name in names:
-                raise ValueError("Unsafe or duplicate archive path")
-            if not (member.isfile() or member.isdir()):
-                raise ValueError("Unexpected archive entry type")
-            names.add(member.name)
-        manifests = json.load(archive.extractfile("manifest.json"))
-        if len(manifests) != 1 or manifests[0]["RepoTags"] != [tag]:
-            raise ValueError("Unexpected image set or tag")
-        manifest = manifests[0]
-        config_bytes = archive.extractfile(manifest["Config"]).read()
-        config = json.loads(config_bytes)
-        if (config["os"], config["architecture"]) != ("linux", "amd64"):
-            raise ValueError("Candidate platform must remain linux/amd64")
-        labels = config["config"]["Labels"]
-        if labels["org.opencontainers.image.version"] != "v" + expected["version"]:
-            raise ValueError("Image version differs from the planned release")
-        if labels["org.opencontainers.image.revision"] != expected["source_sha"]:
-            raise ValueError("Image source differs from the planned release")
-        if not manifest["Layers"] or any(layer not in names for layer in manifest["Layers"]):
-            raise ValueError("Image layers missing")
-        config_digest = "sha256:" + hashlib.sha256(config_bytes).hexdigest()
-        # Classic Docker identifies images by config; the containerd store can
-        # instead return the OCI manifest digest. Both must bind to this config.
-        if engine_id is not None and engine_id != config_digest:
-            if not re.fullmatch(r"sha256:[0-9a-f]{64}", engine_id):
-                raise ValueError("Invalid Docker image identity")
-            blob = "blobs/sha256/" + engine_id.removeprefix("sha256:")
-            if blob not in names:
-                raise ValueError("Docker image identity is absent from the candidate archive")
-            manifest_bytes = archive.extractfile(blob).read()
-            if "sha256:" + hashlib.sha256(manifest_bytes).hexdigest() != engine_id:
-                raise ValueError("OCI manifest digest mismatch")
-            if json.loads(manifest_bytes).get("config", {}).get("digest") != config_digest:
-                raise ValueError("Docker image manifest differs from the candidate config")
-        return config_digest
+            if name.is_absolute() or ".." in name.parts or member.name in self.members or not (member.isfile() or member.isdir()):
+                raise ValueError("Unexpected archive entry")
+            self.members[member.name] = member
+        for name, member in self.members.items():
+            if name.startswith("blobs/sha256/") and member.isfile():
+                with archive.extractfile(member) as stream:
+                    if hashlib.file_digest(stream, "sha256").hexdigest() != name.removeprefix("blobs/sha256/"):
+                        raise ValueError("Image blob digest mismatch")
+
+    def blob(self, descriptor):
+        member = self.members.get(blob_name(descriptor["digest"]))
+        if member is None or not member.isfile() or member.size != descriptor["size"]:
+            raise ValueError("Image blob missing or of unexpected size")
+        return member
+
+    def json(self, descriptor, media_type):
+        if descriptor["mediaType"] != media_type:
+            raise ValueError("Unexpected image media type")
+        with self.archive.extractfile(self.blob(descriptor)) as stream:
+            return json.load(stream)
+
+
+def archive_image(path, expected):
+    """Returns the digest of the image index after verifying the complete multi-architecture candidate."""
+    with tarfile.open(path, "r:") as archive:
+        layout = Layout(archive)
+        with archive.extractfile(layout.members["oci-layout"]) as stream:
+            if json.load(stream).get("imageLayoutVersion") != "1.0.0":
+                raise ValueError("Unsupported OCI layout")
+        with archive.extractfile(layout.members["index.json"]) as stream:
+            roots = json.load(stream)["manifests"]
+        if len(roots) != 1:
+            raise ValueError("Unexpected image set")
+        index = layout.json(roots[0], INDEX)
+        images, attestations = {}, {}
+        for descriptor in index["manifests"]:
+            annotations = descriptor.get("annotations", {})
+            if annotations.get("vnd.docker.reference.type") == "attestation-manifest":
+                reference = annotations["vnd.docker.reference.digest"]
+                if reference in attestations:
+                    raise ValueError("Duplicate image attestation")
+                attestations[reference] = descriptor
+            else:
+                platform = descriptor["platform"]
+                key = f"{platform['os']}/{platform['architecture']}"
+                if key in images:
+                    raise ValueError("Duplicate image platform")
+                images[key] = descriptor
+        if set(images) != PLATFORMS:
+            raise ValueError("Candidate platforms must be exactly linux/amd64 and linux/arm64")
+        if set(attestations) != {descriptor["digest"] for descriptor in images.values()}:
+            raise ValueError("Every platform image needs exactly one attestation manifest")
+        for key, descriptor in images.items():
+            manifest = layout.json(descriptor, MANIFEST)
+            config = layout.json(manifest["config"], "application/vnd.oci.image.config.v1+json")
+            if f"{config['os']}/{config['architecture']}" != key:
+                raise ValueError("Image platform differs from its config")
+            labels = config["config"]["Labels"]
+            if labels["org.opencontainers.image.version"] != "v" + expected["version"]:
+                raise ValueError("Image version differs from the planned release")
+            if labels["org.opencontainers.image.revision"] != expected["source_sha"]:
+                raise ValueError("Image source differs from the planned release")
+            if not manifest["layers"]:
+                raise ValueError("Image layers missing")
+            for layer in manifest["layers"]:
+                layout.blob(layer)
+            attestation = layout.json(attestations[descriptor["digest"]], MANIFEST)
+            layout.blob(attestation["config"])
+            predicates = {layer.get("annotations", {}).get("in-toto.io/predicate-type", "") for layer in attestation["layers"]}
+            for layer in attestation["layers"]:
+                layout.blob(layer)
+            if not all(any(found.startswith(required) for found in predicates) for required in ATTESTATION_TYPES):
+                raise ValueError("Image attestation lacks provenance or SBOM")
+        return roots[0]["digest"]
 
 
 def verify(directory=DIST):
@@ -104,17 +163,16 @@ def verify(directory=DIST):
     if any(path.is_symlink() or not path.is_file() for path in directory.iterdir()):
         raise ValueError("Candidate artifacts must be regular files")
     metadata = json.loads((directory / "metadata.json").read_text())
-    if metadata["schema_version"] != 1 or metadata["binding"] != expected:
+    if metadata["schema_version"] != 2 or metadata["binding"] != expected:
         raise ValueError("Candidate source, version or workflow run/attempt changed")
     if set(metadata["images"]) != set(components()):
         raise ValueError("Incomplete image receipts")
     for name in components():
         receipt = metadata["images"][name]
         path = directory / f"{name}.tar"
-        tag = f"{name}:candidate"
         if receipt["sha256"] != digest(path):
             raise ValueError("Candidate archive checksum mismatch")
-        if receipt["config_digest"] != archive_image(path, tag, expected):
+        if receipt["index_digest"] != archive_image(path, expected):
             raise ValueError("Candidate image identity mismatch")
     return metadata
 
@@ -123,66 +181,105 @@ def export(directory=DIST):
     expected = binding()
     if run("git", "rev-parse", "HEAD") != expected["source_sha"]:
         raise ValueError("Candidate checkout differs from dispatched source")
-    directory.mkdir(exist_ok=True)
-    if any(directory.iterdir()):
-        raise ValueError("Candidate output must start empty")
-    images = {}
-    for name in components():
-        path = directory / f"{name}.tar"
-        tag = f"{name}:candidate"
-        subprocess.run(["docker", "image", "save", "--output", str(path), tag], check=True)
-        engine_id = run("docker", "image", "inspect", "--format", "{{.Id}}", tag)
-        config_digest = archive_image(path, tag, expected, engine_id)
-        images[name] = {"sha256": digest(path), "config_digest": config_digest}
-    (directory / "metadata.json").write_text(
-        json.dumps(
-            {
-                "schema_version": 1,
-                "binding": expected,
-                "images": images,
-            },
-            indent=2,
-        )
-        + "\n"
-    )
+    if {path.name for path in directory.iterdir()} != {f"{name}.tar" for name in components()}:
+        raise ValueError("Candidate output must hold exactly the image archives")
+    images = {
+        name: {"sha256": digest(directory / f"{name}.tar"), "index_digest": archive_image(directory / f"{name}.tar", expected)}
+        for name in components()
+    }
+    (directory / "metadata.json").write_text(json.dumps({"schema_version": 2, "binding": expected, "images": images}, indent=2) + "\n")
     verify(directory)
 
 
-def load(directory=DIST):
-    metadata = verify(directory)
-    for name in components():
-        subprocess.run(["docker", "image", "load", "--input", str(directory / f"{name}.tar")], check=True)
-        loaded_image_id(directory, name, metadata)
+class Registry:
+    def __init__(self, base, repository, credentials):
+        self.base, self.repository, self.token = base, repository, None
+        if credentials:
+            basic = base64.b64encode(":".join(credentials).encode()).decode()
+            scope = f"repository:{repository}:push,pull"
+            with self.open("GET", f"{base}/token?service=ghcr.io&scope={scope}", {"Authorization": f"Basic {basic}"}) as response:
+                self.token = json.load(response)["token"]
+
+    def open(self, method, url, headers=None, body=None, length=None):
+        headers = dict(headers or {})
+        if self.token:
+            headers["Authorization"] = f"Bearer {self.token}"
+        if body is not None:
+            headers["Content-Length"] = str(length)
+        return urllib.request.urlopen(urllib.request.Request(url, data=body, headers=headers, method=method))
+
+    def has_blob(self, digest_value):
+        try:
+            self.open("HEAD", f"{self.base}/v2/{self.repository}/blobs/{digest_value}").close()
+            return True
+        except urllib.error.HTTPError as error:
+            if error.code == 404:
+                return False
+            raise
+
+    def upload_blob(self, digest_value, stream, size):
+        if self.has_blob(digest_value):
+            return
+        with self.open("POST", f"{self.base}/v2/{self.repository}/blobs/uploads/", body=b"", length=0) as response:
+            location = response.headers["Location"]
+        location = urllib.parse.urljoin(self.base + "/", location)
+        separator = "&" if "?" in location else "?"
+        headers = {"Content-Type": "application/octet-stream"}
+        self.open("PUT", f"{location}{separator}digest={digest_value}", headers, stream, size).close()
+
+    def put_manifest(self, reference, media_type, content):
+        self.open(
+            "PUT", f"{self.base}/v2/{self.repository}/manifests/{reference}", {"Content-Type": media_type}, content, len(content)
+        ).close()
+
+    def manifest_digest(self, reference):
+        headers = {"Accept": INDEX}
+        with self.open("HEAD", f"{self.base}/v2/{self.repository}/manifests/{reference}", headers) as response:
+            return response.headers["Docker-Content-Digest"]
 
 
-def loaded_image_id(directory, name, metadata):
-    tag = f"{name}:candidate"
-    engine_id = run("docker", "image", "inspect", "--format", "{{.Id}}", tag)
-    config_digest = archive_image(directory / f"{name}.tar", tag, metadata["binding"], engine_id)
-    if config_digest != metadata["images"][name]["config_digest"]:
-        raise ValueError("Loaded image differs from verified candidate")
-    return engine_id
+def credentials():
+    return os.environ["GITHUB_ACTOR"], os.environ["GITHUB_TOKEN"]
+
+
+def push_archive(path, registry, tags):
+    """Copies the blobs and manifests of the verified archive unchanged, so the pushed index keeps its digest."""
+    with tarfile.open(path, "r:") as archive:
+        layout = Layout(archive)
+        with archive.extractfile(layout.members["index.json"]) as stream:
+            root = json.load(stream)["manifests"][0]
+        index = layout.json(root, INDEX)
+        manifests = {descriptor["digest"]: descriptor for descriptor in index["manifests"]}
+        for name, member in layout.members.items():
+            blob_digest = "sha256:" + name.removeprefix("blobs/sha256/")
+            if name.startswith("blobs/sha256/") and member.isfile() and blob_digest not in manifests and blob_digest != root["digest"]:
+                with archive.extractfile(member) as stream:
+                    registry.upload_blob(blob_digest, stream, member.size)
+        for descriptor in manifests.values():
+            with archive.extractfile(layout.blob(descriptor)) as stream:
+                registry.put_manifest(descriptor["digest"], descriptor["mediaType"], stream.read())
+        with archive.extractfile(layout.blob(root)) as stream:
+            content = stream.read()
+        for tag in tags:
+            registry.put_manifest(tag, INDEX, content)
+        for tag in tags:
+            if registry.manifest_digest(tag) != root["digest"]:
+                raise ValueError("Published image differs from the verified candidate")
 
 
 def push(directory=DIST):
     metadata = verify(directory)
     for name in components():
-        image_id = loaded_image_id(directory, name, metadata)
-        target = f"ghcr.io/{owner()}/{name}:v{metadata['binding']['version']}"
-        subprocess.run(["docker", "image", "tag", image_id, target], check=True)
-        subprocess.run(["docker", "image", "push", target], check=True)
-        latest = f"ghcr.io/{owner()}/{name}:latest"
-        subprocess.run(["docker", "image", "tag", image_id, latest], check=True)
-        subprocess.run(["docker", "image", "push", latest], check=True)
-        manifest = json.loads(run("docker", "buildx", "imagetools", "inspect", "--raw", target))
-        if manifest["config"]["digest"] != metadata["images"][name]["config_digest"]:
-            raise ValueError("Published image differs from the verified candidate")
+        repository = f"{owner()}/{name}"
+        registry = Registry(REGISTRY, repository, credentials())
+        tags = [f"v{metadata['binding']['version']}", "latest"]
+        push_archive(directory / f"{name}.tar", registry, tags)
 
 
 def main():
-    commands = {"export": export, "verify": verify, "load": load, "push": push}
+    commands = {"export": export, "verify": verify, "push": push}
     if len(sys.argv) != 2 or sys.argv[1] not in commands:
-        raise SystemExit("Usage: release_image.py export|verify|load|push")
+        raise SystemExit("Usage: release_image.py export|verify|push")
     try:
         commands[sys.argv[1]]()
     except (OSError, KeyError, ValueError, subprocess.SubprocessError) as error:

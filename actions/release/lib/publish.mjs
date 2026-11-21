@@ -10,11 +10,11 @@ import { developmentVersion } from "./version.mjs";
 
 const IMAGE_SCRIPT = fileURLToPath(new URL("./release_image.py", import.meta.url));
 
-/** Publishing container images verifies the candidate archives, loads the images before the tag and pushes them after it. */
+/** Publishing container images verifies the candidate archives and copies them unchanged to the registry after the tag. */
 export function hooksFor(images) {
   if (!images.length) return {};
   const command = operation => `python3 -B "${IMAGE_SCRIPT}" ${operation}`;
-  return { verify: command("verify"), prepare: command("load"), publish: command("push") };
+  return { verify: command("verify"), publish: command("push") };
 }
 
 /**
