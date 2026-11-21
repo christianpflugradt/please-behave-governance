@@ -66,12 +66,14 @@ class ReleaseWorkflowTests(unittest.TestCase):
     def test_standard_workflow_passes(self):
         self.assertEqual(mod.violations(WORKFLOW), [])
 
-    def test_image_publication_passes_with_packages_write(self):
+    def test_image_publication_passes_with_the_attestation_permissions(self):
         def images(d):
-            d["jobs"]["publish"]["permissions"] = {"contents": "write", "packages": "write"}
+            d["jobs"]["publish"]["permissions"] = {"contents": "write", "packages": "write", "id-token": "write", "attestations": "write"}
             d["jobs"]["publish"]["steps"][1]["uses"] = f"{G}/actions/release/publish-image@{SHA}"
 
         self.assertEqual(changed(images), [])
+        self.assertTrue(changed(lambda d: (images(d), d["jobs"]["publish"]["permissions"].pop("attestations"))))
+        self.assertTrue(changed(lambda d: d["jobs"]["publish"]["permissions"].update(packages="write")))
 
     def test_matrix_candidate_and_schedule_pass(self):
         def matrix(d):

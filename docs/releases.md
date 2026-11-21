@@ -26,7 +26,7 @@ the jobs `plan` and `release-readiness`, which call the shared workflows `releas
 `release-readiness.yml` pinned to a full commit SHA, then `release-candidate` and `publish`. Readiness and
 candidate need only `plan` and run in parallel; the candidate runs the shared `governance` action and records the
 candidate with `evidence`; `publish` needs all three, verifies the evidence and publishes once with `publish-release`
-(files) or `publish-image` (images). The check also requires `.github/release-artifacts.json` and rejects an own
+(files) or `publish-image` (images, which also attests them and needs `packages`, `id-token` and `attestations` write permission). The check also requires `.github/release-artifacts.json` and rejects an own
 Semantic Release configuration. It judges structure only; what the candidate builds and verifies stays local.
 
 ## Release policy

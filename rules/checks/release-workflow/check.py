@@ -249,8 +249,11 @@ def publish_violations(job):
         ],
     )
     writes = {key for key, value in as_dict(job.get("permissions")).items() if value == "write"}
-    if "contents" not in writes or writes - {"contents", "packages"}:
-        found.append("job publish must have contents: write, and packages: write only when it publishes images")
+    if any(uses_governance(s, f"{ACTIONS}/publish-image") for s in steps(job)):
+        if writes != {"contents", "packages", "id-token", "attestations"}:
+            found.append("job publish must have exactly contents, packages, id-token and attestations: write when it publishes images")
+    elif writes != {"contents"}:
+        found.append("job publish must have exactly contents: write when it publishes files")
     return found
 
 

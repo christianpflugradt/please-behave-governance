@@ -13,12 +13,19 @@ runs:
     - name: Read the images of the candidate
       id: images
       shell: bash
+      env:
+        OWNER: ${{ github.repository_owner }}
       run: |
-        {
-          echo 'names<<RELEASE_IMAGE_NAMES_END'
-          python3 -c "import json; print(*json.load(open('dist/metadata.json'))['images'], sep='\n')"
-          echo 'RELEASE_IMAGE_NAMES_END'
-        } >> "$GITHUB_OUTPUT"
+        python3 - >> "$GITHUB_OUTPUT" <<'PY'
+        import json, os
+        images = json.load(open("dist/metadata.json"))["images"]
+        if len(images) > 4:
+            raise SystemExit("At most four images can be attested per release")
+        print("names<<RELEASE_IMAGE_NAMES_END", *images, "RELEASE_IMAGE_NAMES_END", sep="\n")
+        for number, (name, receipt) in enumerate(images.items(), 1):
+            print(f"subject_{number}=ghcr.io/{os.environ['OWNER'].lower()}/{name}")
+            print(f"digest_{number}={receipt['index_digest']}")
+        PY
     - name: Install the release tooling
       shell: bash
       run: npm ci --ignore-scripts --omit=dev --no-audit --no-fund --prefix "$ACTION_ROOT"
@@ -35,3 +42,35 @@ runs:
         GITHUB_ACTOR: ${{ github.actor }}
         GITHUB_TOKEN: ${{ github.token }}
         GH_TOKEN: ${{ github.token }}
+    - name: Attest the first published image
+      if: steps.images.outputs.subject_1 != ''
+      uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+      with:
+        subject-name: ${{ steps.images.outputs.subject_1 }}
+        subject-digest: ${{ steps.images.outputs.digest_1 }}
+        push-to-registry: true
+        create-storage-record: false
+    - name: Attest the second published image
+      if: steps.images.outputs.subject_2 != ''
+      uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+      with:
+        subject-name: ${{ steps.images.outputs.subject_2 }}
+        subject-digest: ${{ steps.images.outputs.digest_2 }}
+        push-to-registry: true
+        create-storage-record: false
+    - name: Attest the third published image
+      if: steps.images.outputs.subject_3 != ''
+      uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+      with:
+        subject-name: ${{ steps.images.outputs.subject_3 }}
+        subject-digest: ${{ steps.images.outputs.digest_3 }}
+        push-to-registry: true
+        create-storage-record: false
+    - name: Attest the fourth published image
+      if: steps.images.outputs.subject_4 != ''
+      uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+      with:
+        subject-name: ${{ steps.images.outputs.subject_4 }}
+        subject-digest: ${{ steps.images.outputs.digest_4 }}
+        push-to-registry: true
+        create-storage-record: false

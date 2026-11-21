@@ -127,7 +127,11 @@ A repository publishes either files or images, and each way has its own action i
   candidate is the finished index. `export-image` verifies the archives, identifies each image by the digest of its index and writes
   `dist/metadata.json`, which the evidence policy lists. `publish-image` verifies the archives again and, after the tag, copies the
   archived blobs and manifests unchanged to `:v<version>` and `:latest`, so the published digest is the candidate's. It needs no
-  Docker daemon and builds nothing. The calling job grants `packages: write`. Images are published with official releases only.
+  Docker daemon and builds nothing. After the release it attests each published index with `actions/attest`: a signed SLSA build provenance bound to the workflow
+  identity and pushed to the registry next to the image (at most four images per release; a failed attestation fails the job).
+  Verify an image with `gh attestation verify oci://ghcr.io/<owner>/<name>@<index digest> --owner <owner>`. Attestations need a public
+  repository (or GitHub Enterprise Cloud). The calling job grants `contents`, `packages`, `id-token` and `attestations: write`, and
+  no other write permission. Images are published with official releases only.
 
 ## Updates
 
