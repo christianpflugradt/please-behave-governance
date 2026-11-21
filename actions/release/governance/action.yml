@@ -11,7 +11,7 @@ runs:
       shell: bash
       run: please trust https://github.com/christianpflugradt/please-behave-governance.git
     - name: Verify the repository at the release point
-      uses: please-behave/action@98c72fdf0ff5c1a9ec5b815c07b1a38745e50bc3 # v1.5.2
+      uses: please-behave/action@fc1c4c924225bd14235e7c591106bef5f7d0bf5c # v1.6.0
       with:
         install: 'false'
         sync: 'true'
