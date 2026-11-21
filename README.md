@@ -51,7 +51,7 @@ in deviating. And weigh what cannot be undone more heavily than what can, as wit
 exposing a private repository.
 
 Every Rule and Rule Set states why it exists in a `rule.yaml` or `ruleset.yaml` next to
-its definition, following the [rule knowledge schemas](https://github.com/please-behave/cli/tree/main/knowledge/contracts/rule-knowledge).
+its definition, following the [rule knowledge schemas](https://github.com/please-behave/cli/tree/main/why/contracts/rule-knowledge).
 
 ## Layout
 
