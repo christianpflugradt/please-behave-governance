@@ -35,6 +35,7 @@ jobs:
       - name: Install project tools
         uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
         with:
+          experimental: true
           install_args: python
       - name: Verify exact-source CI prerequisites
         uses: christianpflugradt/please-behave-governance/actions/release/check-ci@23c098e0071e5f564a89f5980ffbd199e114fd29 # updates/actions/release

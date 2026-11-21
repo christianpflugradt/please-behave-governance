@@ -57,6 +57,7 @@ jobs:
       - name: Install project tools
         uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
         with:
+          experimental: true
           install_args: node
       - name: Plan the release without publishing
         id: plan
