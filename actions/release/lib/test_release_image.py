@@ -95,6 +95,15 @@ class CandidateTests(unittest.TestCase):
                     artifacts.verify(self.directory)
                 self.metadata = original
 
+    def test_binding_accepts_a_zero_major_version_and_rejects_malformed_ones(self):
+        for version, valid in (("0.1.0", True), ("1.0.0", True), ("01.0.0", False), ("1.2", False)):
+            with patch.dict(os.environ, self.env | {"EXPECTED_RELEASE_VERSION": version}):
+                if valid:
+                    self.assertEqual(artifacts.binding()["version"], version)
+                else:
+                    with self.assertRaises(ValueError):
+                        artifacts.binding()
+
     def test_missing_or_extra_artifacts_are_rejected(self):
         (self.directory / "extra").write_text("unexpected")
         with self.assertRaises(ValueError):

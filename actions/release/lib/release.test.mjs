@@ -17,6 +17,7 @@ const fakeGit = (head, remote) => (_command, args) => (args[0] === "rev-parse" ?
 test("stable version is read from the tag with or without a prefix", () => {
   assert.equal(stableFromTag("v1.2.3", "v${version}"), "1.2.3");
   assert.equal(stableFromTag("1.2.3", "${version}"), "1.2.3");
+  assert.equal(stableFromTag("v0.1.0", "v${version}"), "0.1.0");
   assert.throws(() => stableFromTag("1.2.3", "v${version}"));
   assert.throws(() => stableFromTag("v1.2.3-dev.1", "v${version}"));
 });

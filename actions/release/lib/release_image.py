@@ -41,7 +41,7 @@ def binding():
     source = os.environ["GITHUB_SHA"]
     run_id = os.environ["GITHUB_RUN_ID"]
     attempt = os.environ["GITHUB_RUN_ATTEMPT"]
-    if not re.fullmatch(r"[1-9]\d*\.\d+\.\d+", version):
+    if not re.fullmatch(r"(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)", version):
         raise ValueError("Expected a stable-series semantic release version")
     if not re.fullmatch(r"[0-9a-f]{40}", source):
         raise ValueError("Invalid source SHA")

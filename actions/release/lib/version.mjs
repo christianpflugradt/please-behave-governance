@@ -1,4 +1,4 @@
-const STABLE = /^[1-9][0-9]*\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$/;
+const STABLE = /^(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)$/;
 
 /** The plain stable version inside a release tag such as `v1.2.3` (tag format `v${version}`) or `1.2.3`. */
 export function stableFromTag(tag, tagFormat) {
