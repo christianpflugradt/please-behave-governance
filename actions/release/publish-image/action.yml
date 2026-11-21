@@ -10,6 +10,12 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Log in to the GitHub Container Registry
+      uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ github.token }}
     - name: Read the images of the candidate
       id: images
       shell: bash
