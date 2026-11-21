@@ -58,6 +58,18 @@
         "\\brunner:\\n(?:[ \\t]+(?:description|type):[^\\n]*\\n)*[ \\t]+default:[ \\t]*['\"]?(?<depName>ubuntu|macos|windows)-(?<currentValue>\\d+(?:\\.\\d+)*)['\"]?"
       ],
       "datasourceTemplate": "github-runners"
+    },
+    {
+      "customType": "regex",
+      "description": "Track the mise version that jdx/mise-action installs, pinned in the workflows on the default branch.",
+      "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
+      "matchStrings": [
+        "uses:\\s*jdx/mise-action@[0-9a-f]{40}[^\\n]*\\n(?:\\s+[a-z_-]+:[^\\n]*\\n)*?\\s+version:\\s*(?<currentValue>\\d{4}\\.\\d+\\.\\d+)"
+      ],
+      "datasourceTemplate": "github-releases",
+      "packageNameTemplate": "jdx/mise",
+      "depNameTemplate": "mise",
+      "extractVersionTemplate": "^v(?<version>.+)$"
     }
   ],
   "packageRules": [

@@ -23,7 +23,7 @@ includes = [
 
 mise treats including tasks from a `git::` source as experimental and skips the include with a warning unless
 experimental features are enabled. The shared workflows set `experimental: true` on `jdx/mise-action` for that reason, and
-a repository's own workflows that install tools with mise must do the same.
+a repository's own workflows that install tools with mise must do the same. Every `jdx/mise-action` step also pins the mise version with `version:`; the `renovate-governor` preset keeps that version current.
 
 Entries later in the list override earlier ones with the same task name. The `mise-release`
 Check accepts this include in place of a local `[tasks.release]`.

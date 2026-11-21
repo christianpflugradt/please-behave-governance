@@ -59,6 +59,7 @@ jobs:
         with:
           experimental: true
           install_args: node
+          version: 2026.11.11
       - name: Plan the release without publishing
         id: plan
         uses: christianpflugradt/please-behave-governance/actions/release/plan@23c098e0071e5f564a89f5980ffbd199e114fd29 # updates/actions/release

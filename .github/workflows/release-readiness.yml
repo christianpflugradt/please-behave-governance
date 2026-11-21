@@ -37,6 +37,7 @@ jobs:
         with:
           experimental: true
           install_args: python
+          version: 2026.11.11
       - name: Verify exact-source CI prerequisites
         uses: christianpflugradt/please-behave-governance/actions/release/check-ci@23c098e0071e5f564a89f5980ffbd199e114fd29 # updates/actions/release
         with:
