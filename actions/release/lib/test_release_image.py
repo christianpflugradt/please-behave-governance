@@ -252,6 +252,17 @@ class CandidateTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "differs from the verified candidate"):
             artifacts.push_archive(self.directory / "hiitbuddy.tar", registry, ["latest"])
 
+    def test_a_rejected_registry_request_names_the_request_without_its_credentials(self):
+        error = artifacts.urllib.error.HTTPError("https://ghcr.io/v2/o/n/blobs/uploads/?secret=1", 403, "Forbidden", {}, None)
+        with patch.object(artifacts.urllib.request, "urlopen", side_effect=error):
+            with self.assertRaisesRegex(artifacts.RegistryError, r"HTTP 403 to POST /v2/o/n/blobs/uploads/$"):
+                artifacts.Registry("https://ghcr.io", "o/n", None).open("POST", "https://ghcr.io/v2/o/n/blobs/uploads/?secret=1")
+
+    def test_a_missing_blob_is_not_an_error(self):
+        error = artifacts.urllib.error.HTTPError("u", 404, "Not Found", {}, None)
+        with patch.object(artifacts.urllib.request, "urlopen", side_effect=error):
+            self.assertFalse(artifacts.Registry("https://ghcr.io", "o/n", None).has_blob("sha256:" + "a" * 64))
+
     @unittest.skipUnless(shutil.which("docker"), "docker is not available")
     def test_real_buildkit_output_is_accepted(self):
         context = self.directory / "context"

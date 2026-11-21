@@ -191,6 +191,12 @@ def export(directory=DIST):
     verify(directory)
 
 
+class RegistryError(ValueError):
+    def __init__(self, code, message):
+        super().__init__(message)
+        self.code = code
+
+
 class Registry:
     def __init__(self, base, repository, credentials):
         self.base, self.repository, self.token = base, repository, None
@@ -206,13 +212,18 @@ class Registry:
             headers["Authorization"] = f"Bearer {self.token}"
         if body is not None:
             headers["Content-Length"] = str(length)
-        return urllib.request.urlopen(urllib.request.Request(url, data=body, headers=headers, method=method))
+        try:
+            return urllib.request.urlopen(urllib.request.Request(url, data=body, headers=headers, method=method))
+        except urllib.error.HTTPError as error:
+            raise RegistryError(
+                error.code, f"The registry answered HTTP {error.code} to {method} {urllib.parse.urlsplit(url).path}"
+            ) from None
 
     def has_blob(self, digest_value):
         try:
             self.open("HEAD", f"{self.base}/v2/{self.repository}/blobs/{digest_value}").close()
             return True
-        except urllib.error.HTTPError as error:
+        except RegistryError as error:
             if error.code == 404:
                 return False
             raise
