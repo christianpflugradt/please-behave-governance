@@ -70,6 +70,7 @@ class ReleaseWorkflowTests(unittest.TestCase):
         def images(d):
             d["jobs"]["publish"]["permissions"] = {"contents": "write", "packages": "write", "id-token": "write", "attestations": "write"}
             d["jobs"]["publish"]["steps"][1]["uses"] = f"{G}/actions/release/publish-image@{SHA}"
+            d["jobs"]["release-candidate"]["steps"].insert(1, {"uses": f"{G}/actions/release/check-image@{SHA}"})
 
         self.assertEqual(changed(images), [])
         self.assertTrue(changed(lambda d: (images(d), d["jobs"]["publish"]["permissions"].pop("attestations"))))
@@ -146,6 +147,23 @@ class ReleaseWorkflowTests(unittest.TestCase):
         self.assertTrue(changed(lambda d: d["jobs"]["publish"]["steps"].append(copy.deepcopy(d["jobs"]["publish"]["steps"][1]))))
         self.assertTrue(changed(lambda d: d["jobs"]["publish"].update(permissions={"contents": "write", "actions": "write"})))
         self.assertTrue(changed(lambda d: d["jobs"]["publish"].update(permissions={"contents": "read"})))
+
+    def test_an_image_repository_checks_its_archives_in_every_candidate_job(self):
+        def images(d):
+            d["jobs"]["publish"]["permissions"] = {"contents": "write", "packages": "write", "id-token": "write", "attestations": "write"}
+            d["jobs"]["publish"]["steps"][1]["uses"] = f"{G}/actions/release/publish-image@{SHA}"
+
+        def checked(d):
+            images(d)
+            d["jobs"]["release-candidate"]["steps"].insert(1, {"uses": f"{G}/actions/release/check-image@{SHA}"})
+
+        self.assertTrue(changed(images))
+        self.assertEqual(changed(checked), [])
+        self.assertTrue(changed(lambda d: (checked(d), d["jobs"]["release-candidate"]["steps"].reverse())))
+
+    def test_a_renamed_or_removed_release_action_is_reported(self):
+        stale = lambda d: d["jobs"]["release-candidate"]["steps"].insert(1, {"uses": f"{G}/actions/release/export-image@{SHA}"})
+        self.assertTrue(any("export-image" in message for message in changed(stale)))
 
     def test_no_own_semantic_release_and_pins(self):
         self.assertTrue(changed(lambda d: d["jobs"]["publish"]["steps"].append({"run": "npx semantic-release"})))

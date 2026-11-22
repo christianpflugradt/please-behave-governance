@@ -162,6 +162,7 @@ READINESS = ".github/workflows/release-readiness.yml"
 ACTIONS = "actions/release"
 REQUIRED_JOBS = {"plan", "release-readiness", "release-candidate", "publish"}
 CANDIDATE_JOB = re.compile(r"release-candidate(-[a-z0-9]+)*")
+KNOWN_ACTIONS = {"check-ci", "check-image", "evidence", "governance", "plan", "publish-image", "publish-release"}
 FORBIDDEN_FILES = ("release.config.*", ".releaserc*")
 
 
@@ -214,7 +215,7 @@ def writes_of(job):
     return {key for key, value in as_dict(job.get("permissions")).items() if value == "write"}
 
 
-def candidate_violations(job_id, job):
+def candidate_violations(job_id, job, publishes_images):
     found = []
     if not needs(job) or "plan" not in needs(job) or not all(need == "plan" or CANDIDATE_JOB.fullmatch(need) for need in needs(job)):
         found.append(
@@ -222,15 +223,13 @@ def candidate_violations(job_id, job):
         )
     if writes_of(job):
         found.append(f"job {job_id} must not have write permissions; only publish may publish")
-    found += expect_steps(
-        job_id,
-        job,
-        [
-            (f"{ACTIONS}/governance pinned to a full commit SHA", lambda s: uses_governance(s, f"{ACTIONS}/governance")),
-            ("the evidence action with operation record", lambda s: operation(s, "record")),
-        ],
-    )
-    return found
+    expected = [(f"{ACTIONS}/governance pinned to a full commit SHA", lambda s: uses_governance(s, f"{ACTIONS}/governance"))]
+    if publishes_images:
+        expected.append(
+            (f"{ACTIONS}/check-image, because the repository publishes images", lambda s: uses_governance(s, f"{ACTIONS}/check-image"))
+        )
+    expected.append(("the evidence action with operation record", lambda s: operation(s, "record")))
+    return found + expect_steps(job_id, job, expected)
 
 
 def publish_violations(job, others):
@@ -287,8 +286,9 @@ def violations(document):
         )
         return found + common(document)
     found += plan_violations(listed["plan"]) + readiness_violations(listed["release-readiness"])
+    publishes_images = has_step(listed["publish"], lambda s: uses_governance(s, f"{ACTIONS}/publish-image"))
     for job_id in sorted(candidates):
-        found += candidate_violations(job_id, listed[job_id])
+        found += candidate_violations(job_id, listed[job_id], publishes_images)
     found += publish_violations(listed["publish"], set(listed) - {"publish"})
     for job_id, job in listed.items():
         for step in steps(job):
@@ -296,6 +296,9 @@ def violations(document):
                 found.append(f"job {job_id} must not run Semantic Release itself; the shared actions do")
             if str(step.get("uses", "")).startswith(GOVERNANCE) and not re.search(r"@[0-9a-f]{40}", str(step["uses"])):
                 found.append(f"job {job_id} uses a governance action without a full commit SHA")
+            action = re.fullmatch(rf"{re.escape(GOVERNANCE)}/{re.escape(ACTIONS)}/([a-z-]+)@.*", str(step.get("uses", "")))
+            if action and action[1] not in KNOWN_ACTIONS:
+                found.append(f"job {job_id} uses the unknown release action {action[1]}; it was renamed or removed")
     return found + common(document)
 
 

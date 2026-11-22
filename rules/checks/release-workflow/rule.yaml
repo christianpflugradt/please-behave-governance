@@ -23,6 +23,8 @@ conditions:
     rationale: A job that cannot write cannot publish, so a repository cannot go around the shared publication, and the permissions of the publication are no wider than it needs.
   - statement: publish needs every other job, runs only when they all succeeded, verifies the evidence and publishes exactly once with publish-release or publish-image.
     rationale: Only a complete and verified candidate is published, as files or as images, nothing runs after or beside the publication, and never both ways at once.
+  - statement: A repository that publishes images runs the shared check-image action in every candidate job, and no step uses a release action that does not exist.
+    rationale: The platform archives are verified where they are built, and a pin that moves to a renamed or removed action is reported at the pin update instead of at the next release.
   - statement: Steps must not run Semantic Release themselves, and release.config.*, .releaserc* and a release key in package.json do not exist.
     rationale: The shared actions own the release policy, and a second one in the repository would silently take precedence.
   - statement: .github/release-artifacts.json is an object with root and a non-empty targets.
