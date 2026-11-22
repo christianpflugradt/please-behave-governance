@@ -21,13 +21,21 @@ the remote `main`, never on local state.
 
 ## Release workflow
 
-The blocking `release-workflow` Check requires `.github/workflows/release.yml` in the standard flow:
-the jobs `plan` and `release-readiness`, which call the shared workflows `release-plan.yml` and
-`release-readiness.yml` pinned to a full commit SHA, then `release-candidate` and `publish`. Readiness and
-candidate need only `plan` and run in parallel; the candidate runs the shared `governance` action and records the
-candidate with `evidence`; `publish` needs all three, verifies the evidence and publishes once with `publish-release`
-(files) or `publish-image` (images, which also attests them and needs `packages`, `id-token` and `attestations` write permission). The check also requires `.github/release-artifacts.json` and rejects an own
-Semantic Release configuration. It judges structure only; what the candidate builds and verifies stays local.
+The blocking `release-workflow` Check keeps every release on the shared machinery, whatever a repository builds. It requires
+`.github/workflows/release.yml` to hold the jobs `plan`, `release-readiness`, `release-candidate` and `publish`, and allows further
+candidate jobs named `release-candidate-<name>`. These invariants decide:
+
+- `plan` and `release-readiness` call the shared workflows `release-plan.yml` and `release-readiness.yml`, pinned to a full commit SHA.
+  Readiness and every candidate job need `plan` and run in parallel.
+- Every candidate job (a matrix counts as one job) runs the shared `governance` action and records its files with `evidence`.
+  A candidate job has no write permission: only `publish` publishes.
+- `publish` needs every other job, runs only when all of them succeeded, verifies the evidence and publishes exactly once with
+  `publish-release` (files, `contents: write`) or `publish-image` (images; it also attests them and needs `contents`, `packages`,
+  `id-token` and `attestations` write permission, and no other).
+- The workflow starts only on `workflow_dispatch`, and no step runs Semantic Release itself.
+
+The check also requires `.github/release-artifacts.json` and rejects an own Semantic Release configuration. It judges structure
+only; what the candidate builds and verifies stays local.
 
 ## Release policy
 

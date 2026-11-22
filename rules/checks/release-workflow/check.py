@@ -1,4 +1,4 @@
-"""Require the shared structure of release.yml: the shared plan and readiness workflows, a candidate job and a publish job."""
+"""Require the shared structure of release.yml: the shared plan and readiness workflows, candidate jobs and the only job that publishes."""
 
 import fnmatch
 import json
@@ -160,7 +160,8 @@ GOVERNANCE = "christianpflugradt/please-behave-governance"
 PLAN = ".github/workflows/release-plan.yml"
 READINESS = ".github/workflows/release-readiness.yml"
 ACTIONS = "actions/release"
-JOBS = {"plan", "release-readiness", "release-candidate", "publish"}
+REQUIRED_JOBS = {"plan", "release-readiness", "release-candidate", "publish"}
+CANDIDATE_JOB = re.compile(r"release-candidate(-[a-z0-9]+)*")
 FORBIDDEN_FILES = ("release.config.*", ".releaserc*")
 
 
@@ -209,12 +210,20 @@ def readiness_violations(job):
     return found
 
 
-def candidate_violations(job):
+def writes_of(job):
+    return {key for key, value in as_dict(job.get("permissions")).items() if value == "write"}
+
+
+def candidate_violations(job_id, job):
     found = []
-    if needs(job) != {"plan"}:
-        found.append("job release-candidate must need plan only, so that it runs in parallel with release-readiness")
+    if not needs(job) or "plan" not in needs(job) or not all(need == "plan" or CANDIDATE_JOB.fullmatch(need) for need in needs(job)):
+        found.append(
+            f"job {job_id} must need plan, and otherwise only other candidate jobs, so that it runs in parallel with release-readiness"
+        )
+    if writes_of(job):
+        found.append(f"job {job_id} must not have write permissions; only publish may publish")
     found += expect_steps(
-        "release-candidate",
+        job_id,
         job,
         [
             (f"{ACTIONS}/governance pinned to a full commit SHA", lambda s: uses_governance(s, f"{ACTIONS}/governance")),
@@ -224,12 +233,12 @@ def candidate_violations(job):
     return found
 
 
-def publish_violations(job):
+def publish_violations(job, others):
     found = []
-    if needs(job) != {"plan", "release-readiness", "release-candidate"}:
-        found.append("job publish must need plan, release-readiness and release-candidate")
+    if needs(job) != others:
+        found.append("job publish must need every other job, so that nothing runs after or beside the publication")
     condition = str(job.get("if", ""))
-    for name in ("release-readiness", "release-candidate"):
+    for name in sorted(others - {"plan"}):
         if f"needs.{name}.result == 'success'" not in condition:
             found.append(f"job publish must run only when {name} succeeded")
     publishing = [
@@ -248,7 +257,7 @@ def publish_violations(job):
             ),
         ],
     )
-    writes = {key for key, value in as_dict(job.get("permissions")).items() if value == "write"}
+    writes = writes_of(job)
     if any(uses_governance(s, f"{ACTIONS}/publish-image") for s in steps(job)):
         if writes != {"contents", "packages", "id-token", "attestations"}:
             found.append("job publish must have exactly contents, packages, id-token and attestations: write when it publishes images")
@@ -270,11 +279,17 @@ def violations(document):
     if concurrency.get("group") != "release-main" or flag(concurrency.get("cancel-in-progress")) != "false":
         found.append("concurrency must be group release-main without cancel-in-progress")
     listed = jobs(document)
-    if set(listed) != JOBS:
-        found.append(f"jobs must be exactly {', '.join(sorted(JOBS))}")
+    candidates = {job_id for job_id in listed if CANDIDATE_JOB.fullmatch(job_id)}
+    unexpected = set(listed) - REQUIRED_JOBS - candidates
+    if not REQUIRED_JOBS <= set(listed) or unexpected:
+        found.append(
+            f"jobs must be {', '.join(sorted(REQUIRED_JOBS))} and, if needed, further candidate jobs named release-candidate-<name>"
+        )
         return found + common(document)
     found += plan_violations(listed["plan"]) + readiness_violations(listed["release-readiness"])
-    found += candidate_violations(listed["release-candidate"]) + publish_violations(listed["publish"])
+    for job_id in sorted(candidates):
+        found += candidate_violations(job_id, listed[job_id])
+    found += publish_violations(listed["publish"], set(listed) - {"publish"})
     for job_id, job in listed.items():
         for step in steps(job):
             if re.search(r"semantic-release|npm run release", str(step.get("run", ""))):

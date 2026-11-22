@@ -11,16 +11,18 @@ value: >-
 conditions:
   - statement: .github/workflows/release.yml exists, is called Release, runs on workflow_dispatch and never on push or pull requests.
     rationale: Releases start deliberately, and a workflow that reacts to pushes would publish without anyone deciding to.
-  - statement: The workflow has exactly the jobs plan, release-readiness, release-candidate and publish.
-    rationale: One recognizable flow lets people and agents find the same job in every repository.
+  - statement: The workflow has the jobs plan, release-readiness, release-candidate and publish, and may have further candidate jobs named release-candidate-<name>.
+    rationale: One recognizable flow lets people and agents find the same job in every repository, while a repository can split its candidate, for example by platform.
   - statement: plan and release-readiness call the shared workflows release-plan.yml and release-readiness.yml, pinned to a full commit SHA.
     rationale: Version calculation and the proof of CI exist once, and a pinned reference cannot change under a repository.
-  - statement: release-readiness and release-candidate need only plan, so that they run in parallel.
+  - statement: release-readiness and every candidate job need plan, and candidate jobs otherwise only other candidate jobs, so that readiness and candidates run in parallel.
     rationale: The proof of CI and the build of the candidate do not depend on each other, and sequencing them would only delay releases.
-  - statement: release-candidate runs the shared governance action and records the candidate with the evidence action.
+  - statement: Every candidate job runs the shared governance action and records its files with the evidence action.
     rationale: The candidate is checked at the release point and bound to its source and version, whatever the repository builds.
-  - statement: publish needs plan, release-readiness and release-candidate, verifies the evidence and publishes exactly once with publish-release or publish-image.
-    rationale: Only a complete and verified candidate is published, as files or as images, and never both ways at once.
+  - statement: Apart from plan, only publish has write permissions; with publish-release exactly contents, and with publish-image exactly contents, packages, id-token and attestations.
+    rationale: A job that cannot write cannot publish, so a repository cannot go around the shared publication, and the permissions of the publication are no wider than it needs.
+  - statement: publish needs every other job, runs only when they all succeeded, verifies the evidence and publishes exactly once with publish-release or publish-image.
+    rationale: Only a complete and verified candidate is published, as files or as images, nothing runs after or beside the publication, and never both ways at once.
   - statement: Steps must not run Semantic Release themselves, and release.config.*, .releaserc* and a release key in package.json do not exist.
     rationale: The shared actions own the release policy, and a second one in the repository would silently take precedence.
   - statement: .github/release-artifacts.json is an object with root and a non-empty targets.
@@ -36,6 +38,7 @@ out_of_scope:
 limitations:
   - Only structure is verified, so a candidate job that builds nothing still passes.
   - Matrix candidate jobs are allowed but not judged, so the matrix content is up to the repository.
+  - The names of further candidate jobs are only checked against the release-candidate-<name> pattern.
 placement: >-
   The flow is common to all repositories that release through the shared machinery, while the candidate
   content differs per product; sharing the structure and leaving the content local keeps releases uniform

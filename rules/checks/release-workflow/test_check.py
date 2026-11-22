@@ -89,7 +89,32 @@ class ReleaseWorkflowTests(unittest.TestCase):
         self.assertTrue(changed(lambda d: d["concurrency"].update(group="release")))
         self.assertTrue(changed(lambda d: d.update(name="Publish")))
 
-    def test_jobs_are_exactly_the_standard_four(self):
+    def test_further_candidate_jobs_are_allowed_when_publish_needs_them(self):
+        def further(d):
+            d["jobs"]["release-candidate-arm"] = copy.deepcopy(d["jobs"]["release-candidate"])
+            d["jobs"]["publish"]["needs"].append("release-candidate-arm")
+            d["jobs"]["publish"]["if"] += " && needs.release-candidate-arm.result == 'success'"
+
+        self.assertEqual(changed(further), [])
+        self.assertTrue(
+            changed(lambda d: (further(d), d["jobs"]["publish"].update(needs=["plan", "release-readiness", "release-candidate"])))
+        )
+        self.assertTrue(
+            changed(
+                lambda d: (
+                    further(d),
+                    d["jobs"]["publish"].update(**{"if": d["jobs"]["publish"]["if"].split(" && needs.release-candidate-arm")[0]}),
+                )
+            )
+        )
+        self.assertTrue(changed(lambda d: (further(d), d["jobs"]["release-candidate-arm"]["steps"].pop(0))))
+
+    def test_only_publish_may_write_apart_from_plan(self):
+        self.assertTrue(changed(lambda d: d["jobs"]["release-candidate"].update(permissions={"contents": "write"})))
+        self.assertTrue(changed(lambda d: d["jobs"]["release-candidate"].update(permissions={"packages": "write"})))
+        self.assertEqual(changed(lambda d: d["jobs"]["release-candidate"].update(permissions={"contents": "read"})), [])
+
+    def test_jobs_outside_the_standard_names_are_rejected(self):
         self.assertTrue(changed(lambda d: d["jobs"].pop("release-candidate")))
         self.assertTrue(changed(lambda d: d["jobs"].update(**{"release-smoke": {"runs-on": "x", "timeout-minutes": 1}})))
 
