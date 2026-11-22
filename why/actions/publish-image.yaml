@@ -1,50 +1,61 @@
 purpose: >-
-  Push the verified candidate images to the container registry of GitHub and publish the planned release
-  without files.
+  Assemble the verified platform candidates into one multi-architecture image, push exactly that to the container
+  registry of GitHub, attest it and publish the planned release without files.
 problem: >-
   Publishing images by rebuilding them, or by pushing before the release is certain, can put an untested
   image under a version tag, or leave a registry with images of a release that was never created.
 value: >-
-  The registry receives exactly the verified candidate images, tagged with the planned version only when the
-  release proceeds.
+  The registry receives exactly the verified candidate, as one image for every platform, tagged with the planned
+  version only when the release proceeds, and the published digest carries a signed provenance.
 principles:
   - principle: predictability
-    how: The archives are verified before anything is loaded or pushed, and the pushed digest is compared with the candidate.
+    how: The archives are verified and assembled before the tag exists, and the pushed digest is compared with the assembled one.
   - principle: reproducibility
-    how: Images are loaded from the verified archives, and nothing is built at publication.
+    how: The index is assembled deterministically from the verified archives, and nothing is built at publication.
   - principle: consistency
-    how: Every repository that ships images publishes them the same way.
+    how: Every repository that ships images publishes them the same way, for the same platforms, with the same attestation.
   - principle: frugality
-    how: The names are read from the receipt, so the list exists once, and the login uses the job token.
+    how: The names are read from the archives, so the list exists once, and the login uses the job token.
 steps:
   - step: Log in to the registry with the job token.
-    why: The login belongs to the pushing step, so no repository handles registry credentials.
-  - step: Read the image names from the candidate's receipt.
-    why: The list was given once, to the export, and a second copy could differ from it.
-  - step: Load the verified images before the tag exists, push the version and the latest tags after it, and compare digests.
+    why: The login belongs to the pushing step, so no repository handles registry credentials, and the attestation reads it.
+  - step: Verify the platform archives, assemble the index of each image and read the names and digests.
+    why: The names come from the archives that evidence restored and bound, and a second list could differ from them.
+  - step: Verify again before the tag exists, push the blobs and manifests and the version and latest tags after it, and compare digests.
     why: >-
-      Loading first proves that the archives are loadable before the release is created. Pushing after the tag
-      means the registry gets images only for a release that exists.
+      Assembling before the tag proves that the candidate is complete before the release is created. Pushing after
+      the tag means the registry gets images only for a release that exists.
+  - step: Attest every published index with a signed build provenance.
+    why: The provenance in the image is unsigned, and the attestation binds the digest to the workflow that published it.
 decisions:
-  - decision: The image names are read from the receipt that the export wrote and that the evidence bound.
-    why: A second list in the publishing job could differ from the first, and the receipt is already verified.
+  - decision: The image names are read from the platform archives that the evidence bound.
+    why: A second list in the publishing job could differ from the first, and the archives are already verified.
+  - decision: The index is assembled here, from the verified platform archives, and not in a job of its own.
+    why: >-
+      The verification before the tag already refuses an incomplete candidate before anything is published, so a job
+      for the assembly would add machinery but no safety.
+    rejected: A shared workflow that assembles the candidate and records it as one more target. It adds a job and an evidence target without finding anything earlier.
+  - decision: Blobs and manifests are copied unchanged, and the published digest must equal the assembled one.
+    why: A registry or a tag that points to something else is the failure that this action exists to catch.
   - decision: Images are published with official releases only.
     why: The latest tag must move only for official releases, and a development prerelease is not meant to be pulled.
-  - decision: The pushed image is compared with the candidate by its configuration digest.
-    why: A registry or a tag that points to something else is the failure that this action exists to catch.
+  - decision: The attestation is signed with GitHub's artifact attestations and pushed to the registry.
+    why: It needs no tool beyond the shared action, and `gh attestation verify` checks it for anyone, for public repositories.
+    rejected: Signing with cosign. It would add a tool to every repository.
   - decision: The release is created without files.
     why: The images are the release; files would be a second artifact with a second verification.
 supported_variations:
-  - requirement: A repository ships one image or several.
-    why: The names come from the receipt, so the number does not matter.
+  - requirement: A repository ships one image or several, up to four.
+    why: The names come from the archives, and every attestation is a step of its own because the attesting action takes one subject.
 out_of_scope:
   - description: Building, testing and exporting the images.
-    owner: the candidate job and export-image
+    owner: the candidate jobs and check-image
   - description: Publishing files.
     owner: publish-release
 limitations:
   - The first release of a repository is 0.1.0; publication seeds and removes the same local start tag as the plan, so both agree.
   - It publishes to one registry, the one of the platform the repository lives on.
+  - Attestations need a public repository, or GitHub Enterprise Cloud.
 placement: >-
   Publishing images safely has to be done the same way everywhere, and the order of load, tag and push is the
   part that is easy to get wrong in each repository.
@@ -58,7 +69,7 @@ inputs:
   force: Must equal the plan's value, because a forced plan has no releasable commit that publication could find.
 requirements:
   Node: The tooling is a Node program, so Node has to be on the path.
-  Docker: The job loads and pushes images.
-  packages write: The caller grants it, because pushing to the registry needs it.
+  Python: The assembly and the push are a Python program using only the standard library.
+  permissions: The caller grants contents, packages, id-token and attestations write, because pushing and attesting need them.
 references:
   - actions/release/README.md

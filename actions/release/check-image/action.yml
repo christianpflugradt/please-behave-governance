@@ -1,19 +1,23 @@
-name: Export image candidate
-description: Verify the candidate image archives of a release and write a receipt bound to the version, source and workflow run
+name: Check image candidate
+description: Verify the candidate image archives of one platform before the candidate job records them as evidence
 inputs:
   version:
     description: The version planned by the plan action
     required: true
+  target:
+    description: The candidate target of this job, linux-amd64 or linux-arm64
+    required: true
   images:
-    description: Newline-separated image names; the candidate was built into dist/<name>.tar as an OCI archive for linux/amd64 and linux/arm64 with the OCI labels version (v<version>) and revision, provenance and SBOM
+    description: Newline-separated image names; the candidate job built dist/<name>-<target>.tar for each, an OCI archive of the target platform with the OCI labels version (v<version>) and revision, provenance and SBOM
     required: true
 runs:
   using: composite
   steps:
-    - name: Verify the candidate images and write the receipt
+    - name: Verify the candidate images of the target
       shell: bash
-      run: python3 -B "$ACTION_ROOT/lib/release_image.py" export
+      run: python3 -B "$ACTION_ROOT/lib/release_image.py" check
       env:
         ACTION_ROOT: ${{ github.action_path }}/..
         EXPECTED_RELEASE_VERSION: ${{ inputs.version }}
         RELEASE_IMAGES: ${{ inputs.images }}
+        RELEASE_TARGET: ${{ inputs.target }}

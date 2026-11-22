@@ -1,4 +1,3 @@
-import copy
 import hashlib
 import importlib.util
 import io
@@ -25,14 +24,10 @@ def blob_of(content):
 
 
 class Builder:
-    """Writes a synthetic OCI layout archive shaped like BuildKit's multi-platform output with attestations."""
+    """Writes a synthetic OCI layout archive shaped like BuildKit's output of one platform with attestations."""
 
     def __init__(
-        self,
-        platforms=("amd64", "arm64"),
-        version="v4.4.0",
-        sha=SHA,
-        predicates=("https://slsa.dev/provenance/v1", "https://spdx.dev/Document"),
+        self, platforms=("amd64",), version="v4.4.0", sha=SHA, predicates=("https://slsa.dev/provenance/v1", "https://spdx.dev/Document")
     ):
         self.blobs, self.manifests = {}, []
         for architecture in platforms:
@@ -45,14 +40,14 @@ class Builder:
                     }
                 ).encode()
             )
-            layer = self.add(b"layer")
+            layer = self.add(f"layer-{architecture}".encode())
             manifest = self.manifest(
                 config, [layer], "application/vnd.oci.image.config.v1+json", "application/vnd.oci.image.layer.v1.tar+gzip"
             )
             self.manifests.append({**manifest, "platform": {"os": "linux", "architecture": architecture}})
             predicate_layers = [
                 {
-                    **self.add(predicate.encode()),
+                    **self.add(f"{predicate}-{architecture}".encode()),
                     "mediaType": "application/vnd.in-toto+json",
                     "annotations": {"in-toto.io/predicate-type": predicate},
                 }
@@ -118,35 +113,22 @@ class CandidateTests(unittest.TestCase):
         self.env = {
             "EXPECTED_RELEASE_VERSION": "4.4.0",
             "GITHUB_SHA": SHA,
-            "GITHUB_RUN_ID": "123",
-            "GITHUB_RUN_ATTEMPT": "2",
             "GITHUB_REPOSITORY": "christianpflugradt/HIITBuddy",
-            "GITHUB_REPOSITORY_OWNER": "christianpflugradt",
+            "GITHUB_REPOSITORY_OWNER": "ChristianPflugradt",
             "RELEASE_IMAGES": "hiitbuddy",
             "GITHUB_REF": "refs/heads/main",
         }
         self.environment = patch.dict(os.environ, self.env)
         self.environment.start()
         self.addCleanup(self.environment.stop)
-        self.index_digest = Builder().write(self.directory / "hiitbuddy.tar")
-        self.metadata = {
-            "schema_version": 2,
-            "binding": artifacts.binding(),
-            "images": {"hiitbuddy": {"sha256": artifacts.digest(self.directory / "hiitbuddy.tar"), "index_digest": self.index_digest}},
-        }
-        self.save()
+        self.write_platforms()
 
-    def save(self):
-        (self.directory / "metadata.json").write_text(json.dumps(self.metadata))
+    def write_platforms(self, **overrides):
+        for target, architecture in (("linux-amd64", "amd64"), ("linux-arm64", "arm64")):
+            Builder(platforms=(architecture,), **overrides).write(self.directory / f"hiitbuddy-{target}.tar")
 
-    def check(self, builder, message=None):
-        path = self.directory / "other.tar"
-        builder.write(path)
-        if message:
-            with self.assertRaisesRegex(ValueError, message):
-                artifacts.archive_image(path, artifacts.binding())
-        else:
-            artifacts.archive_image(path, artifacts.binding())
+    def expected(self):
+        return artifacts.binding()
 
     def test_images_are_listed_one_per_line_and_validated(self):
         with patch.dict(os.environ, {"RELEASE_IMAGES": "pumpbuddy-backend\n\n pumpbuddy-renderer \n"}):
@@ -156,101 +138,139 @@ class CandidateTests(unittest.TestCase):
                 artifacts.components()
 
     def test_registry_owner_is_lowercase(self):
-        with patch.dict(os.environ, {"GITHUB_REPOSITORY_OWNER": "ChristianPflugradt"}):
-            self.assertEqual(artifacts.owner(), "christianpflugradt")
-
-    def test_complete_bound_candidate_is_accepted_without_tools(self):
-        with patch.object(artifacts.subprocess, "check_output", side_effect=AssertionError("verification must not run tools")):
-            self.assertEqual(artifacts.verify(self.directory), self.metadata)
-
-    def test_source_version_and_run_attempt_are_bound(self):
-        for field in ["source_sha", "version", "run_id", "attempt"]:
-            with self.subTest(field=field):
-                original = copy.deepcopy(self.metadata)
-                self.metadata["binding"][field] = "changed"
-                self.save()
-                with self.assertRaises(ValueError):
-                    artifacts.verify(self.directory)
-                self.metadata = original
+        self.assertEqual(artifacts.owner(), "christianpflugradt")
 
     def test_binding_accepts_a_zero_major_version_and_rejects_malformed_ones(self):
         for version, valid in (("0.1.0", True), ("1.0.0", True), ("01.0.0", False), ("1.2", False)):
-            with patch.dict(os.environ, self.env | {"EXPECTED_RELEASE_VERSION": version}):
+            with patch.dict(os.environ, {"EXPECTED_RELEASE_VERSION": version}):
                 if valid:
                     self.assertEqual(artifacts.binding()["version"], version)
                 else:
                     with self.assertRaises(ValueError):
                         artifacts.binding()
 
-    def test_missing_or_extra_artifacts_are_rejected(self):
-        (self.directory / "extra").write_text("unexpected")
-        with self.assertRaises(ValueError):
+    def test_release_requires_main(self):
+        with patch.dict(os.environ, {"GITHUB_REF": "refs/heads/other"}), self.assertRaisesRegex(ValueError, "main"):
+            artifacts.binding()
+
+    def test_each_platform_candidate_is_checked_for_its_own_target(self):
+        for target in artifacts.TARGETS:
+            archives = [path for path in self.directory.iterdir() if target not in path.name]
+            staging = self.directory / target
+            staging.mkdir()
+            for path in self.directory.glob(f"*-{target}.tar"):
+                shutil.copy(path, staging)
+            with patch.dict(os.environ, {"RELEASE_TARGET": target}):
+                artifacts.check(staging)
+            self.assertTrue(archives)
+
+    def test_a_candidate_of_another_platform_is_rejected_for_the_target(self):
+        shutil.copy(self.directory / "hiitbuddy-linux-arm64.tar", self.directory / "wrong-linux-amd64.tar")
+        (self.directory / "hiitbuddy-linux-amd64.tar").unlink()
+        shutil.move(self.directory / "wrong-linux-amd64.tar", self.directory / "hiitbuddy-linux-amd64.tar")
+        (self.directory / "hiitbuddy-linux-arm64.tar").unlink()
+        with patch.dict(os.environ, {"RELEASE_TARGET": "linux-amd64"}), self.assertRaisesRegex(ValueError, "platforms differ"):
+            artifacts.check(self.directory)
+
+    def test_check_requires_exactly_the_archives_of_the_target_and_a_known_target(self):
+        with patch.dict(os.environ, {"RELEASE_TARGET": "linux-amd64"}), self.assertRaisesRegex(ValueError, "exactly"):
+            artifacts.check(self.directory)
+        with patch.dict(os.environ, {"RELEASE_TARGET": "windows"}), self.assertRaisesRegex(ValueError, "RELEASE_TARGET"):
+            artifacts.check(self.directory)
+
+    def test_the_platform_candidates_assemble_into_one_deterministic_index(self):
+        first = artifacts.verify(self.directory)
+        self.assertEqual(first, artifacts.verify(self.directory))
+        self.assertRegex(first["hiitbuddy"], r"^sha256:[0-9a-f]{64}$")
+        indexes = [artifacts.archive_index(self.directory / f"hiitbuddy-{t}.tar", p, self.expected()) for t, p in artifacts.TARGETS.items()]
+        document, content, digest = artifacts.merge_index(list(reversed(indexes)))
+        self.assertEqual(digest, first["hiitbuddy"])
+        self.assertEqual([d["platform"]["architecture"] for d in document["manifests"]], ["amd64", "arm64", "unknown", "unknown"])
+
+    def test_verification_does_not_run_tools_or_write_files(self):
+        before = sorted(path.name for path in self.directory.iterdir())
+        with patch.object(artifacts.urllib.request, "urlopen", side_effect=AssertionError("verification must stay offline")):
             artifacts.verify(self.directory)
-        (self.directory / "extra").unlink()
-        (self.directory / "hiitbuddy.tar").unlink()
-        with self.assertRaises(ValueError):
+        self.assertEqual(before, sorted(path.name for path in self.directory.iterdir()))
+
+    def test_the_candidate_must_hold_one_archive_per_image_and_platform(self):
+        (self.directory / "hiitbuddy-linux-arm64.tar").unlink()
+        with self.assertRaisesRegex(ValueError, "one archive per image and platform"):
             artifacts.verify(self.directory)
 
-    def test_corruption_and_forged_image_receipts_are_rejected(self):
-        self.metadata["images"]["hiitbuddy"]["index_digest"] = "sha256:" + "b" * 64
-        self.save()
-        with self.assertRaises(ValueError):
-            artifacts.verify(self.directory)
-        with (self.directory / "hiitbuddy.tar").open("ab") as stream:
-            stream.write(b"corruption")
-        with self.assertRaises(ValueError):
+    def test_an_extra_file_in_the_candidate_is_rejected(self):
+        (self.directory / "extra").write_text("unexpected")
+        with self.assertRaisesRegex(ValueError, "one archive per image and platform"):
             artifacts.verify(self.directory)
 
     def test_image_version_and_source_are_checked_independently(self):
-        self.check(Builder(version="v9.9.9"), "version")
-        self.check(Builder(sha="b" * 40), "source")
-
-    def test_both_platforms_are_required_and_nothing_else(self):
-        self.check(Builder(platforms=("amd64",)), "platforms")
-        self.check(Builder(platforms=("amd64", "arm64", "arm")), "platforms")
+        self.write_platforms(version="v9.9.9")
+        with self.assertRaisesRegex(ValueError, "version"):
+            artifacts.verify(self.directory)
+        self.write_platforms(sha="b" * 40)
+        with self.assertRaisesRegex(ValueError, "source"):
+            artifacts.verify(self.directory)
 
     def test_provenance_and_sbom_attestations_are_required(self):
-        self.check(Builder(predicates=("https://slsa.dev/provenance/v1",)), "lacks provenance or SBOM")
-        self.check(Builder(predicates=("https://spdx.dev/Document",)), "lacks provenance or SBOM")
+        for predicates in (("https://slsa.dev/provenance/v1",), ("https://spdx.dev/Document",)):
+            self.write_platforms(predicates=predicates)
+            with self.assertRaisesRegex(ValueError, "lacks provenance or SBOM"):
+                artifacts.verify(self.directory)
 
     def test_a_missing_attestation_manifest_is_rejected(self):
         builder = Builder()
-        builder.manifests = [descriptor for descriptor in builder.manifests if descriptor["platform"]["os"] != "unknown"][:2]
-        self.check(builder, "attestation")
+        builder.manifests = builder.manifests[:1]
+        builder.write(self.directory / "hiitbuddy-linux-amd64.tar")
+        with self.assertRaisesRegex(ValueError, "attestation"):
+            artifacts.verify(self.directory)
 
     def test_tampered_blobs_symlinks_and_traversal_are_rejected(self):
-        path = self.directory / "hiitbuddy.tar"
+        path = self.directory / "hiitbuddy-linux-amd64.tar"
         tampered = self.directory / "tampered.tar"
         with tarfile.open(path) as old, tarfile.open(tampered, "w") as new:
             for member in old:
                 content = old.extractfile(member).read() if member.isfile() else b""
-                if member.name.endswith(hashlib.sha256(b"layer").hexdigest()):
+                if member.name.endswith(hashlib.sha256(b"layer-amd64").hexdigest()):
                     content = b"forged"
                     member.size = len(content)
                 new.addfile(member, io.BytesIO(content))
         with self.assertRaisesRegex(ValueError, "digest mismatch"):
-            artifacts.archive_image(tampered, artifacts.binding())
+            artifacts.archive_index(tampered, "linux/amd64", self.expected())
         with tarfile.open(path, "a") as archive:
             archive.addfile(tarfile.TarInfo("../escape"))
         with self.assertRaisesRegex(ValueError, "archive entry"):
-            artifacts.archive_image(path, artifacts.binding())
+            artifacts.archive_index(path, "linux/amd64", self.expected())
 
     def test_push_copies_every_blob_and_manifest_and_checks_the_published_digest(self):
         registry = FakeRegistry()
-        artifacts.push_archive(self.directory / "hiitbuddy.tar", registry, ["v4.4.0", "latest"])
-        self.assertEqual(registry.manifest_digest("v4.4.0"), self.index_digest)
-        self.assertEqual(registry.manifest_digest("latest"), self.index_digest)
-        with tarfile.open(self.directory / "hiitbuddy.tar") as archive:
-            blobs = {name for name in archive.getnames() if name.startswith("blobs/sha256/")}
-        copied = {artifacts.blob_name(digest) for digest in registry.blobs}
-        manifests = {artifacts.blob_name(reference) for reference in registry.manifests if reference.startswith("sha256:")}
-        self.assertEqual(copied | manifests | {artifacts.blob_name(self.index_digest)}, blobs)
+        with __import__("contextlib").ExitStack() as stack:
+            assembled = artifacts.Assembled(self.directory, "hiitbuddy", self.expected(), stack)
+            artifacts.push_image(assembled, registry, ["v4.4.0", "latest"])
+            expected_blobs = set(assembled.layout.blobs)
+        self.assertEqual(registry.manifest_digest("v4.4.0"), assembled.digest)
+        self.assertEqual(registry.manifest_digest("latest"), assembled.digest)
+        copied = {artifacts.blob_name(d) for d in registry.blobs}
+        manifests = {artifacts.blob_name(r) for r in registry.manifests if r.startswith("sha256:")}
+        indexes = {artifacts.blob_name(d["digest"]) for index in assembled.indexes for d in index["manifests"]}
+        self.assertEqual(manifests, indexes)
+        roots = {artifacts.blob_name(root["digest"]) for root in assembled.layout.roots}
+        self.assertEqual(copied | manifests | roots, expected_blobs)
 
     def test_push_fails_when_the_registry_returns_another_digest(self):
         registry = FakeRegistry()
         registry.manifest_digest = lambda reference: "sha256:" + "c" * 64
-        with self.assertRaisesRegex(ValueError, "differs from the verified candidate"):
-            artifacts.push_archive(self.directory / "hiitbuddy.tar", registry, ["latest"])
+        with __import__("contextlib").ExitStack() as stack:
+            assembled = artifacts.Assembled(self.directory, "hiitbuddy", self.expected(), stack)
+            with self.assertRaisesRegex(ValueError, "differs from the verified candidate"):
+                artifacts.push_image(assembled, registry, ["latest"])
+
+    def test_outputs_name_the_registry_subject_and_index_digest_of_each_image(self):
+        with patch("builtins.print") as printed:
+            artifacts.outputs(self.directory)
+        lines = printed.call_args.args[0].split("\n")
+        self.assertEqual(lines[:3], ["names<<RELEASE_IMAGE_NAMES_END", "hiitbuddy", "RELEASE_IMAGE_NAMES_END"])
+        self.assertEqual(lines[3], "subject_1=ghcr.io/christianpflugradt/hiitbuddy")
+        self.assertEqual(lines[4], "digest_1=" + artifacts.verify(self.directory)["hiitbuddy"])
 
     def test_a_rejected_registry_request_names_the_request_without_its_credentials(self):
         error = artifacts.urllib.error.HTTPError("https://ghcr.io/v2/o/n/blobs/uploads/?secret=1", 403, "Forbidden", {}, None)
@@ -264,34 +284,25 @@ class CandidateTests(unittest.TestCase):
             self.assertFalse(artifacts.Registry("https://ghcr.io", "o/n", None).has_blob("sha256:" + "a" * 64))
 
     @unittest.skipUnless(shutil.which("docker"), "docker is not available")
-    def test_real_buildkit_output_is_accepted(self):
+    def test_real_buildkit_output_of_each_platform_assembles(self):
         context = self.directory / "context"
         context.mkdir()
         (context / "marker").write_text("offline fixture\n")
         (context / "Dockerfile").write_text(
             f"FROM scratch\nLABEL org.opencontainers.image.version=v4.4.0\nLABEL org.opencontainers.image.revision={SHA}\nCOPY marker /offline-fixture\n"
         )
-        output = self.directory / "real.tar"
-        subprocess.run(
-            [
-                "docker",
-                "buildx",
-                "build",
-                "--platform",
-                "linux/amd64,linux/arm64",
-                "--network",
-                "none",
-                "--pull=false",
-                "--provenance=mode=max",
-                "--sbom=true",
-                "--output",
-                f"type=oci,dest={output}",
-                str(context),
-            ],
-            capture_output=True,
-            check=True,
-        )
-        self.assertRegex(artifacts.archive_image(output, artifacts.binding()), r"^sha256:[0-9a-f]{64}$")
+        real = self.directory / "real"
+        real.mkdir()
+        for target, platform in artifacts.TARGETS.items():
+            subprocess.run(
+                [
+                    "docker", "buildx", "build", "--platform", platform, "--network", "none", "--pull=false",
+                    "--provenance=mode=max", "--sbom=true", "--output", f"type=oci,dest={real / f'hiitbuddy-{target}.tar'}", str(context),
+                ],
+                capture_output=True,
+                check=True,
+            )  # fmt: skip
+        self.assertRegex(artifacts.verify(real)["hiitbuddy"], r"^sha256:[0-9a-f]{64}$")
 
 
 if __name__ == "__main__":

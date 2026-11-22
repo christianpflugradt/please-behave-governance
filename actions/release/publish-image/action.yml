@@ -1,5 +1,5 @@
 name: Publish image
-description: Copy the verified candidate images unchanged to the GitHub Container Registry and publish the planned release without files
+description: Assemble the verified platform candidates into one image index, copy it unchanged to the GitHub Container Registry and publish the planned release without files
 inputs:
   version:
     description: The version planned by the plan action
@@ -16,22 +16,13 @@ runs:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ github.token }}
-    - name: Read the images of the candidate
+    - name: Verify the candidate and read its images
       id: images
       shell: bash
+      run: python3 -B "$ACTION_ROOT/lib/release_image.py" outputs >> "$GITHUB_OUTPUT"
       env:
-        OWNER: ${{ github.repository_owner }}
-      run: |
-        python3 - >> "$GITHUB_OUTPUT" <<'PY'
-        import json, os
-        images = json.load(open("dist/metadata.json"))["images"]
-        if len(images) > 4:
-            raise SystemExit("At most four images can be attested per release")
-        print("names<<RELEASE_IMAGE_NAMES_END", *images, "RELEASE_IMAGE_NAMES_END", sep="\n")
-        for number, (name, receipt) in enumerate(images.items(), 1):
-            print(f"subject_{number}=ghcr.io/{os.environ['OWNER'].lower()}/{name}")
-            print(f"digest_{number}={receipt['index_digest']}")
-        PY
+        ACTION_ROOT: ${{ github.action_path }}/..
+        EXPECTED_RELEASE_VERSION: ${{ inputs.version }}
     - name: Install the release tooling
       shell: bash
       run: npm ci --ignore-scripts --omit=dev --no-audit --no-fund --prefix "$ACTION_ROOT"

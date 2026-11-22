@@ -8,7 +8,7 @@ build and verification steps.
 | --- | --- |
 | `actions/release/plan` | Calculates the next release without publishing; outputs `release`, `version`, `source-sha`, `mode` |
 | `actions/release/publish-release` | Publishes the planned version as a GitHub release with files; refuses if the version or `main` changed since planning |
-| `actions/release/export-image` | Exports the candidate container images as archives with a receipt bound to version, source and run |
+| `actions/release/check-image` | Verifies the candidate container image archives of one platform in the candidate job |
 | `actions/release/publish-image` | Pushes the verified candidate images to `ghcr.io` and publishes the planned release without files |
 | `actions/release/check-ci` | Proves that CI succeeded for the exact source commit within one trusted workflow run, including reruns |
 | `actions/release/evidence` | `record`s the hashes of a release candidate per target and uploads them as `release-evidence-<run>-<attempt>-<target>`, together with the candidate files as `release-candidate-<run>-<attempt>-<target>`; `verify` downloads both for every target, restores the candidate files below the policy `root` and verifies the complete set before publication |
@@ -110,28 +110,34 @@ A repository publishes either files or images, and each way has its own action i
 
 - **GitHub release with files** (`publish-release`): inputs `version`, `assets` (globs), `mode`, `tag-format`, `force`. `mode: prerelease`
   publishes a development release `<stable>-dev.<yyyymmdd>.<n>` of the latest stable release instead of an official one.
-- **Container images** (`export-image` in the candidate job, `publish-image` in the publish job): `export-image` takes the input `images`,
-  one name per line; `publish-image` reads the names from the `dist/metadata.json` that `export-image` wrote and `evidence` restored.
-  Each name is a repository below `ghcr.io/<owner>`. The repository builds each image as an OCI archive `dist/<name>.tar`, an image
-  index for exactly `linux/amd64` and `linux/arm64`, with the OCI labels `org.opencontainers.image.version=v<version>` and
-  `org.opencontainers.image.revision=<sha>` and with BuildKit's provenance and SBOM attestations:
+- **Container images** (`check-image` in each candidate job, `publish-image` in the publish job): every platform builds its own
+  candidate on a native runner, a matrix of candidate jobs with the targets `linux-amd64` and `linux-arm64`. Each job builds an OCI
+  archive `dist/<name>-<target>.tar` for every image of the repository, one platform with the OCI labels
+  `org.opencontainers.image.version=v<version>` and `org.opencontainers.image.revision=<sha>` and with BuildKit's provenance and SBOM
+  attestations, and `check-image` verifies them:
 
   ```sh
-  docker buildx build --platform linux/amd64,linux/arm64 --provenance=mode=max --sbom=true \
+  docker buildx build --platform linux/amd64 --provenance=mode=max --sbom=true \
     --label "org.opencontainers.image.version=v${EXPECTED_RELEASE_VERSION}" \
     --label "org.opencontainers.image.revision=${GITHUB_SHA}" \
-    --output type=oci,dest=dist/<name>.tar .
+    --output type=oci,dest=dist/<name>-linux-amd64.tar .
   ```
 
-  How the platforms are built (emulation, or native runners whose results are merged into one index) is up to the repository; the
-  candidate is the finished index. `export-image` verifies the archives, identifies each image by the digest of its index and writes
-  `dist/metadata.json`, which the evidence policy lists. `publish-image` verifies the archives again and, after the tag, copies the
-  archived blobs and manifests unchanged to `:v<version>` and `:latest`, so the published digest is the candidate's. It needs no
-  Docker daemon and builds nothing; it logs in to the registry with the job token, whose credentials the attestation reads. After the release it attests each published index with `actions/attest`: a signed SLSA build provenance bound to the workflow
+  `check-image` takes `version`, `target` and `images` (the names, one per line; each is a repository below `ghcr.io/<owner>`),
+  and the job then records the archives with `evidence` as the files of its target. The publish job needs no image list:
+  `publish-image` takes the names from the archives that `evidence` restored. It verifies them again before the tag exists,
+  assembles the platform images of each name into one image index (deterministic, so the same archives always give the same
+  digest) and, after the tag, copies the archived blobs and manifests unchanged to `:v<version>` and `:latest`, so the published
+  digest is the verified one. It builds nothing and logs in to the registry with the job token, whose credentials the attestation
+  reads. After the release it attests each published index with `actions/attest`: a signed SLSA build provenance bound to the workflow
   identity and pushed to the registry next to the image (at most four images per release; a failed attestation fails the job).
   Verify an image with `gh attestation verify oci://ghcr.io/<owner>/<name>@<index digest> --owner <owner>`. Attestations need a public
-  repository (or GitHub Enterprise Cloud). The calling job grants `contents`, `packages`, `id-token` and `attestations: write`, and
-  no other write permission. Images are published with official releases only.
+  repository (or GitHub Enterprise Cloud). Only the publish job holds write permissions, `contents`, `packages`, `id-token` and
+  `attestations`. Images are published with official releases only. The repository's own release-point rule, for example a smoke
+  test of the image, runs in each candidate job through the `governance` action, so it runs natively on every platform.
+
+  The policy lists the archives per target, for example
+  `{"root": "dist", "targets": {"linux-amd64": ["app-linux-amd64.tar"], "linux-arm64": ["app-linux-arm64.tar"]}}`.
 
 ## Updates
 
