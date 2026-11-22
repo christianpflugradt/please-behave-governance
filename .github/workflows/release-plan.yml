@@ -62,7 +62,7 @@ jobs:
           version: 2026.11.11
       - name: Plan the release without publishing
         id: plan
-        uses: christianpflugradt/repository-catalog/actions/release/plan@afcf276e729e20b014b25b713a52b577f9224ccf # updates/actions/release
+        uses: christianpflugradt/repository-catalog/actions/release/plan@0f47bb84ff5435cb6b692275fb6767f4f599abdb # updates/actions/release
         with:
           mode: ${{ inputs.mode }}
           tag-format: ${{ inputs.tag-format }}
