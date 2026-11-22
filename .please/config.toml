@@ -1,5 +1,8 @@
 project = "Please Behave Governance"
 
+[publish]
+key_env = "PLEASE_GATEWAY_KEY"
+
 [[imports]]
 git = "https://github.com/christianpflugradt/please-behave-governance.git"
 path = "rulesets/repository-conventions"
