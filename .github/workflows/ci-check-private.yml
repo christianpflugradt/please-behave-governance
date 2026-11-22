@@ -65,7 +65,7 @@ jobs:
       - name: Trust the shared governance repository
         run: please trust https://github.com/christianpflugradt/repository-catalog.git
       - name: Run Please Behave checks
-        uses: please-behave/action@8e44e6988141413119dd9d23544033e072d87e44 # v1.7.0
+        uses: please-behave/action@1032b7de037313d2bf54dc5d2a4a9483107e6f3f # v1.8.0
         with:
           install: 'false'
           sync: 'true'
