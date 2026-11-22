@@ -15,6 +15,12 @@ on:
       GEMINI_API_KEY:
         description: Key of the model API that the reviews use; without it the reviews cannot run
         required: false
+      GATEWAY_URL:
+        description: Origin of the gateway that receives the attestation; without it nothing is published
+        required: false
+      GATEWAY_KEY:
+        description: API key for the gateway; read from the environment variable PLEASE_GATEWAY_KEY, which publish.key_env must name
+        required: false
 
 permissions:
   contents: read
@@ -68,8 +74,10 @@ jobs:
           sync: 'true'
           execution-point: check
           summary: 'true'
+          gateway-url: ${{ secrets.GATEWAY_URL }}
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          PLEASE_GATEWAY_KEY: ${{ secrets.GATEWAY_KEY }}
           GITHUB_TOKEN: ${{ github.token }}
       - name: Upload report
         if: always()

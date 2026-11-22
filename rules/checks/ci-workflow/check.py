@@ -125,6 +125,7 @@ RUNNER = re.compile(r"(?:ubuntu|macos|windows)-\d+(?:\.\d+)*(?:-[a-z0-9]+)?")
 GOVERNANCE = "christianpflugradt/please-behave-governance"
 CHECK = ".github/workflows/ci-check.yml"
 GEMINI = {"GEMINI_API_KEY": "${{ secrets.GEMINI_API_KEY }}"}
+GATEWAY = {"GATEWAY_URL": "${{ secrets.GATEWAY_URL }}", "GATEWAY_KEY": "${{ secrets.GATEWAY_KEY }}"}
 
 
 def governed(job, path):
@@ -149,15 +150,18 @@ def runner_violations(job):
 
 
 def check_violations(job):
-    """The caller job only calls the shared workflow, which runs the reviews, and hands over the key of their model API."""
+    """The caller job only calls the shared workflow, which runs the reviews, and hands over the key of their model API and optionally the gateway secrets."""
     found = []
     if not governed(job, CHECK):
         found.append(f"job check must use the shared workflow {CHECK} pinned to a full commit SHA")
     if "steps" in job:
         found.append("job check must not define its own steps; the shared workflow runs the checks")
     found += runner_violations(job)
-    if as_dict(job.get("secrets")) != GEMINI:
-        found.append("job check must pass exactly GEMINI_API_KEY as ${{ secrets.GEMINI_API_KEY }}")
+    if as_dict(job.get("secrets")) not in (GEMINI, GEMINI | GATEWAY):
+        found.append(
+            "job check must pass GEMINI_API_KEY as ${{ secrets.GEMINI_API_KEY }}, "
+            "and either both or none of GATEWAY_URL and GATEWAY_KEY as the secrets of the same name"
+        )
     return found
 
 
