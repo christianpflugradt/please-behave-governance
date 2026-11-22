@@ -1,16 +1,17 @@
 purpose: >-
-  Give private repositories a lean CI that runs only on pull requests and bounds the Actions minutes it can use.
+  Give private repositories a lean CI that runs on pull requests and on main and bounds the Actions minutes it can use.
 problem: >-
   Private repositories share a monthly allowance of free Actions minutes. A CI that
-  also runs on every push to main pays twice for checks that the Git hooks already
-  ran. Unbounded jobs, matrices and superseded runs consume further minutes. Once the
+  runs on every branch or on triggers beyond pull requests and main pays for checks
+  nobody needs. The state of main must still be checked and attested, because it is
+  what counts. Unbounded jobs, matrices and superseded runs consume further minutes. Once the
   allowance is used up, pull requests of dependency updates remain without a check.
 value: >-
-  Every private repository has a CI for pull requests and stays predictably within
+  Every private repository has a CI for pull requests and for main and stays predictably within
   the free allowance.
 conditions:
-  - statement: .github/workflows/ci.yml is named CI and runs on pull requests, optionally on manual dispatch, never on push, schedule or any other event.
-    rationale: Agents and owners already pass the Git hooks before pushing to main, so a run on push would bill the same checks twice.
+  - statement: .github/workflows/ci.yml is named CI and runs on pull requests and on push to the branch main only, optionally on manual dispatch, never on another branch, schedule or any other event.
+    rationale: The state of main is checked and attested; runs on other branches or events would only consume minutes.
   - statement: Top-level permissions are exactly contents read.
     rationale: Checking needs no write access.
   - statement: Concurrency cancels runs in progress.
@@ -21,7 +22,7 @@ conditions:
     rationale: A fixed version makes runner changes reviewable, since Renovate proposes new versions, and a matrix multiplies the usage.
 success_criteria:
   - A deviating structure fails and the message names the violated part.
-  - Triggers beyond the pull request, additional jobs and the runner version are free and never cause a FAIL.
+  - Triggers beyond pull request, push to main and dispatch, additional jobs and the runner version are free and never cause a FAIL.
   - A missing tool or invalid YAML is an ERROR.
 out_of_scope:
   - description: Whether the allowance suffices, because billing is not visible to the Rule.

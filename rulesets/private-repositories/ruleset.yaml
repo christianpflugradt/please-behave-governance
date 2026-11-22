@@ -5,11 +5,11 @@ audience: >-
   plan's monthly allowance of minutes.
 commonality: >-
   Each rule follows from the premise that the repository is private and that its
-  minutes are limited: a lean CI for pull requests, little rebase churn from
+  minutes are limited: a lean CI for pull requests and main, little rebase churn from
   Renovate, and the check that the premise holds.
 rules:
   - rule: private-ci-workflow
-    role: Provides a CI for pull requests whose usage is bounded.
+    role: Provides a CI for pull requests and main whose usage is bounded.
   - rule: private-renovate
     role: Keeps Renovate from triggering needless CI runs.
   - rule: private-visibility

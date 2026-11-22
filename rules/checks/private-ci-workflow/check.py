@@ -120,7 +120,7 @@ def run(argv, name, violations):
 
 
 RUNNER = re.compile(r"(?:ubuntu|macos|windows)-\d+(?:\.\d+)*")
-EVENTS = {"pull_request", "workflow_dispatch"}
+EVENTS = {"pull_request", "push", "workflow_dispatch"}
 GOVERNANCE = "christianpflugradt/please-behave-governance"
 CHECK = ".github/workflows/ci-check-private.yml"
 GATEWAY = {"GATEWAY_URL": "${{ secrets.GATEWAY_URL }}", "GATEWAY_KEY": "${{ secrets.GATEWAY_KEY }}"}
@@ -160,7 +160,9 @@ def violations(document):
         found.append("must run on pull_request")
     extra = sorted(set(events) - EVENTS)
     if extra:
-        found.append(f"may only run on pull_request and workflow_dispatch, not on {', '.join(extra)}")
+        found.append(f"may only run on pull_request, push to main and workflow_dispatch, not on {', '.join(extra)}")
+    if "push" in events and as_list(as_dict(events["push"]).get("branches")) != ["main"]:
+        found.append("push must be limited to branches: [main]")
     if flag(as_dict(document.get("concurrency")).get("cancel-in-progress")) != "true":
         found.append("requires concurrency with cancel-in-progress: true")
     job = jobs(document).get("check")

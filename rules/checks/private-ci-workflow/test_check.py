@@ -31,8 +31,12 @@ class PrivateCiWorkflowTests(unittest.TestCase):
     def test_lean_workflow_passes(self):
         self.assertEqual(mod.violations(WORKFLOW), [])
 
-    def test_push_trigger_fails(self):
-        self.assertTrue(changed(lambda d: d["on"].update(push={"branches": ["main"]})))
+    def test_push_to_main_passes(self):
+        self.assertEqual(changed(lambda d: d["on"].update(push={"branches": ["main"]})), [])
+
+    def test_push_must_be_limited_to_main(self):
+        self.assertTrue(changed(lambda d: d["on"].update(push=None)))
+        self.assertTrue(changed(lambda d: d["on"].update(push={"branches": ["main", "dev"]})))
 
     def test_missing_concurrency_fails(self):
         self.assertTrue(changed(lambda d: d.pop("concurrency")))
