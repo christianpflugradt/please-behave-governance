@@ -62,7 +62,7 @@ jobs:
       - name: Trust the shared governance repository
         run: please trust https://github.com/christianpflugradt/please-behave-governance.git
       - name: Run Please Behave checks
-        uses: please-behave/action@fc1c4c924225bd14235e7c591106bef5f7d0bf5c # v1.6.0
+        uses: please-behave/action@8e44e6988141413119dd9d23544033e072d87e44 # v1.7.0
         with:
           install: 'false'
           sync: 'true'
