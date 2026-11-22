@@ -63,7 +63,7 @@ jobs:
       - name: Fetch locked dependencies
         run: mise run setup
       - name: Trust the shared governance repository
-        run: please trust https://github.com/christianpflugradt/please-behave-governance.git
+        run: please trust https://github.com/christianpflugradt/repository-catalog.git
       - name: Run Please Behave checks
         uses: please-behave/action@8e44e6988141413119dd9d23544033e072d87e44 # v1.7.0
         with:

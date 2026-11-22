@@ -155,7 +155,7 @@ def run(argv, name, violations):
 
 
 SECRET = "secrets.STATISTICS_TOKEN"
-GOVERNANCE = "christianpflugradt/please-behave-governance"
+GOVERNANCE = "christianpflugradt/repository-catalog"
 PUBLISH = ".github/workflows/statistics-publish.yml"
 
 

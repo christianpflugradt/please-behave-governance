@@ -53,7 +53,7 @@ def read_file(selected, name):
 
 
 TARGET = "renovate.json"
-GOVERNOR = "github>christianpflugradt/please-behave-governance:renovate-governor"
+GOVERNOR = "github>christianpflugradt/repository-catalog:renovate-governor"
 LOCK_MAINTENANCE_PRESETS = (":maintainLockFilesDaily", ":maintainLockFilesWeekly", ":maintainLockFilesMonthly")
 DEFAULT_DAYS = 7
 SLOW_DAYS = 14

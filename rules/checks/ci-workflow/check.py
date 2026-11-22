@@ -122,7 +122,7 @@ def run(argv, name, violations):
 RUNNER = re.compile(r"(?:ubuntu|macos|windows)-\d+(?:\.\d+)*(?:-[a-z0-9]+)?")
 
 
-GOVERNANCE = "christianpflugradt/please-behave-governance"
+GOVERNANCE = "christianpflugradt/repository-catalog"
 CHECK = ".github/workflows/ci-check.yml"
 GEMINI = {"GEMINI_API_KEY": "${{ secrets.GEMINI_API_KEY }}"}
 GATEWAY = {"GATEWAY_URL": "${{ secrets.GATEWAY_URL }}", "GATEWAY_KEY": "${{ secrets.GATEWAY_KEY }}"}

@@ -7,11 +7,11 @@
       "description": "Track the commit pins of Please Behave imports in .please/config.toml on the default branch.",
       "managerFilePatterns": ["/^\\.please/config\\.toml$/"],
       "matchStrings": [
-        "git\\s*=\\s*\"(?<packageName>https://github\\.com/christianpflugradt/please-behave-governance\\.git)\"[^\\[]*?ref\\s*=\\s*\"(?<currentDigest>[0-9a-f]{40})\"",
-        "ref\\s*=\\s*\"(?<currentDigest>[0-9a-f]{40})\"[^\\[]*?git\\s*=\\s*\"(?<packageName>https://github\\.com/christianpflugradt/please-behave-governance\\.git)\""
+        "git\\s*=\\s*\"(?<packageName>https://github\\.com/christianpflugradt/repository-catalog\\.git)\"[^\\[]*?ref\\s*=\\s*\"(?<currentDigest>[0-9a-f]{40})\"",
+        "ref\\s*=\\s*\"(?<currentDigest>[0-9a-f]{40})\"[^\\[]*?git\\s*=\\s*\"(?<packageName>https://github\\.com/christianpflugradt/repository-catalog\\.git)\""
       ],
       "datasourceTemplate": "git-refs",
-      "depNameTemplate": "please-behave-governance",
+      "depNameTemplate": "repository-catalog",
       "currentValueTemplate": "main"
     },
     {
@@ -19,10 +19,10 @@
       "description": "Track the commit pins of shared mise task groups and ruleset tool files in the root mise.toml on the default branch.",
       "managerFilePatterns": ["/^\\.?mise\\.toml$/"],
       "matchStrings": [
-        "git::(?<packageName>https://github\\.com/christianpflugradt/please-behave-governance\\.git)//(?:mise-tasks/[a-z0-9-]+|rulesets/[a-z0-9-]+/mise\\.toml)\\?ref=(?<currentDigest>[0-9a-f]{40})"
+        "git::(?<packageName>https://github\\.com/christianpflugradt/repository-catalog\\.git)//(?:mise-tasks/[a-z0-9-]+|rulesets/[a-z0-9-]+/mise\\.toml)\\?ref=(?<currentDigest>[0-9a-f]{40})"
       ],
       "datasourceTemplate": "git-refs",
-      "depNameTemplate": "please-behave-governance",
+      "depNameTemplate": "repository-catalog",
       "currentValueTemplate": "main"
     },
     {
@@ -30,11 +30,11 @@
       "description": "Track the commit pins of governance actions in the workflows on the default branch.",
       "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
       "matchStrings": [
-        "uses:\\s*christianpflugradt/please-behave-governance/actions/[a-z0-9-]+(?:/[a-z0-9-]+)?@(?<currentDigest>[0-9a-f]{40})"
+        "uses:\\s*christianpflugradt/repository-catalog/actions/[a-z0-9-]+(?:/[a-z0-9-]+)?@(?<currentDigest>[0-9a-f]{40})"
       ],
       "datasourceTemplate": "git-refs",
-      "packageNameTemplate": "https://github.com/christianpflugradt/please-behave-governance.git",
-      "depNameTemplate": "please-behave-governance",
+      "packageNameTemplate": "https://github.com/christianpflugradt/repository-catalog.git",
+      "depNameTemplate": "repository-catalog",
       "currentValueTemplate": "main"
     },
     {
@@ -42,11 +42,11 @@
       "description": "Track the commit pins of governance CI, release and statistics workflows in the workflows on the default branch.",
       "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
       "matchStrings": [
-        "uses:\\s*christianpflugradt/please-behave-governance/\\.github/workflows/(?:ci|release|statistics)-[a-z-]+\\.yml@(?<currentDigest>[0-9a-f]{40})"
+        "uses:\\s*christianpflugradt/repository-catalog/\\.github/workflows/(?:ci|release|statistics)-[a-z-]+\\.yml@(?<currentDigest>[0-9a-f]{40})"
       ],
       "datasourceTemplate": "git-refs",
-      "packageNameTemplate": "https://github.com/christianpflugradt/please-behave-governance.git",
-      "depNameTemplate": "please-behave-governance",
+      "packageNameTemplate": "https://github.com/christianpflugradt/repository-catalog.git",
+      "depNameTemplate": "repository-catalog",
       "currentValueTemplate": "main"
     },
     {
@@ -76,7 +76,7 @@
     {
       "description": "Governance actions are tracked by the custom manager, not by the inherited GitHub Actions manager.",
       "matchManagers": ["github-actions"],
-      "matchPackageNames": ["christianpflugradt/please-behave-governance/**"],
+      "matchPackageNames": ["christianpflugradt/repository-catalog/**"],
       "enabled": false
     },
     {
@@ -105,7 +105,7 @@
       "semanticCommitScope": "deps"
     },
     {
-      "matchPackageNames": ["https://github.com/christianpflugradt/please-behave-governance.git"],
+      "matchPackageNames": ["https://github.com/christianpflugradt/repository-catalog.git"],
       "matchDatasources": ["git-refs"],
       "automerge": true,
       "automergeType": "pr",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/christianpflugradt/please-behave-governance/why/schemas/workflow.schema.json",
+  "$id": "https://github.com/christianpflugradt/repository-catalog/why/schemas/workflow.schema.json",
   "title": "Workflow why document",
   "description": "Guiding question: Why does this workflow exist and why does it have this shape?\n\nIt records why, and never repeats what the definition already states, such as types, defaults and the order of steps.",
   "type": "object",

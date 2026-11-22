@@ -11,7 +11,7 @@ mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 
 SHA = "a" * 40
-INCLUDE = f"git::https://github.com/christianpflugradt/please-behave-governance.git//mise-tasks/release?ref={SHA}"
+INCLUDE = f"git::https://github.com/christianpflugradt/repository-catalog.git//mise-tasks/release?ref={SHA}"
 
 
 def violations(text):

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/christianpflugradt/please-behave-governance/why/schemas/common.schema.json",
+  "$id": "https://github.com/christianpflugradt/repository-catalog/why/schemas/common.schema.json",
   "title": "Shared definitions of the why documents",
   "$defs": {
     "text": {

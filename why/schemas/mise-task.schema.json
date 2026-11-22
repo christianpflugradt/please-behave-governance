@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/christianpflugradt/please-behave-governance/why/schemas/mise-task.schema.json",
+  "$id": "https://github.com/christianpflugradt/repository-catalog/why/schemas/mise-task.schema.json",
   "title": "Mise task why document",
   "description": "Guiding question: Why does this task exist and why does it behave as it does?\n\nIt records why, and never repeats what the definition already states, such as types, defaults and the order of steps.",
   "type": "object",

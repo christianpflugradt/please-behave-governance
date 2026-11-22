@@ -121,7 +121,7 @@ def run(argv, name, violations):
 
 RUNNER = re.compile(r"(?:ubuntu|macos|windows)-\d+(?:\.\d+)*")
 EVENTS = {"pull_request", "push", "workflow_dispatch"}
-GOVERNANCE = "christianpflugradt/please-behave-governance"
+GOVERNANCE = "christianpflugradt/repository-catalog"
 CHECK = ".github/workflows/ci-check-private.yml"
 GATEWAY = {"GATEWAY_URL": "${{ secrets.GATEWAY_URL }}", "GATEWAY_KEY": "${{ secrets.GATEWAY_KEY }}"}
 

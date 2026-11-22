@@ -13,7 +13,7 @@ spec.loader.exec_module(mod)
 
 SHA = "0123456789abcdef0123456789abcdef01234567"
 OTHER = "76543210fedcba9876543210fedcba9876543210"
-AUDIT = "christianpflugradt/please-behave-governance/actions/dependency-audit"
+AUDIT = "christianpflugradt/repository-catalog/actions/dependency-audit"
 WORKFLOW = {
     "name": "Dependency Audit",
     "on": {"schedule": [{"cron": "17 3 * * *"}], "workflow_dispatch": None},

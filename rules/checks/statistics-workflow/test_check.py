@@ -11,7 +11,7 @@ mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 
 SHA = "0123456789abcdef0123456789abcdef01234567"
-G = "christianpflugradt/please-behave-governance"
+G = "christianpflugradt/repository-catalog"
 WORKFLOW = {
     "name": "Statistics",
     "on": {"push": {"branches": ["main"]}},

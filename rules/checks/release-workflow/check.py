@@ -156,7 +156,7 @@ def run(argv, name, violations):
     return 1 if found else 0
 
 
-GOVERNANCE = "christianpflugradt/please-behave-governance"
+GOVERNANCE = "christianpflugradt/repository-catalog"
 PLAN = ".github/workflows/release-plan.yml"
 READINESS = ".github/workflows/release-readiness.yml"
 ACTIONS = "actions/release"

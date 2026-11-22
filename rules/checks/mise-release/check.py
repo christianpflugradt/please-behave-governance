@@ -57,9 +57,7 @@ TOOLS = []
 TASKS = ["release"]
 # The shared release task group, pinned to a full commit SHA, defines the release task.
 SHARED = {
-    "release": re.compile(
-        r"git::https://github\.com/christianpflugradt/please-behave-governance\.git//mise-tasks/release\?ref=[0-9a-f]{40}"
-    ),
+    "release": re.compile(r"git::https://github\.com/christianpflugradt/repository-catalog\.git//mise-tasks/release\?ref=[0-9a-f]{40}"),
 }
 
 

@@ -9,10 +9,10 @@
         "/^\\.please/config\\.toml$/"
       ],
       "matchStrings": [
-        "git\\s*=\\s*\"(?<packageName>https://github\\.com/christianpflugradt/please-behave-governance\\.git)\"[^\\[]*?path\\s*=\\s*\"(?<importPath>(?:rulesets|adapters)/[a-z0-9-]+)\"[^\\[]*?ref\\s*=\\s*\"(?<currentDigest>[0-9a-f]{40})\""
+        "git\\s*=\\s*\"(?<packageName>https://github\\.com/christianpflugradt/repository-catalog\\.git)\"[^\\[]*?path\\s*=\\s*\"(?<importPath>(?:rulesets|adapters)/[a-z0-9-]+)\"[^\\[]*?ref\\s*=\\s*\"(?<currentDigest>[0-9a-f]{40})\""
       ],
       "datasourceTemplate": "git-refs",
-      "depNameTemplate": "please-behave-governance/{{{importPath}}}",
+      "depNameTemplate": "repository-catalog/{{{importPath}}}",
       "currentValueTemplate": "updates/{{{importPath}}}"
     },
     {
@@ -22,10 +22,10 @@
         "/^\\.?mise\\.toml$/"
       ],
       "matchStrings": [
-        "git::(?<packageName>https://github\\.com/christianpflugradt/please-behave-governance\\.git)//(?<importPath>mise-tasks/[a-z0-9-]+|rulesets/[a-z0-9-]+)(?:/mise\\.toml)?\\?ref=(?<currentDigest>[0-9a-f]{40})"
+        "git::(?<packageName>https://github\\.com/christianpflugradt/repository-catalog\\.git)//(?<importPath>mise-tasks/[a-z0-9-]+|rulesets/[a-z0-9-]+)(?:/mise\\.toml)?\\?ref=(?<currentDigest>[0-9a-f]{40})"
       ],
       "datasourceTemplate": "git-refs",
-      "depNameTemplate": "please-behave-governance/{{{importPath}}}",
+      "depNameTemplate": "repository-catalog/{{{importPath}}}",
       "currentValueTemplate": "updates/{{{importPath}}}"
     },
     {
@@ -35,11 +35,11 @@
         "/^\\.github/workflows/[^/]+\\.ya?ml$/"
       ],
       "matchStrings": [
-        "uses:\\s*christianpflugradt/please-behave-governance/(?<importPath>actions/[a-z0-9-]+)(?:/[a-z0-9-]+)?@(?<currentDigest>[0-9a-f]{40})"
+        "uses:\\s*christianpflugradt/repository-catalog/(?<importPath>actions/[a-z0-9-]+)(?:/[a-z0-9-]+)?@(?<currentDigest>[0-9a-f]{40})"
       ],
       "datasourceTemplate": "git-refs",
-      "packageNameTemplate": "https://github.com/christianpflugradt/please-behave-governance.git",
-      "depNameTemplate": "please-behave-governance/{{{importPath}}}",
+      "packageNameTemplate": "https://github.com/christianpflugradt/repository-catalog.git",
+      "depNameTemplate": "repository-catalog/{{{importPath}}}",
       "currentValueTemplate": "updates/{{{importPath}}}"
     },
     {
@@ -49,11 +49,11 @@
         "/^\\.github/workflows/[^/]+\\.ya?ml$/"
       ],
       "matchStrings": [
-        "uses:\\s*christianpflugradt/please-behave-governance/\\.github/workflows/(?<family>ci|release|statistics)-[a-z-]+\\.yml@(?<currentDigest>[0-9a-f]{40})"
+        "uses:\\s*christianpflugradt/repository-catalog/\\.github/workflows/(?<family>ci|release|statistics)-[a-z-]+\\.yml@(?<currentDigest>[0-9a-f]{40})"
       ],
       "datasourceTemplate": "git-refs",
-      "packageNameTemplate": "https://github.com/christianpflugradt/please-behave-governance.git",
-      "depNameTemplate": "please-behave-governance/workflows/{{{family}}}",
+      "packageNameTemplate": "https://github.com/christianpflugradt/repository-catalog.git",
+      "depNameTemplate": "repository-catalog/workflows/{{{family}}}",
       "currentValueTemplate": "updates/workflows/{{{family}}}"
     }
   ],
@@ -61,7 +61,7 @@
     {
       "description": "Governance actions are tracked by the custom manager, not by the inherited GitHub Actions manager.",
       "matchManagers": ["github-actions"],
-      "matchPackageNames": ["christianpflugradt/please-behave-governance/**"],
+      "matchPackageNames": ["christianpflugradt/repository-catalog/**"],
       "enabled": false
     },
     {
@@ -70,7 +70,7 @@
         "git-refs"
       ],
       "matchDepNames": [
-        "please-behave-governance"
+        "repository-catalog"
       ],
       "enabled": false
     },
@@ -79,7 +79,7 @@
         "git-refs"
       ],
       "matchDepNames": [
-        "please-behave-governance/**"
+        "repository-catalog/**"
       ],
       "groupName": "governance imports"
     }

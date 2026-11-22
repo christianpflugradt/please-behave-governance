@@ -56,7 +56,7 @@ TARGET = "renovate.json"
 GOVERNED = {
     "please-behave/cli",
     "please-behave/action",
-    "https://github.com/christianpflugradt/please-behave-governance.git",
+    "https://github.com/christianpflugradt/repository-catalog.git",
 }
 
 

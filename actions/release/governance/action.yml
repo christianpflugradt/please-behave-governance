@@ -9,7 +9,7 @@ runs:
   steps:
     - name: Trust the shared governance repository
       shell: bash
-      run: please trust https://github.com/christianpflugradt/please-behave-governance.git
+      run: please trust https://github.com/christianpflugradt/repository-catalog.git
     - name: Verify the repository at the release point
       uses: please-behave/action@8e44e6988141413119dd9d23544033e072d87e44 # v1.7.0
       with:

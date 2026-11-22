@@ -161,7 +161,7 @@ THRESHOLD = "AUDIT_FAIL_ON"
 LATEST_HOUR = 4  # 04:xx UTC is before 07:00 in Europe/Berlin in both summer and winter time.
 
 
-GOVERNANCE_ACTION = re.compile(r"christianpflugradt/please-behave-governance/actions/dependency-audit/([a-z0-9-]+)@([0-9a-f]{40})( #.*)?")
+GOVERNANCE_ACTION = re.compile(r"christianpflugradt/repository-catalog/actions/dependency-audit/([a-z0-9-]+)@([0-9a-f]{40})( #.*)?")
 
 
 def is_audit(job_id):
@@ -179,7 +179,7 @@ def audit_steps_violations(job_id, job):
     listed = steps(job)
     calls = [audit_action(step) for step in listed]
     if any(
-        str(step.get("uses", "")).startswith("christianpflugradt/please-behave-governance/actions/dependency-audit") and call is None
+        str(step.get("uses", "")).startswith("christianpflugradt/repository-catalog/actions/dependency-audit") and call is None
         for step, call in zip(listed, calls)
     ):
         return [f"job {job_id} must pin every dependency audit action to a full commit SHA"]
