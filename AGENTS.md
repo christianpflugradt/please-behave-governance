@@ -1,4 +1,4 @@
-# Working on Please Behave governance
+# Working on the repository catalog
 
 ## Policy boundaries
 

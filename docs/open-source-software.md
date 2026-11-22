@@ -15,7 +15,7 @@ references in its `licenses` directory.
 
 ```toml
 [[imports]]
-git = "https://github.com/christianpflugradt/please-behave-governance.git"
+git = "https://github.com/christianpflugradt/repository-catalog.git"
 path = "rulesets/open-source-software"
 ref = "<FULL_REVIEWED_COMMIT_SHA>"
 

@@ -28,7 +28,7 @@ and adds to `repository-conventions`. Why each rule and the set exist is recorde
   - The check needs `yq` (v4) and Python 3.9+.
 - `private-renovate` requires `rebaseWhen: "conflicted"` in `renovate.json` and a `packageRules`
   entry with `rebaseWhen: "behind-base-branch"` for `please-behave/cli`, `please-behave/action` and
-  the governance repository's git URL. By default Renovate rebases every open PR whenever `main`
+  the catalog's git URL. By default Renovate rebases every open PR whenever `main`
   moves, and each rebase reruns CI; one merged PR then triggers a rebase of all the others. Rebasing
   on conflicts only keeps it at roughly one run per PR. Without branch protection (not available
   on the free plan for private repositories) a PR that is behind still merges. The governor
@@ -46,7 +46,7 @@ Renovate PRs without a check until the month resets.
 
 ```toml
 [[imports]]
-git = "https://github.com/christianpflugradt/please-behave-governance.git"
+git = "https://github.com/christianpflugradt/repository-catalog.git"
 path = "rulesets/private-repositories"
 ref = "<FULL_REVIEWED_COMMIT_SHA>"
 ```

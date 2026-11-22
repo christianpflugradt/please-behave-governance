@@ -40,13 +40,13 @@ on:
   schedule:
     - cron: '17 4 1 * *'
 # plan job
-- uses: christianpflugradt/please-behave-governance/actions/release/plan@<FULL_COMMIT_SHA>
+- uses: christianpflugradt/repository-catalog/actions/release/plan@<FULL_COMMIT_SHA>
   id: plan
   with:
     mode: ${{ github.event_name == 'schedule' && 'release' || inputs.mode }}
     force: ${{ inputs.force }}
 # publish job, after the candidate was built and verified
-- uses: christianpflugradt/please-behave-governance/actions/release/publish-release@<FULL_COMMIT_SHA>
+- uses: christianpflugradt/repository-catalog/actions/release/publish-release@<FULL_COMMIT_SHA>
   with:
     version: ${{ needs.plan.outputs.version }}
     mode: ${{ needs.plan.outputs.mode }}
@@ -74,7 +74,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     permissions:
       contents: write
-    uses: christianpflugradt/please-behave-governance/.github/workflows/release-plan.yml@<FULL_COMMIT_SHA>
+    uses: christianpflugradt/repository-catalog/.github/workflows/release-plan.yml@<FULL_COMMIT_SHA>
     with:
       force: ${{ inputs.force }}
   release-readiness:
@@ -83,7 +83,7 @@ jobs:
     permissions:
       contents: read
       actions: read
-    uses: christianpflugradt/please-behave-governance/.github/workflows/release-readiness.yml@<FULL_COMMIT_SHA>
+    uses: christianpflugradt/repository-catalog/.github/workflows/release-readiness.yml@<FULL_COMMIT_SHA>
     with:
       source-sha: ${{ needs.plan.outputs.source_sha }}
       required-jobs: Check

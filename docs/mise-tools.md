@@ -23,7 +23,7 @@ SHA as the `[[imports]]` entry of that ruleset (mise 2026.10 or newer):
 
 ```toml
 include = [
-  "git::https://github.com/christianpflugradt/please-behave-governance.git//rulesets/repository-conventions/mise.toml?ref=<FULL_COMMIT_SHA>",
+  "git::https://github.com/christianpflugradt/repository-catalog.git//rulesets/repository-conventions/mise.toml?ref=<FULL_COMMIT_SHA>",
 ]
 ```
 

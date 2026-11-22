@@ -1,7 +1,8 @@
-# Please Behave governance
+# Repository catalog
 
-Personal governance policies maintained by Christian Pflugradt for
-[Please Behave](https://github.com/please-behave/cli). Rulesets group requirements
+Personal catalog of repository standards maintained by Christian Pflugradt: Please Behave
+rulesets, shared workflows, actions, mise tasks and tools, and Renovate presets.
+[Please Behave](https://github.com/please-behave/cli) rulesets group requirements
 for repositories with common attributes and execution points. Import the bundles
 that apply to a repository; each bundle adds to the others.
 

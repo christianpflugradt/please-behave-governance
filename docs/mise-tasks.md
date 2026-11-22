@@ -17,7 +17,7 @@ Include a group in the root `mise.toml`, pinned to a full commit SHA like every 
 [task_config]
 includes = [
   ".mise/tasks", # `includes` replaces mise's default task directories, so keep local ones
-  "git::https://github.com/christianpflugradt/please-behave-governance.git//mise-tasks/release?ref=<FULL_COMMIT_SHA>",
+  "git::https://github.com/christianpflugradt/repository-catalog.git//mise-tasks/release?ref=<FULL_COMMIT_SHA>",
 ]
 ```
 

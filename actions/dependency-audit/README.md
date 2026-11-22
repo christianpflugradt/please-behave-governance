@@ -13,13 +13,13 @@ installs, which audit actions it calls and how often, and the severity from whic
 | `report` | nothing: summary, failure from `fail-on`, upload of the reports | nothing, Python 3 |
 
 ```yaml
-- uses: christianpflugradt/please-behave-governance/actions/dependency-audit/npm@<FULL_COMMIT_SHA>
+- uses: christianpflugradt/repository-catalog/actions/dependency-audit/npm@<FULL_COMMIT_SHA>
   with:
     directory: renderer
-- uses: christianpflugradt/please-behave-governance/actions/dependency-audit/cargo@<FULL_COMMIT_SHA>
+- uses: christianpflugradt/repository-catalog/actions/dependency-audit/cargo@<FULL_COMMIT_SHA>
   with:
     directory: backend
-- uses: christianpflugradt/please-behave-governance/actions/dependency-audit/report@<FULL_COMMIT_SHA>
+- uses: christianpflugradt/repository-catalog/actions/dependency-audit/report@<FULL_COMMIT_SHA>
   if: ${{ !cancelled() }}
   with:
     fail-on: medium

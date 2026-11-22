@@ -98,7 +98,7 @@ ERROR (2).
 {
   "extends": [
     ":maintainLockFilesMonthly",
-    "github>christianpflugradt/please-behave-governance:renovate-governor"
+    "github>christianpflugradt/repository-catalog:renovate-governor"
   ],
   "platformAutomerge": false,
   "minimumReleaseAge": "7 days",
@@ -234,7 +234,7 @@ Add this import to the consuming project's `.please/config.toml`:
 
 ```toml
 [[imports]]
-git = "https://github.com/christianpflugradt/please-behave-governance.git"
+git = "https://github.com/christianpflugradt/repository-catalog.git"
 path = "rulesets/repository-conventions"
 ref = "<FULL_REVIEWED_COMMIT_SHA>"
 
@@ -251,13 +251,13 @@ copy is needed in the consumer:
 ```toml
 [[adapter_imports]]
 id = "gemini-flash-lite"
-git = "https://github.com/christianpflugradt/please-behave-governance.git"
+git = "https://github.com/christianpflugradt/repository-catalog.git"
 path = "adapters/gemini-flash-lite"
 ref = "<FULL_REVIEWED_COMMIT_SHA>"
 
 [[adapter_imports]]
 id = "gemini-flash"
-git = "https://github.com/christianpflugradt/please-behave-governance.git"
+git = "https://github.com/christianpflugradt/repository-catalog.git"
 path = "adapters/gemini-flash"
 ref = "<FULL_REVIEWED_COMMIT_SHA>"
 ```

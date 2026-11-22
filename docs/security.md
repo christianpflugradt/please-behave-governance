@@ -49,7 +49,7 @@ Please Behave and these rules install no dependencies.
 
 ```toml
 [[imports]]
-git = "https://github.com/christianpflugradt/please-behave-governance.git"
+git = "https://github.com/christianpflugradt/repository-catalog.git"
 path = "rulesets/security"
 ref = "<FULL_REVIEWED_COMMIT_SHA>"
 

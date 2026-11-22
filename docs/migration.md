@@ -1,5 +1,12 @@
 # Compatibility and migration
 
+## Repository rename
+
+The repository is now `christianpflugradt/repository-catalog`, previously
+`christianpflugradt/please-behave-governance`, because it catalogs more than Please Behave
+policies. Documentation and import examples use the new name. Existing consumer pins are
+unchanged; GitHub redirects the previous URL to the renamed repository.
+
 ## Adapter profile rename
 
 Provider definitions are now adapter profiles. Packages live in

@@ -1,6 +1,6 @@
 # Governor and ruleset updates with Renovate
 
-Extend `github>christianpflugradt/please-behave-governance:renovate-governor` in
+Extend `github>christianpflugradt/repository-catalog:renovate-governor` in
 `renovate.json`. Declare the exact published governor in `mise.toml`:
 
 ```toml
@@ -52,7 +52,7 @@ the governor stores per user and never in a project. The reusable CI workflows
 `ci-check.yml` and `ci-check-private.yml` run `please trust` for this repository before
 `please sync`, so CI trusts only this repository and a change that imports from another
 one fails there until a person reviews it. On a developer machine, run
-`please trust https://github.com/christianpflugradt/please-behave-governance.git` once
+`please trust https://github.com/christianpflugradt/repository-catalog.git` once
 after updating to a governor that has the command. Trust the governor update first: a
 workflow revision with the trust step fails on a governor that predates `please trust`.
 
@@ -62,8 +62,8 @@ revision is validated, hooks reject it with "external import has no validated re
 ## Content-aware tracking
 
 To update only when imported package content changes, add
-`github>christianpflugradt/please-behave-governance:renovate-content-aware` after
-`github>christianpflugradt/please-behave-governance:renovate-governor` in the
+`github>christianpflugradt/repository-catalog:renovate-content-aware` after
+`github>christianpflugradt/repository-catalog:renovate-governor` in the
 `extends` array of `renovate.json`. Keep both entries; the baseline remains the
 source of governor, Action and auto-merge policy. Consumers without the additional
 preset retain whole-repository tracking.
