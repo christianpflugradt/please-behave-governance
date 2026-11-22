@@ -1,0 +1,23 @@
+purpose: Keep documentation navigable and make the repositories it relies on explicit.
+problem: >-
+  Broken local links interrupt readers, and undeclared cross-repository references
+  leave readers and tooling without a source for the referenced artifact.
+value: Local documentation and the repository declaration can be verified together offline.
+conditions:
+  - statement: Local Markdown destinations and anchors resolve within the repository snapshot.
+    rationale: Readers can follow links between documents, including links to specific sections.
+  - statement: The repository declaration conforms to the bundled schema and its aliases are unique.
+    rationale: A qualified reference identifies a single repository.
+  - statement: Qualified references and same-owner GitHub links agree with the declaration, and each linked repository is used.
+    rationale: The declaration records the repositories that the documentation depends on.
+success_criteria:
+  - Broken local links and anchors, invalid declarations, undeclared references and unused entries fail.
+  - Empty link targets and fenced code examples are ignored.
+  - Without a declaration, local Markdown links still resolve and there are no qualified references.
+out_of_scope:
+  - description: Verifying targets in other repositories and identifying checkouts by their Git remotes.
+limitations:
+  - The check reads the current working tree at each execution point.
+placement: The Why ruleset makes the check opt-in for repositories using the standard.
+references:
+  - docs/why.md

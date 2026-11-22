@@ -1,0 +1,8 @@
+id = "why-links"
+name = "Why links"
+description = "Local documentation links resolve and cross-repository references match the Why declaration"
+enabled = true
+
+[check]
+command = "python3 @rule/check.py"
+timeout_seconds = 60

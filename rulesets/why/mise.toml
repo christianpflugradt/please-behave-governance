@@ -1,3 +1,4 @@
 # Include this file in the root mise.toml at the same pin as the ruleset import.
 [tools]
 yq = "4.54.3"
+pandoc = "3.14"

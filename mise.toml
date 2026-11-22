@@ -2,6 +2,7 @@ include = [
   "rulesets/repository-conventions/mise.toml",
   "rulesets/security/mise.toml",
   "rulesets/open-source-software/mise.toml",
+  "rulesets/why/mise.toml",
 ]
 
 [tools]

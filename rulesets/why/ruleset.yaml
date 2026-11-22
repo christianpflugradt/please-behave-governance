@@ -1,14 +1,16 @@
 purpose: Verify that the Why of a repository follows the shared standard.
 audience: Repositories that choose to document their requirements, decisions, components or interfaces with Why.
 commonality: >-
-  The artifact structure and reference rules are shared by all users of Why and
+  Artifact structure, repository declarations and reference rules are shared by all users of Why and
   can be verified from their documentation regardless of language or tooling.
 rules:
   - rule: why-artifacts
     role: Validates artifact schemas, identifiers, local references and contract resources.
+  - rule: why-links
+    role: Validates local Markdown links and checks cross-repository references against the declaration.
 admission:
-  - The rule verifies a shared expectation of the Why standard.
-  - Its verdict is independent of the repository's implementation language, build and test systems.
+  - The rules verify shared expectations of the Why standard.
+  - Their verdicts are independent of the repository's implementation language, build and test systems.
 excluded:
   - description: Ownership of code, dependencies inferred from source code and requirement citations in tests.
     rationale: Their meaning and evidence depend on the consumer repository.
@@ -16,7 +18,7 @@ complements:
   - ruleset: repository-conventions
     rationale: The general baseline applies regardless of how a repository documents its decisions.
 execution_points: >-
-  The check runs at pre-commit for early feedback, at pre-push before sharing
+  Both checks run at pre-commit for early feedback, at pre-push before sharing
   changes, and at check so CI can validate independently of local hooks.
 references:
   - docs/why.md
