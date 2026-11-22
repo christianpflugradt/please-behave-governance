@@ -11,6 +11,13 @@ on:
         description: Further environment variables for the setup and the checks, one NAME=value per line
         type: string
         default: ''
+    secrets:
+      GATEWAY_URL:
+        description: Origin of the gateway that receives the attestation; without it nothing is published
+        required: false
+      GATEWAY_KEY:
+        description: API key for the gateway; read from the environment variable PLEASE_GATEWAY_KEY, which publish.key_env must name
+        required: false
 
 permissions:
   contents: read
@@ -65,8 +72,10 @@ jobs:
           execution-point: check
           checks-only: 'true'
           summary: 'true'
+          gateway-url: ${{ secrets.GATEWAY_URL }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          PLEASE_GATEWAY_KEY: ${{ secrets.GATEWAY_KEY }}
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

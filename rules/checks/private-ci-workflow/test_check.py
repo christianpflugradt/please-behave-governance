@@ -45,6 +45,12 @@ class PrivateCiWorkflowTests(unittest.TestCase):
     def test_reviews_stay_out(self):
         self.assertTrue(changed(lambda d: d["jobs"]["check"].update(secrets={"GEMINI_API_KEY": "${{ secrets.GEMINI_API_KEY }}"})))
 
+    def test_gateway_secrets_are_allowed_together_only(self):
+        both = {"GATEWAY_URL": "${{ secrets.GATEWAY_URL }}", "GATEWAY_KEY": "${{ secrets.GATEWAY_KEY }}"}
+        self.assertEqual(changed(lambda d: d["jobs"]["check"].update(secrets=both)), [])
+        self.assertTrue(changed(lambda d: d["jobs"]["check"].update(secrets={"GATEWAY_URL": both["GATEWAY_URL"]})))
+        self.assertTrue(changed(lambda d: d["jobs"]["check"].update(secrets={**both, "GEMINI_API_KEY": "${{ secrets.GEMINI_API_KEY }}"})))
+
     def test_runner_input_must_be_versioned(self):
         self.assertEqual(changed(lambda d: d["jobs"]["check"].update({"with": {"runner": "ubuntu-26.04"}})), [])
         self.assertTrue(changed(lambda d: d["jobs"]["check"].update({"with": {"runner": "ubuntu-latest"}})))

@@ -15,7 +15,11 @@ and adds to `repository-conventions`. Why each rule and the set exist is recorde
   - Top-level `permissions` are exactly `contents: read`, and `concurrency` sets
     `cancel-in-progress: true` so a force-pushed PR branch does not keep billing superseded runs.
   - A job `check` that calls the shared workflow `ci-check-private.yml` pinned to a full commit SHA with no
-    secrets and no steps of its own. The workflow runs the checks without reviews, because reviews are
+    steps of its own and no secrets except, to publish the attestation of the run to a gateway,
+    `GATEWAY_URL: ${{ secrets.GATEWAY_URL }}` and `GATEWAY_KEY: ${{ secrets.GATEWAY_KEY }}`, always both. The shared
+    workflow passes the URL as the input `gateway-url` of the Action and the key in the environment variable
+    `PLEASE_GATEWAY_KEY`, so the repository's `[publish] key_env` must be `PLEASE_GATEWAY_KEY`. Without the secrets nothing
+    is published; a failed delivery never changes the verdict. The workflow runs the checks without reviews, because reviews are
     advisory and call a paid model API, and limits the job to 5 minutes. An input `runner`, if set, names a versioned runner such
     as `ubuntu-26.04` (default), and no job uses `strategy.matrix`. A versioned label instead of
     `ubuntu-latest` keeps runner changes reviewable: Renovate proposes new runner versions as PRs,

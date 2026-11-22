@@ -123,6 +123,7 @@ RUNNER = re.compile(r"(?:ubuntu|macos|windows)-\d+(?:\.\d+)*")
 EVENTS = {"pull_request", "workflow_dispatch"}
 GOVERNANCE = "christianpflugradt/please-behave-governance"
 CHECK = ".github/workflows/ci-check-private.yml"
+GATEWAY = {"GATEWAY_URL": "${{ secrets.GATEWAY_URL }}", "GATEWAY_KEY": "${{ secrets.GATEWAY_KEY }}"}
 
 
 def governed(job, path):
@@ -131,7 +132,7 @@ def governed(job, path):
 
 
 def check_violations(job):
-    """The caller job only calls the shared workflow, which runs no reviews, and hands over no secret."""
+    """The caller job only calls the shared workflow, which runs no reviews, and hands over at most the gateway secrets."""
     found = []
     if not governed(job, CHECK):
         found.append(f"job check must use the shared workflow {CHECK} pinned to a full commit SHA")
@@ -140,8 +141,11 @@ def check_violations(job):
     inputs = as_dict(job.get("with"))
     if inputs.get("runner") is not None and not RUNNER.fullmatch(str(inputs["runner"])):
         found.append(f"input runner must name a versioned runner such as ubuntu-26.04, not {inputs['runner']!r}")
-    if job.get("secrets"):
-        found.append("job check must pass no secrets, because the reviews stay out of private CI")
+    if as_dict(job.get("secrets")) not in ({}, GATEWAY):
+        found.append(
+            "job check must pass no secrets except both of GATEWAY_URL and GATEWAY_KEY as the secrets of the same name, "
+            "because the reviews stay out of private CI"
+        )
     if "matrix" in as_dict(job.get("strategy")):
         found.append("job check must not use a matrix")
     return found
