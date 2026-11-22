@@ -13,6 +13,7 @@ that apply to a repository; each bundle adds to the others.
 | `rulesets/private-repositories` | Private repositories on the free Actions minutes, instead of open-source software | `check`, `pre-push` | CI for pull requests and main with bounded jobs, Renovate rebase policy, private visibility |
 | `rulesets/releasable-open-source-software` | Releasable open-source software | `check`, `pre-push` | `release` task, release workflow structure |
 | `rulesets/security` | Repositories adopting the security policy | `check`, `pre-push` | Sensitive filenames, secret scanning, pinned workflow actions and Dependency Audit workflow structure |
+| `rulesets/why` | Repositories that document with Why | `pre-commit`, `pre-push`, `check` | Why artifact schemas, IDs, local references and contract resources |
 
 Repository conventions stay lightweight and work through Git hooks alone; `check` adds the same checks to CI.
 Security is a deliberate domain separation. License checking belongs to the
@@ -88,6 +89,7 @@ the Gemini operations themselves still require network access.
 | Private repositories | none | Python 3.9+, Git, `yq`; `GITHUB_REPOSITORY` and `GITHUB_TOKEN` for `private-visibility` at `check` |
 | Releasable open-source software | none | Python 3.11+, Git |
 | Security | `dependency-audit-workflow.dependencies`, `audited` or `none` | Python 3.9+, Git, `yq`, Gitleaks v8 with `gitleaks dir` |
+| Why | none | Python 3.9+, `yq` v4 |
 
 The Gemini adapters accept adapter protocol versions `0` and `1` and return the
 version supplied in the request. Existing version `1` governors remain compatible;
@@ -105,6 +107,7 @@ See complete import examples, parameters, evidence boundaries and limitations:
 - [Private repositories and Actions minutes](docs/private-repositories.md)
 - [Release task and policy](docs/releases.md)
 - [Security and scanner configuration](docs/security.md)
+- [Why artifact validation](docs/why.md)
 - [Compatibility and path migration](docs/migration.md)
 - [Shared Renovate governor preset](docs/governor-updates.md)
 - [Shared mise tasks](docs/mise-tasks.md)

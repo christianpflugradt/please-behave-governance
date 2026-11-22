@@ -1,0 +1,4 @@
+id = "why"
+description = "Validate artifacts in repositories that document with Why"
+run_at = ["pre-commit", "pre-push", "check"]
+rules = ["rules/checks/why-artifacts"]

@@ -1,0 +1,26 @@
+purpose: Keep a repository's Why artifacts consistent with the published Why standard.
+problem: >-
+  Malformed artifacts and missing targets break the chain from requirements and
+  decisions to components and interfaces. Separate schema copies in consumers
+  can drift and accept different artifact formats.
+value: Repositories can verify their Why offline against one reviewed revision of the standard.
+conditions:
+  - statement: Requirements, decisions, components and contract indices conform to their bundled schemas.
+    rationale: Shared schemas give readers and tooling a consistent artifact format.
+  - statement: Artifact IDs are unique and requirement, decision and component IDs match their filenames.
+    rationale: An ID identifies one artifact in the repository.
+  - statement: Unqualified artifact references resolve locally and contract resources are local regular files of the stated type.
+    rationale: A reader can follow these references within the repository.
+success_criteria:
+  - Schema violations, mismatched filenames, duplicate IDs, dangling local references and invalid contract resources fail.
+  - A repository without Why passes, and other Why folders are outside the check.
+  - Qualified references are accepted when they satisfy the schema for their field.
+  - YAML parsing and tooling failures are reported as ERROR.
+out_of_scope:
+  - description: Repository declarations, cross-repository targets and links in prose.
+  - description: Source ownership, dependencies inferred from source code and requirement citations in tests.
+limitations:
+  - The check reads the current working tree at each execution point.
+placement: The Why ruleset makes the check opt-in for repositories using the standard.
+references:
+  - docs/why.md

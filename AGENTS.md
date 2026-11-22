@@ -20,6 +20,7 @@
 - Dependency-vulnerability evaluation is not a Please Behave concern. The Security bundle only
   verifies that a standardized audit workflow exists; scanners, reports and thresholds stay local.
 - Releasable open-source software adds the Semantic Release baseline.
+- Repositories that document with Why can opt into the Why artifact checks.
 - Admit a Rule only with a strong argument. A Rule that merely passes one command to local
   tooling, such as a formatter or linter in check mode, stays local to each repository: accept
   the redundancy instead of centrally managing tool choices. Tools for technology that nearly
