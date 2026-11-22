@@ -1,4 +1,5 @@
 id = "statistics-workflow"
+version = "1.0"
 name = "Statistics workflow"
 description = "The Statistics workflow, when present, follows the shared standard structure"
 enabled = true

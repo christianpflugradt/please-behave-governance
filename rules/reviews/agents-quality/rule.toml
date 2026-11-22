@@ -1,4 +1,5 @@
 id = "agents-quality"
+version = "1.0"
 name = "AGENTS.md quality"
 description = "AGENTS.md gives coding agents clear, actionable guidance"
 blocking = false

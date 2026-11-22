@@ -1,4 +1,5 @@
 id = "editorconfig"
+version = "1.0"
 name = "EditorConfig"
 description = "A root .editorconfig defines the shared formatting baseline"
 enabled = true

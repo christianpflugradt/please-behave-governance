@@ -1,4 +1,5 @@
 id = "mise-baseline"
+version = "1.0"
 name = "Mise baseline"
 description = "mise.toml pins the Please Behave version and defines the format and verify tasks"
 enabled = true

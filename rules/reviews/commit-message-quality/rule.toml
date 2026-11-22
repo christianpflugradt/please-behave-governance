@@ -1,4 +1,5 @@
 id = "commit-message-quality"
+version = "1.0"
 name = "Commit message quality"
 description = "Commit summaries are specific, English and imperative"
 blocking = false

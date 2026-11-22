@@ -1,4 +1,5 @@
 id = "why-links"
+version = "1.0"
 name = "Why links"
 description = "Local documentation links resolve and cross-repository references match the Why declaration"
 enabled = true

@@ -1,4 +1,5 @@
 id = "mise-release"
+version = "1.0"
 name = "Mise release task"
 description = "mise.toml defines a release task"
 enabled = true

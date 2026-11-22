@@ -1,4 +1,5 @@
 id = "agents-size"
+version = "1.0"
 name = "AGENTS.md size"
 description = "AGENTS.md stays within its size limit"
 enabled = true

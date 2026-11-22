@@ -1,4 +1,5 @@
 id = "dependency-audit-workflow"
+version = "1.0"
 name = "Dependency audit workflow"
 description = "The Dependency Audit workflow follows the shared standard structure, or the repository has no known dependency manifest"
 enabled = true

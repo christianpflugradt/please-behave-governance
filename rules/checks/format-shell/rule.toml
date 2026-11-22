@@ -1,4 +1,5 @@
 id = "format-shell"
+version = "1.0"
 name = "Shell formatting"
 description = "Tracked shell scripts are formatted with shfmt"
 

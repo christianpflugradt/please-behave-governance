@@ -1,4 +1,5 @@
 id = "private-visibility"
+version = "1.0"
 name = "Private repository"
 description = "The GitHub repository is private, so the private-repositories limits apply"
 

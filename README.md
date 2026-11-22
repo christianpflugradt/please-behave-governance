@@ -54,6 +54,8 @@ exposing a private repository.
 
 Every Rule and Rule Set states why it exists in a `rule.yaml` or `ruleset.yaml` next to
 its definition, following the [rule knowledge schemas](https://github.com/please-behave/cli/tree/main/why/contracts/rule-knowledge).
+Each Rule declares an owner-assigned version. The catalog registers those versions
+from CI so the cockpit can display the rule details and verify reported results.
 
 ## Layout
 
@@ -75,7 +77,7 @@ Imported source resources must remain immutable.
 
 ## Configuration
 
-Use published Please Behave 0.8.0 or later for the complete catalog. Install dependencies
+Use published Please Behave 0.21.0 or later for revisions with versioned rules. Install dependencies
 explicitly; rules and adapter profiles never install tools. Pin each ruleset and adapter profile
 import to a reviewed full Git commit, then run `please sync` to validate resources
 and confirm managed hook installation. Synchronization does not execute checks or
@@ -109,6 +111,7 @@ See complete import examples, parameters, evidence boundaries and limitations:
 - [Security and scanner configuration](docs/security.md)
 - [Why artifact and link validation](docs/why.md)
 - [Compatibility and path migration](docs/migration.md)
+- [Rule versioning and registration](docs/rule-versioning.md)
 - [Shared Renovate governor preset](docs/governor-updates.md)
 - [Shared mise tasks](docs/mise-tasks.md)
 - [Shared mise tools](docs/mise-tools.md)

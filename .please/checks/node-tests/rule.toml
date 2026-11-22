@@ -1,4 +1,5 @@
 id = "node-tests"
+version = "1.0"
 name = "Node tests"
 description = "Unit tests of the shared release action pass"
 run_at = ["pre-push", "check"]

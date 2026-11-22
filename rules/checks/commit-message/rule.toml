@@ -1,4 +1,5 @@
 id = "commit-message"
+version = "1.0"
 name = "Commit message format"
 description = "Commit headers follow Conventional Commits and use an allowed scope"
 enabled = true

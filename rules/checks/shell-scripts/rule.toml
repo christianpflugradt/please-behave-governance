@@ -1,4 +1,5 @@
 id = "shell-scripts"
+version = "1.0"
 name = "Shell scripts"
 description = "Shell scripts use an sh shebang and are free of ShellCheck findings"
 

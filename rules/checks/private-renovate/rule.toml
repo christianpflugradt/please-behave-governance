@@ -1,4 +1,5 @@
 id = "private-renovate"
+version = "1.0"
 name = "Private Renovate rebase policy"
 description = "renovate.json rebases open PRs only on conflicts, except for the governor and ruleset pins"
 enabled = true

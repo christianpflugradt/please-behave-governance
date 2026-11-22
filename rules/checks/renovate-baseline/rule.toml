@@ -1,4 +1,5 @@
 id = "renovate-baseline"
+version = "1.0"
 name = "Renovate baseline"
 description = "renovate.json extends the governor preset, automerges non-major updates and applies the shared cooldowns"
 enabled = true

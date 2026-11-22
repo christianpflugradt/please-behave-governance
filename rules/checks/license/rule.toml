@@ -1,4 +1,5 @@
 id = "license"
+version = "1.0"
 name = "License"
 description = "The repository has an approved license"
 

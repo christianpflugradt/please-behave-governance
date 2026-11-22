@@ -1,4 +1,5 @@
 id = "why-artifacts"
+version = "1.0"
 name = "Why artifacts"
 description = "Why artifacts conform to the standard and their local references and contract resources resolve"
 enabled = true
