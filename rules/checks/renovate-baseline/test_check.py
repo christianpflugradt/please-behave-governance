@@ -22,8 +22,7 @@ spec = importlib.util.spec_from_file_location("renovate_baseline", SCRIPT)
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
 
-# Temporary: renovate.json keeps the previous repository name until the catalog moves its own pins.
-BASELINE = json.loads((ROOT / "renovate.json").read_text().replace("please-behave-governance", "repository-catalog"))
+BASELINE = json.loads((ROOT / "renovate.json").read_text())
 
 
 def changed(mutate):
