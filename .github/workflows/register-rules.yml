@@ -3,41 +3,29 @@ name: Register rules
 on:
   push:
     branches: [main]
+    paths:
+      - '.please/checks/**/rule.toml'
+      - '.please/checks/**/rule.yaml'
+      - 'rules/checks/**/rule.toml'
+      - 'rules/checks/**/rule.yaml'
+      - 'rules/reviews/**/rule.toml'
+      - 'rules/reviews/**/rule.yaml'
+      - 'rules/reviews/**/prompt.md'
+      - '.please/config.toml'
+      - '.github/workflows/register-rules.yml'
+      - '.github/workflows/rule-registration.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
 
-env:
-  MISE_AUTO_INSTALL: 'false'
+concurrency:
+  group: ${{ github.workflow }}-caller-${{ github.sha }}
+  cancel-in-progress: true
 
 jobs:
   register:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - name: Install project tools
-        uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
-        with:
-          experimental: true
-          version: 2026.11.11
-      - name: Fetch locked dependencies
-        run: mise run setup
-      - name: Trust the shared governance repository
-        run: please trust https://github.com/christianpflugradt/repository-catalog.git
-      - name: Check governance and register rules
-        uses: please-behave/action@1032b7de037313d2bf54dc5d2a4a9483107e6f3f # v1.8.0
-        with:
-          install: 'false'
-          sync: 'true'
-          execution-point: check
-          checks-only: 'true'
-          summary: 'false'
-          register: 'true'
-          gateway-url: ${{ secrets.GATEWAY_URL }}
-        env:
-          PLEASE_GATEWAY_KEY: ${{ secrets.GATEWAY_KEY }}
-          GITHUB_TOKEN: ${{ github.token }}
+    uses: ./.github/workflows/rule-registration.yml
+    secrets:
+      GATEWAY_URL: ${{ secrets.GATEWAY_URL }}
+      GATEWAY_KEY: ${{ secrets.GATEWAY_KEY }}

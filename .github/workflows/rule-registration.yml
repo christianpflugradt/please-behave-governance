@@ -1,0 +1,85 @@
+name: Rule registration
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: Runner used by the repository checks
+        type: string
+        default: ubuntu-26.04
+      env:
+        description: Environment for setup and checks, one NAME=value per line
+        type: string
+        default: ''
+    secrets:
+      GATEWAY_URL:
+        required: true
+      GATEWAY_KEY:
+        required: true
+
+permissions:
+  contents: read
+
+env:
+  MISE_AUTO_INSTALL: 'false'
+
+jobs:
+  register:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ${{ inputs.runner }}
+    timeout-minutes: ${{ github.event.repository.private && 5 || 30 }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Export environment variables
+        if: inputs.env != ''
+        env:
+          VARIABLES: ${{ inputs.env }}
+        run: |
+          set -euo pipefail
+          while IFS= read -r line || [ -n "$line" ]; do
+            [ -z "$line" ] && continue
+            if ! [[ "$line" =~ ^([A-Za-z_][A-Za-z0-9_]*)=(.*)$ ]]; then
+              echo "::error::Invalid environment line, expected NAME=value" >&2
+              exit 1
+            fi
+            case "${BASH_REMATCH[1]}" in
+              PATH | BASH_ENV | NODE_OPTIONS | GITHUB_* | RUNNER_* | LD_* | DYLD_*)
+                echo "::error::The variable ${BASH_REMATCH[1]} must not be set" >&2
+                exit 1
+                ;;
+            esac
+            echo "$line" >>"$GITHUB_ENV"
+          done <<<"$VARIABLES"
+      - name: Install project tools
+        uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+        with:
+          experimental: true
+          version: 2026.11.11
+      - name: Fetch locked dependencies
+        run: mise run setup
+      - name: Trust the shared governance repository
+        run: please trust https://github.com/christianpflugradt/repository-catalog.git
+      - name: Run Please Behave checks
+        uses: please-behave/action@1032b7de037313d2bf54dc5d2a4a9483107e6f3f # v1.8.0
+        with:
+          install: 'false'
+          sync: 'true'
+          execution-point: check
+          checks-only: 'true'
+          summary: 'false'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Register committed rule versions
+        env:
+          GATEWAY_URL: ${{ secrets.GATEWAY_URL }}
+          PLEASE_GATEWAY_KEY: ${{ secrets.GATEWAY_KEY }}
+        run: |
+          set -eu
+          if [ -z "$GATEWAY_URL" ] || [ -z "$PLEASE_GATEWAY_KEY" ]; then
+            echo "::error::Set GATEWAY_URL and GATEWAY_KEY for rule registration."
+            exit 1
+          fi
+          please register --gateway-url "$GATEWAY_URL"

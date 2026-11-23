@@ -1,0 +1,36 @@
+purpose: Register committed rule versions from their owner's repository after its checks pass.
+problem: >-
+  A result can refer to a rule version whose details the cockpit cannot display until
+  the owner registers it. Duplicated workflows can omit the checks or publish duplicate attestations.
+value: Every rule owner registers through the same checks and delivery steps.
+principles:
+  - principle: provenance
+    how: The caller's commit supplies both the checked rules and the registered metadata.
+  - principle: least privilege
+    how: Checkout keeps no credentials and only the registration step receives the gateway secrets.
+  - principle: frugality
+    how: Relevant pushes start one job, reviews are omitted, and private repositories have a five-minute limit.
+flow:
+  - job: register
+    why: Checks and registration use the same prepared checkout, so only a successful check can lead to registration.
+decisions:
+  - decision: The caller filters main pushes by the paths that contribute rule metadata.
+    why: GitHub can skip irrelevant pushes before reserving a runner.
+  - decision: The shared job checks first and calls registration directly in a separate step.
+    why: A failed check blocks registration and the job does not publish a CI attestation.
+  - decision: A manual run on main can submit the revision again.
+    why: GitHub may miss a relevant path in a large push, and transient failures can be retried.
+  - decision: Registration errors fail the job.
+    why: Rule owners need to see missing registrations and attempts to reuse a version with different metadata.
+placement: The catalog owns the steps and permissions. Callers own their triggers and gateway configuration.
+inputs:
+  runner: Repositories with platform-specific checks need the same runner as regular CI.
+  env: Setup and checks can require the same environment as regular CI.
+permissions:
+  contents: Checkout needs read access to the calling repository.
+callers: >-
+  The caller passes both gateway secrets explicitly. Repositories with only imported
+  rules let the rule owners register them. The documentation repository's example
+  rules are fixtures and stay out of the ledger.
+references:
+  - docs/repository-conventions.md
