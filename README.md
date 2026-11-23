@@ -122,8 +122,7 @@ See complete import examples, parameters, evidence boundaries and limitations:
 
 This repository is governed by Please Behave itself: `.please/config.toml` imports
 the `repository-conventions`, `security` and `open-source-software` bundles from this
-repository's own published revisions, as any consumer does. It is not releasable, so
-it imports no release bundle. Local Rules format Python with Ruff and run the unit
+repository's own published revisions, as any consumer does. Local Rules format Python with Ruff and run the unit
 tests, which live next to the code as `test_*.py`. They use temporary local Git
 repositories and mocked HTTP and must never call live AI providers or network APIs.
 Workflow tooling and its offline tests live in `.github/scripts/` and run through
