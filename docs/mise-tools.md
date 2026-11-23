@@ -7,7 +7,7 @@ tool or version can never reach a repository without it.
 
 | Ruleset | Tools |
 | --- | --- |
-| `repository-conventions` | `jactionlint`, `shellcheck`, `shfmt` |
+| `repository-conventions` | `jactionlint`, `shellcheck`, `shfmt`, `yq` |
 | `security` | `gitleaks`, `yq` |
 | `open-source-software` | `yq` |
 | `private-repositories` | `yq` |

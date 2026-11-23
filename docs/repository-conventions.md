@@ -152,6 +152,25 @@ The blocking `workflow-syntax` Check runs `jactionlint --profile correctness` on
 repository that has them. It needs `jactionlint` on `PATH`, which `rulesets/repository-conventions/mise.toml` provides. Issues return FAIL; a missing tool
 returns ERROR.
 
+## Rule registration
+
+A GitHub repository with its own rules registers the versions it owns. Add
+`version = "1.0"` to a new rule and place `rule.yaml` beside its `rule.toml`.
+The local `.github/workflows/register-rules.yml` calls the shared
+`rule-registration.yml` at a full commit SHA with `contents: read` and two named
+secret references, `GATEWAY_URL` and `GATEWAY_KEY`. Configure
+`[publish] key_env = "PLEASE_GATEWAY_KEY"` in `.please/config.toml`.
+
+Filter pushes to `main` to the rule's `rule.toml`, `rule.yaml`, and any review
+prompt. Include the caller and `.please/config.toml` so changes to the registration
+setup also run the job. A manual dispatch on `main` can repeat registration. The
+shared job runs the checks first and registers only if they succeed. The regular
+CI workflow owns attestation publication.
+
+The offline `rule-registration-workflow` check runs at `check` and needs Python
+3.11+, Git and yq v4. Owners register imported rules from their own repositories.
+The Please Behave documentation repository's example rules are fixtures.
+
 ## Shell scripts
 
 The blocking `shell-scripts` Check runs ShellCheck on every tracked `*.sh` file of the working tree,

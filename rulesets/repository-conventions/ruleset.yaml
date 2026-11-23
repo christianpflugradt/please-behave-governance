@@ -7,7 +7,7 @@ commonality: >-
   Each rule records a baseline that holds for every repository: shared formatting,
   a uniform commit history, the same basic commands, continuous updates, a lean,
   usable AGENTS.md and workflows and shell scripts that are free of syntax mistakes.
-  They need only Git hooks, not CI.
+  They can be evaluated locally. A repository that owns rules also needs a way to publish their metadata.
 rules:
   - rule: editorconfig
     role: Fixes the shared formatting baseline.
@@ -23,6 +23,8 @@ rules:
     role: Keeps pins and dependencies up to date automatically.
   - rule: workflow-syntax
     role: Finds mistakes in GitHub workflows, which almost every repository has, before the push.
+  - rule: rule-registration-workflow
+    role: Checks that GitHub repositories with their own rules can register committed versions.
   - rule: shell-scripts
     role: Keeps shell scripts, which almost every repository has, portable and free of typical mistakes.
   - rule: agents-size
@@ -54,6 +56,6 @@ execution_points: >-
   The rules run at pre-commit and check, so that they work through Git hooks alone
   and CI repeats the same checks. The two commit rules run at commit-msg because the
   message they judge exists only there. The review of AGENTS.md runs only at check
-  to avoid the cost of model calls.
+  to avoid the cost of model calls. Registration setup is checked at check to keep commit hooks short.
 references:
   - docs/repository-conventions.md

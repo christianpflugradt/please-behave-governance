@@ -8,6 +8,7 @@ rules = [
   "rules/checks/mise-setup",
   "rules/checks/renovate-baseline",
   "rules/checks/workflow-syntax",
+  { id = "rules/checks/rule-registration-workflow", run_at = ["check"] },
   "rules/checks/shell-scripts",
   "rules/checks/format-shell",
   { id = "rules/checks/commit-message", run_at = ["commit-msg"] },

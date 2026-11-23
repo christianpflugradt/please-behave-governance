@@ -8,7 +8,7 @@ that apply to a repository; each bundle adds to the others.
 
 | Ruleset path | Repository group | Execution points | Current rules |
 | --- | --- | --- | --- |
-| `rulesets/repository-conventions` | Every repository, public or private, software or otherwise | `pre-commit`, `check`; `commit-msg` for commit rules | `AGENTS.md` size limit, EditorConfig baseline, Conventional Commit syntax and advisory header wording, mise governor pin with `format`, `verify` and `setup` tasks, Renovate baseline, workflow syntax with `jactionlint`, portable POSIX `sh` scripts checked with ShellCheck |
+| `rulesets/repository-conventions` | Every repository, public or private, software or otherwise | `pre-commit`, `check`; `commit-msg` for commit rules | `AGENTS.md` size limit, EditorConfig baseline, Conventional Commit syntax and advisory header wording, mise governor pin with `format`, `verify` and `setup` tasks, Renovate baseline, workflow syntax with `jactionlint`, rule registration setup, portable POSIX `sh` scripts checked with ShellCheck |
 | `rulesets/open-source-software` | Open-source software | `check`, `pre-push` | Approved license, CI and Statistics workflow structure, GitHub metadata |
 | `rulesets/private-repositories` | Private repositories on the free Actions minutes, instead of open-source software | `check`, `pre-push` | CI for pull requests and main with bounded jobs, Renovate rebase policy, private visibility |
 | `rulesets/releasable-open-source-software` | Releasable open-source software | `check`, `pre-push` | `release` task, release workflow structure |
@@ -86,7 +86,7 @@ the Gemini operations themselves still require network access.
 
 | Bundle | Required consumer configuration | Tools and credentials |
 | --- | --- | --- |
-| Repository conventions | `agents-size.max_tokens`; `commit-message.scopes_file`; independent `gemini-flash-lite` and `gemini-flash` adapter profile imports | Python 3.9+ (3.11+ for the mise checks), Git, `jactionlint`, ShellCheck and `GEMINI_API_KEY` for the wording and `AGENTS.md` reviews |
+| Repository conventions | `agents-size.max_tokens`; `commit-message.scopes_file`; independent `gemini-flash-lite` and `gemini-flash` adapter profile imports | Python 3.9+ (3.11+ for the mise and registration checks), Git, `jactionlint`, yq v4, ShellCheck and `GEMINI_API_KEY` for the wording and `AGENTS.md` reviews |
 | Open-source software | `license.target`, usually `LICENSE` | Python 3.9+, Git, `yq`; network and optionally `GITHUB_TOKEN` for `github-metadata` at `check` |
 | Private repositories | none | Python 3.9+, Git, `yq`; `GITHUB_REPOSITORY` and `GITHUB_TOKEN` for `private-visibility` at `check` |
 | Releasable open-source software | none | Python 3.11+, Git |

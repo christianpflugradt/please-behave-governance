@@ -39,10 +39,10 @@
     },
     {
       "customType": "regex",
-      "description": "Track the commit pins of governance CI, release and statistics workflows in the workflows on the default branch.",
+      "description": "Track the commit pins of governance CI, release, registration and statistics workflows in the workflows on the default branch.",
       "managerFilePatterns": ["/^\\.github/workflows/[^/]+\\.ya?ml$/"],
       "matchStrings": [
-        "uses:\\s*christianpflugradt/repository-catalog/\\.github/workflows/(?:ci|release|statistics)-[a-z-]+\\.yml@(?<currentDigest>[0-9a-f]{40})"
+        "uses:\\s*christianpflugradt/repository-catalog/\\.github/workflows/(?:(?:ci|release|statistics)-[a-z-]+|rule-registration)\\.yml@(?<currentDigest>[0-9a-f]{40})"
       ],
       "datasourceTemplate": "git-refs",
       "packageNameTemplate": "https://github.com/christianpflugradt/repository-catalog.git",

@@ -1,0 +1,28 @@
+purpose: Make versioned repository rules available to the cockpit through the shared registration workflow.
+problem: >-
+  A repository can run and attest its own rules before registering their descriptions.
+  Without a shared caller, registrations and trigger filters can drift between repositories.
+value: Readers can retrieve the rule details attached to a result, and rule owners see missing registration setup in their checks.
+conditions:
+  - statement: Own rule definitions have a valid version and an adjacent knowledge document.
+    rationale: Registration submits one batch, so a missing input can block every rule in the repository.
+  - statement: The registration caller uses the shared workflow with read-only permissions and supplies both gateway secrets by reference.
+    rationale: The workflow can check and register the owner's commit without write access.
+  - statement: Pushes to main start registration only when files relevant to registration change.
+    rationale: Narrow filters keep private runner usage low and avoid submitting unchanged rule versions on unrelated pushes.
+success_criteria:
+  - Missing version, knowledge, configuration, or caller details are reported with their path.
+  - Repositories using only imported rules pass without a caller.
+  - The Please Behave documentation repository's example rules pass without a caller.
+out_of_scope:
+  - description: GitHub workflow syntax and expression validity.
+    owner: workflow-syntax
+  - description: Gateway connectivity, configured secret values, and registration receipts.
+    owner: The registration workflow
+limitations:
+  - The check verifies repository files offline. A successful registration is established by the workflow run.
+placement: >-
+  The same offline check applies to private and public GitHub rule owners.
+  The check point lets CI verify the setup while leaving local commit hooks short.
+references:
+  - docs/repository-conventions.md
