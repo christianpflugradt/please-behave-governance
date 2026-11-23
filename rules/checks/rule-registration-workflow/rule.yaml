@@ -18,7 +18,6 @@ out_of_scope:
   - description: GitHub workflow syntax and expression validity.
     owner: workflow-syntax
   - description: Gateway connectivity, configured secret values, and registration receipts.
-    owner: The registration workflow
 limitations:
   - The check verifies repository files offline. A successful registration is established by the workflow run.
 placement: >-
