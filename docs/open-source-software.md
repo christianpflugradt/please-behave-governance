@@ -44,11 +44,9 @@ ERROR (2).
   - `name: CI`, triggered by `push` to `main` and by `pull_request`; further triggers are allowed.
   - Top-level `permissions` are exactly `contents: read`.
   - A job with the id `check` that calls the shared workflow `ci-check.yml`, pinned to a full commit SHA, and hands over
-    `GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}` and, to publish the attestation of the run to a gateway, additionally
-    `GATEWAY_URL: ${{ secrets.GATEWAY_URL }}` and `GATEWAY_KEY: ${{ secrets.GATEWAY_KEY }}`, always both. The shared workflow
-    passes the URL as the input `gateway-url` of the Action and the key in the environment variable `PLEASE_GATEWAY_KEY`, so the
-    repository's `[publish] key_env` must be `PLEASE_GATEWAY_KEY`. Only runs on `main` are attested: for a pull request or any other ref the shared workflow passes neither the URL nor the key, so nothing reaches the ledger. Without the secrets nothing is published either; a failed delivery never
-    changes the verdict. It defines no steps of its own; the shared workflow runs the reviews and limits the job to 30 minutes.
+    `GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}`. Follow [Gateway authentication](repository-conventions.md#gateway-authentication)
+    for the job permissions and optional attestation delivery. Only runs on `main` with `GATEWAY_URL` are attested.
+    A failed delivery leaves the verdict intact. The caller defines no steps of its own. The shared workflow runs the reviews and limits the job to 30 minutes.
     The shared workflow checks out, installs the tools with `jdx/mise-action`, runs `mise run setup`, runs Please Behave at
     `check` and uploads the report; a repository that needs preparation, such as environment variables, does it in its mise
     tasks or passes them as the input `env` (`NAME=value` per line). The input `runner` (default `ubuntu-26.04`) may be set,

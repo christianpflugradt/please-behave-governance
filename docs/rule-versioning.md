@@ -7,11 +7,12 @@ description, review prompt or knowledge in `rule.yaml`. Raise the first number
 for a fundamental change, such as `1.2` to `2.0`. Raise the second number for
 other changes, such as `1.2` to `1.3`.
 
-The **Register rules** workflow runs on every push to `main`. After the
-deterministic governance checks pass, the Please Behave Action submits all
-committed rules owned by this repository to the gateway using the
-`GATEWAY_URL` and `GATEWAY_KEY` repository secrets. This includes the catalog
-rules and the repository's own rules under `.please/checks/`.
+The **Register rules** workflow runs on pushes to `main` that touch the
+registration paths and on manual dispatch. After the deterministic governance
+checks pass, `please register` submits all committed rules owned by this
+repository, including the catalog rules and the rules under `.please/checks/`.
+See [Gateway authentication](repository-conventions.md#gateway-authentication)
+for the caller's permissions and secrets.
 
 The Job Summary shows each rule's outcome. A new version is `created` and
 repeating an identical registration returns `unchanged`. Changing registered

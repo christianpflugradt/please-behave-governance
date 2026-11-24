@@ -19,7 +19,7 @@ on:
         description: Origin of the gateway that receives the attestation; without it, and on every ref but main, nothing is published
         required: false
       GATEWAY_KEY:
-        description: API key for the gateway; read from the environment variable PLEASE_GATEWAY_KEY, which publish.key_env must name
+        description: Needed only for publishing with API-key authentication (publish.auth other than github-oidc). Passed as PLEASE_GATEWAY_KEY.
         required: false
 
 permissions:
@@ -31,6 +31,9 @@ env:
 jobs:
   check:
     name: Check
+    permissions:
+      contents: read
+      id-token: write
     runs-on: ${{ inputs.runner }}
     timeout-minutes: 30
     steps:

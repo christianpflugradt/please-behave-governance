@@ -15,7 +15,7 @@ principles:
   - principle: reproducibility
     how: The tools come from the pinned mise configuration and the governor installed with them runs the checks.
   - principle: frugality
-    how: Read-only permissions, no persisted credentials, a time limit of 30 minutes.
+    how: Read-only repository access, no persisted credentials and a time limit of 30 minutes.
   - principle: safety
     how: The key of the model API reaches the governor step only, and an absent key leaves the reviews unable to run instead of failing the job.
 flow:
@@ -83,10 +83,12 @@ inputs:
     it with a version so that Renovate can keep it current.
   env: Further environment variables, one NAME=value per line, for the setup and the checks.
 permissions:
-  contents: Read, which is all the job needs; uploading the report needs no extra permission.
+  contents: Checkout needs read access to the calling repository.
+  id-token: Write lets the check job obtain a GitHub OIDC token for attestation delivery.
 callers: >-
   A calling repository calls it from a job named check, passes the key of the model API explicitly and, when it
-  needs to, sets the runner and the environment. Public repositories run it on push to main and on pull requests,
+  needs to, sets the runner and the environment. It grants the job ID token write and passes the gateway URL for
+  delivery, with a key for API-key authentication. Public repositories run it on push to main and on pull requests,
   private ones call ci-check-private.yml on pull requests only.
 references:
   - docs/open-source-software.md

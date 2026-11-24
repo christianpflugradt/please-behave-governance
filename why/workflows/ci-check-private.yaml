@@ -15,9 +15,9 @@ principles:
   - principle: reproducibility
     how: The tools come from the pinned mise configuration and the governor installed with them runs the checks.
   - principle: frugality
-    how: Read-only permissions, no persisted credentials, no reviews and a limit of 5 minutes.
+    how: Read-only repository access, no persisted credentials, no reviews and a limit of 5 minutes.
   - principle: safety
-    how: No secret is passed, so nothing in the job can reach the paid model API.
+    how: Only gateway secrets can be passed. The job needs no model API key.
 flow:
   - job: check
     why: >-
@@ -70,9 +70,11 @@ inputs:
     it with a version so that Renovate can keep it current.
   env: Further environment variables, one NAME=value per line, for the setup and the checks.
 permissions:
-  contents: Read, which is all the job needs; uploading the report needs no extra permission.
+  contents: Checkout needs read access to the calling repository.
+  id-token: Write lets the check job obtain a GitHub OIDC token for attestation delivery.
 callers: >-
   A private repository calls it from a job named check on pull requests, with concurrency that cancels superseded runs,
-  and, when it needs to, sets the runner and the environment. It passes no secret.
+  and, when it needs to, sets the runner and the environment. It grants the job ID token write and passes the
+  gateway URL for delivery, with a key for API-key authentication.
 references:
   - docs/private-repositories.md

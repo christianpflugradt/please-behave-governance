@@ -123,7 +123,8 @@ RUNNER = re.compile(r"(?:ubuntu|macos|windows)-\d+(?:\.\d+)*")
 EVENTS = {"pull_request", "push", "workflow_dispatch"}
 GOVERNANCE = "christianpflugradt/repository-catalog"
 CHECK = ".github/workflows/ci-check-private.yml"
-GATEWAY = {"GATEWAY_URL": "${{ secrets.GATEWAY_URL }}", "GATEWAY_KEY": "${{ secrets.GATEWAY_KEY }}"}
+GATEWAY_URL = {"GATEWAY_URL": "${{ secrets.GATEWAY_URL }}"}
+GATEWAY_KEY = {"GATEWAY_KEY": "${{ secrets.GATEWAY_KEY }}"}
 
 
 def governed(job, path):
@@ -141,9 +142,9 @@ def check_violations(job):
     inputs = as_dict(job.get("with"))
     if inputs.get("runner") is not None and not RUNNER.fullmatch(str(inputs["runner"])):
         found.append(f"input runner must name a versioned runner such as ubuntu-26.04, not {inputs['runner']!r}")
-    if as_dict(job.get("secrets")) not in ({}, GATEWAY):
+    if as_dict(job.get("secrets")) not in ({}, GATEWAY_URL, GATEWAY_URL | GATEWAY_KEY):
         found.append(
-            "job check must pass no secrets except both of GATEWAY_URL and GATEWAY_KEY as the secrets of the same name, "
+            "job check may pass only GATEWAY_URL and, with the URL, GATEWAY_KEY as the secrets of the same name, "
             "because the reviews stay out of private CI"
         )
     if "matrix" in as_dict(job.get("strategy")):

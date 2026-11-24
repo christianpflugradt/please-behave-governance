@@ -15,7 +15,8 @@ on:
       GATEWAY_URL:
         required: true
       GATEWAY_KEY:
-        required: true
+        description: Needed only for API-key authentication (publish.auth other than github-oidc). Passed as PLEASE_GATEWAY_KEY.
+        required: false
 
 permissions:
   contents: read
@@ -25,6 +26,9 @@ env:
 
 jobs:
   register:
+    permissions:
+      contents: read
+      id-token: write
     if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ${{ inputs.runner }}
     timeout-minutes: ${{ github.event.repository.private && 5 || 30 }}
@@ -78,8 +82,8 @@ jobs:
           PLEASE_GATEWAY_KEY: ${{ secrets.GATEWAY_KEY }}
         run: |
           set -eu
-          if [ -z "$GATEWAY_URL" ] || [ -z "$PLEASE_GATEWAY_KEY" ]; then
-            echo "::error::Set GATEWAY_URL and GATEWAY_KEY for rule registration."
+          if [ -z "$GATEWAY_URL" ]; then
+            echo "::error::Set GATEWAY_URL for rule registration."
             exit 1
           fi
           please register --gateway-url "$GATEWAY_URL"

@@ -157,9 +157,9 @@ returns ERROR.
 A GitHub repository with its own rules registers the versions it owns. Add
 `version = "1.0"` to a new rule and place `rule.yaml` beside its `rule.toml`.
 The local `.github/workflows/register-rules.yml` calls the shared
-`rule-registration.yml` at a full commit SHA with `contents: read` and two named
-secret references, `GATEWAY_URL` and `GATEWAY_KEY`. Configure
-`[publish] key_env = "PLEASE_GATEWAY_KEY"` in `.please/config.toml`.
+`rule-registration.yml` at a full commit SHA and passes the gateway URL.
+Follow [Gateway authentication](#gateway-authentication) for permissions and
+credentials.
 
 Filter pushes to `main` to the rule's `rule.toml`, `rule.yaml`, and any review
 prompt. Include the caller and `.please/config.toml` so changes to the registration
@@ -170,6 +170,34 @@ CI workflow owns attestation publication.
 The offline `rule-registration-workflow` check runs at `check` and needs Python
 3.11+, Git and yq v4. Owners register imported rules from their own repositories.
 The Please Behave documentation repository's example rules are fixtures.
+
+### Gateway authentication
+
+When Renovate updates the digest for `ci-check.yml`, `ci-check-private.yml`,
+or `rule-registration.yml` to an OIDC-capable revision, grant these
+permissions on the calling job in the same change.
+
+```yaml
+permissions:
+  contents: read
+  id-token: write
+```
+
+A reusable workflow can only use permissions its caller grants. Without
+`id-token: write`, GitHub rejects the run at startup, including for API-key
+callers and CI callers that publish no attestations.
+
+Pass `GATEWAY_URL: ${{ secrets.GATEWAY_URL }}` under the calling job's
+`secrets` for registration or to enable CI attestation delivery. Set the
+secret to the gateway origin, for example `https://gateway.example.org`.
+Choose the authentication method in `.please/config.toml`.
+
+- **GitHub OIDC.** Use CLI v0.22.0 or later and set `auth = "github-oidc"`
+  under `[publish]`. Pass only `GATEWAY_URL`. The gateway must allow the
+  caller repository and expect the gateway origin as the token audience.
+- **API key.** Set `key_env = "PLEASE_GATEWAY_KEY"` under `[publish]` and
+  pass `GATEWAY_KEY: ${{ secrets.GATEWAY_KEY }}` alongside `GATEWAY_URL`.
+  API key is the CLI default.
 
 ## Shell scripts
 

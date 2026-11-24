@@ -17,6 +17,7 @@ CALLER = """on:
   workflow_dispatch:
 permissions:
   contents: read
+  id-token: write
 jobs:
   register:
     uses: %s/.github/workflows/rule-registration.yml@%s
@@ -45,8 +46,8 @@ class RegistrationWorkflowTests(unittest.TestCase):
     def run_check(self):
         return subprocess.run([sys.executable, "-B", CHECK], cwd=self.root, capture_output=True, text=True)
 
-    def configure(self, caller=CALLER):
-        self.write(".please/config.toml", '[publish]\nkey_env = "PLEASE_GATEWAY_KEY"\n')
+    def configure(self, caller=CALLER, publish='key_env = "PLEASE_GATEWAY_KEY"'):
+        self.write(".please/config.toml", f"[publish]\n{publish}\n")
         self.write(".github/workflows/register-rules.yml", caller)
         self.write(".please/checks/sample/rule.toml", 'id = "sample"\nversion = "1.0"\n')
         self.write(".please/checks/sample/rule.yaml", "purpose: Test workflow coverage.\n")
@@ -61,6 +62,35 @@ class RegistrationWorkflowTests(unittest.TestCase):
         self.configure()
         result = self.run_check()
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_accepts_oidc_with_or_without_a_key_and_job_permissions(self):
+        caller = CALLER.replace("  id-token: write\n", "").replace(
+            "  register:\n", "  register:\n    permissions:\n      contents: read\n      id-token: write\n"
+        )
+        key = "      GATEWAY_KEY: ${{ secrets.GATEWAY_KEY }}\n"
+        for workflow in (caller, caller.replace(key, "")):
+            with self.subTest(workflow=workflow):
+                self.configure(workflow, publish='auth = "github-oidc"')
+                result = self.run_check()
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_job_permissions_override_workflow_permissions(self):
+        self.configure(CALLER.replace("  register:\n", "  register:\n    permissions:\n      contents: read\n"))
+        result = self.run_check()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("contents: read and id-token: write", result.stdout)
+
+    def test_oidc_requires_gateway_url(self):
+        self.configure(CALLER.replace("      GATEWAY_URL: ${{ secrets.GATEWAY_URL }}\n", ""), publish='auth = "github-oidc"')
+        result = self.run_check()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("must pass GATEWAY_URL", result.stdout)
+
+    def test_api_key_authentication_requires_gateway_key(self):
+        self.configure(CALLER.replace("      GATEWAY_KEY: ${{ secrets.GATEWAY_KEY }}\n", ""))
+        result = self.run_check()
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("pass GATEWAY_KEY for API-key authentication", result.stdout)
 
     def test_reports_missing_metadata_and_broad_filters(self):
         self.configure(CALLER.replace(".please/checks/**/rule.yaml", ".please/**"))
@@ -77,3 +107,7 @@ class RegistrationWorkflowTests(unittest.TestCase):
         result = self.run_check()
         self.assertEqual(result.returncode, 1)
         self.assertIn("push.paths must include .please/checks/**/prompt.md", result.stdout)
+
+
+if __name__ == "__main__":
+    unittest.main()

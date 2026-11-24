@@ -28,8 +28,10 @@ inputs:
   env: Setup and checks can require the same environment as regular CI.
 permissions:
   contents: Checkout needs read access to the calling repository.
+  id-token: Write lets the registration job obtain a GitHub OIDC token for gateway authentication.
 callers: >-
-  The caller passes both gateway secrets explicitly. Repositories with only imported
+  The caller grants the job ID token write and passes the gateway URL explicitly, with a key for API-key
+  authentication. Repositories with only imported
   rules let the rule owners register them. The documentation repository's example
   rules are fixtures and stay out of the ledger.
 references:

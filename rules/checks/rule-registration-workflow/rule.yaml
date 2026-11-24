@@ -6,8 +6,8 @@ value: Readers can retrieve the rule details attached to a result, and rule owne
 conditions:
   - statement: Own rule definitions have a valid version and an adjacent knowledge document.
     rationale: Registration submits one batch, so a missing input can block every rule in the repository.
-  - statement: The registration caller uses the shared workflow with read-only permissions and supplies both gateway secrets by reference.
-    rationale: The workflow can check and register the owner's commit without write access.
+  - statement: The caller grants contents read and ID token write, passes the gateway URL by reference, and passes a key by reference for API-key authentication.
+    rationale: The shared workflow checks out the owner's commit and can authenticate to the gateway with either supported method.
   - statement: Pushes to main start registration only when files relevant to registration change.
     rationale: Narrow filters keep private runner usage low and avoid submitting unchanged rule versions on unrelated pushes.
 success_criteria:

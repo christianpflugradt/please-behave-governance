@@ -14,7 +14,9 @@ EXAMPLES = "please-behave/docs"
 ORIGIN = re.compile(r"(?:https://github\.com/|git@github\.com:|ssh://git@github\.com/)([^/]+/[^/]+)", re.IGNORECASE)
 VERSION = re.compile(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)")
 STANDARD_ROOTS = (".please/checks", "rules/checks", "rules/reviews")
-SECRETS = {"GATEWAY_URL": "${{ secrets.GATEWAY_URL }}", "GATEWAY_KEY": "${{ secrets.GATEWAY_KEY }}"}
+GATEWAY_URL = {"GATEWAY_URL": "${{ secrets.GATEWAY_URL }}"}
+GATEWAY_KEY = {"GATEWAY_KEY": "${{ secrets.GATEWAY_KEY }}"}
+PERMISSIONS = {"contents": "read", "id-token": "write"}
 
 
 def repository():
@@ -65,7 +67,7 @@ def check_rules(rules):
     return required, failures
 
 
-def check_workflow(repo, required):
+def check_workflow(repo, required, oidc):
     if not Path(CALLER).is_file():
         return ["is missing"]
     parsed = subprocess.run(["yq", "--output-format=json", ".", CALLER], capture_output=True, text=True)
@@ -92,20 +94,21 @@ def check_workflow(repo, required):
             failures.append(f"push.paths must include {path}")
         for path in sorted(set(paths) - required):
             failures.append(f"push.paths includes an unrelated path: {path}")
-    if workflow.get("permissions") != {"contents": "read"}:
-        failures.append("must set permissions to contents: read")
     uses = rf"{re.escape(CATALOG + '/' + SHARED)}@[0-9a-f]{{40}}"
     job = workflow.get("jobs")
     if not isinstance(job, dict) or set(job) != {"register"} or not isinstance(job["register"], dict):
         return failures + ["must contain exactly one job named register"]
     job = job["register"]
+    if job.get("permissions", workflow.get("permissions")) != PERMISSIONS:
+        failures.append("must grant contents: read and id-token: write to the register job")
     reference = str(job.get("uses", ""))
     if not re.fullmatch(uses, reference) and not (repo == CATALOG and reference == f"./{SHARED}"):
         failures.append(f"must use the shared {SHARED} pinned to a full commit SHA, or the relative path in the catalog")
-    if set(job) - {"uses", "with", "secrets", "name"}:
+    if set(job) - {"uses", "with", "secrets", "name", "permissions"}:
         failures.append("register must only call the shared workflow")
-    if job.get("secrets") != SECRETS:
-        failures.append("register must pass GATEWAY_URL and GATEWAY_KEY explicitly")
+    secrets = job.get("secrets")
+    if secrets != GATEWAY_URL | GATEWAY_KEY and not (oidc and secrets == GATEWAY_URL):
+        failures.append("register must pass GATEWAY_URL explicitly and pass GATEWAY_KEY for API-key authentication")
     return failures
 
 
@@ -124,13 +127,14 @@ def main():
     required, failures = check_rules(rules)
     if repo == CATALOG:
         required.add(SHARED)
-    if not Path(".please/config.toml").is_file():
-        failures.append(".please/config.toml must configure publish.key_env")
-    else:
-        with Path(".please/config.toml").open("rb") as source:
-            if tomllib.load(source).get("publish", {}).get("key_env") != "PLEASE_GATEWAY_KEY":
-                failures.append(".please/config.toml must set publish.key_env to PLEASE_GATEWAY_KEY")
-    failures.extend(f"{CALLER} {message}" for message in check_workflow(repo, required))
+    config = Path(".please/config.toml")
+    publish = tomllib.loads(config.read_text()).get("publish", {}) if config.is_file() else {}
+    oidc = publish.get("auth") == "github-oidc"
+    if not oidc and (publish.get("auth", "api-key") != "api-key" or publish.get("key_env") != "PLEASE_GATEWAY_KEY"):
+        failures.append(
+            '.please/config.toml must set publish.auth to "github-oidc" or use API-key authentication with publish.key_env = "PLEASE_GATEWAY_KEY"'
+        )
+    failures.extend(f"{CALLER} {message}" for message in check_workflow(repo, required, oidc))
     for failure in failures:
         print(f"FAIL: {failure}")
     if not failures:
