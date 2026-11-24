@@ -31,4 +31,3 @@ jobs:
     uses: ./.github/workflows/rule-registration.yml
     secrets:
       GATEWAY_URL: ${{ secrets.GATEWAY_URL }}
-      GATEWAY_KEY: ${{ secrets.GATEWAY_KEY }}
