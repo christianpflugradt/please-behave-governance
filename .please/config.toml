@@ -6,7 +6,7 @@ auth = "github-oidc"
 [[imports]]
 git = "https://github.com/christianpflugradt/repository-catalog.git"
 path = "rulesets/repository-conventions"
-ref = "2b098709773d0de78f6d03b597c03b15eff6e2d5"
+ref = "29f7071f4b285c228ea4206693a5c397f693a966"
 
 [imports.rule_parameters.agents-size]
 max_tokens = "1500"
@@ -17,7 +17,7 @@ scopes_file = ".please/commit-scopes.txt"
 [[imports]]
 git = "https://github.com/christianpflugradt/repository-catalog.git"
 path = "rulesets/security"
-ref = "0b01148cebac72b4563f8ebebce0c39b0a1431ea"
+ref = "356256b67beed2419a0691611bb71aa3736c326e"
 
 [imports.rule_parameters.dependency-audit-workflow]
 dependencies = "audited"
@@ -25,7 +25,7 @@ dependencies = "audited"
 [[imports]]
 git = "https://github.com/christianpflugradt/repository-catalog.git"
 path = "rulesets/open-source-software"
-ref = "2b098709773d0de78f6d03b597c03b15eff6e2d5"
+ref = "356256b67beed2419a0691611bb71aa3736c326e"
 
 [imports.rule_parameters.license]
 target = "LICENSE"
