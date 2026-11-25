@@ -1,4 +1,6 @@
 id = "security"
+version = "1.0"
+name = "Security"
 description = "Security checks for pre-push and CI"
 run_at = ["pre-push", "check"]
 rules = ["rules/checks/sensitive-files", "rules/checks/secret-scan", "rules/checks/dependency-audit-workflow", "rules/checks/workflow-action-pins"]

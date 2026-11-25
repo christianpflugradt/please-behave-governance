@@ -1,4 +1,6 @@
 id = "repository-conventions"
+version = "1.0"
+name = "Conventions"
 description = "Lightweight repository conventions for local commits and CI"
 run_at = ["pre-commit", "check"]
 rules = [

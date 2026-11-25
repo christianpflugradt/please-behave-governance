@@ -54,7 +54,7 @@ exposing a private repository.
 
 Every Rule and Rule Set states why it exists in a `rule.yaml` or `ruleset.yaml` next to
 its definition, following the [rule knowledge schemas](https://github.com/please-behave/cli/tree/main/why/contracts/rule-knowledge).
-Each Rule declares an owner-assigned version. The catalog registers those versions
+Each Rule and Rule Set declares an owner-assigned version. The catalog registers those versions
 from CI so the cockpit can display the rule details and verify reported results.
 
 ## Layout

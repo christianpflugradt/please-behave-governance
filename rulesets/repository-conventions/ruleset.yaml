@@ -27,6 +27,8 @@ rules:
     role: Checks that GitHub repositories with their own rules can register committed versions.
   - rule: shell-scripts
     role: Keeps shell scripts, which almost every repository has, portable and free of typical mistakes.
+  - rule: format-shell
+    role: Keeps shell scripts formatted with shfmt so that style is uniform without review.
   - rule: agents-size
     role: Keeps AGENTS.md small.
   - rule: agents-quality

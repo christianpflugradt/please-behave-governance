@@ -1,4 +1,6 @@
 id = "releasable-open-source-software"
+version = "1.0"
+name = "Releasable"
 description = "Require the shared release entry point and the shared release workflow structure for releasable open-source software"
 run_at = ["pre-push", "check"]
 rules = ["rules/checks/mise-release", "rules/checks/release-workflow"]

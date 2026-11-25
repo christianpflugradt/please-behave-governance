@@ -11,6 +11,8 @@ on:
       - 'rules/reviews/**/rule.toml'
       - 'rules/reviews/**/rule.yaml'
       - 'rules/reviews/**/prompt.md'
+      - 'rulesets/*/ruleset.toml'
+      - 'rulesets/*/ruleset.yaml'
       - '.please/config.toml'
       - '.github/workflows/register-rules.yml'
       - '.github/workflows/rule-registration.yml'
