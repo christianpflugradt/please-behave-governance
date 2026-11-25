@@ -1,6 +1,6 @@
 id = "private-repositories"
 version = "1.0"
-name = "Private repositories"
+name = "Private"
 description = "Keep GitHub Actions usage of private repositories within the free minutes and Renovate churn low"
 run_at = ["pre-push", "check"]
 rules = [
