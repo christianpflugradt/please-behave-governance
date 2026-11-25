@@ -19,8 +19,8 @@ conditions:
     rationale: The proof of CI and the build of the candidate do not depend on each other, and sequencing them would only delay releases.
   - statement: Every candidate job runs the shared governance action and records its files with the evidence action.
     rationale: The candidate is checked at the release point and bound to its source and version, whatever the repository builds.
-  - statement: Apart from plan, only publish has write permissions; with publish-release exactly contents, and with publish-image exactly contents, packages, id-token and attestations.
-    rationale: A job that cannot write cannot publish, so a repository cannot go around the shared publication, and the permissions of the publication are no wider than it needs.
+  - statement: Apart from plan, only publish has write permissions; with publish-release contents and, to record the release, id-token, and with publish-image exactly contents, packages, id-token and attestations.
+    rationale: A job that cannot write cannot publish, so a repository cannot go around the shared publication, and the permissions of the publication are no wider than it needs; id-token lets the publication report the release to the Please Behave platform.
   - statement: publish needs every other job, runs only when they all succeeded, verifies the evidence and publishes exactly once with publish-release or publish-image.
     rationale: Only a complete and verified candidate is published, as files or as images, nothing runs after or beside the publication, and never both ways at once.
   - statement: A repository that publishes images runs the shared check-image action in every candidate job, and no step uses a release action that does not exist.

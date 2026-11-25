@@ -16,6 +16,12 @@ inputs:
   assets:
     description: Newline-separated globs of the files attached to the release
     default: ''
+  source-sha:
+    description: The commit planned by the plan action, recorded with the release
+    required: true
+  gateway-url:
+    description: Please Behave gateway origin, passed from a secret; without it the release is not recorded
+    default: ''
 runs:
   using: composite
   steps:
@@ -36,3 +42,13 @@ runs:
         RELEASE_ASSETS: ${{ inputs.assets }}
         GITHUB_TOKEN: ${{ github.token }}
         GH_TOKEN: ${{ github.token }}
+    - name: Record the release
+      if: inputs.gateway-url != '' && inputs.mode == 'release'
+      continue-on-error: true
+      uses: please-behave/action@dbe320b7c8d59af2e13bd72f58909cc0a09e506a # v1.9.0
+      with:
+        version: v0.24.0
+        run: 'false'
+        gateway-url: ${{ inputs.gateway-url }}
+        release-version: ${{ inputs.version }}
+        release-commit: ${{ inputs.source-sha }}

@@ -66,6 +66,11 @@ class ReleaseWorkflowTests(unittest.TestCase):
     def test_standard_workflow_passes(self):
         self.assertEqual(mod.violations(WORKFLOW), [])
 
+    def test_file_publication_may_grant_the_id_token_to_record_the_release(self):
+        self.assertEqual(changed(lambda d: d["jobs"]["publish"]["permissions"].update({"id-token": "write"})), [])
+        self.assertTrue(changed(lambda d: d["jobs"]["publish"]["permissions"].update({"packages": "write"})))
+        self.assertTrue(changed(lambda d: d["jobs"]["publish"]["permissions"].update({"id-token": "write", "attestations": "write"})))
+
     def test_image_publication_passes_with_the_attestation_permissions(self):
         def images(d):
             d["jobs"]["publish"]["permissions"] = {"contents": "write", "packages": "write", "id-token": "write", "attestations": "write"}

@@ -7,9 +7,9 @@ build and verification steps.
 | Action | Purpose |
 | --- | --- |
 | `actions/release/plan` | Calculates the next release without publishing; outputs `release`, `version`, `source-sha`, `mode` |
-| `actions/release/publish-release` | Publishes the planned version as a GitHub release with files; refuses if the version or `main` changed since planning |
+| `actions/release/publish-release` | Publishes the planned version as a GitHub release with files, then records an official release; refuses if the version or `main` changed since planning |
 | `actions/release/check-image` | Verifies the candidate container image archives of one platform in the candidate job |
-| `actions/release/publish-image` | Pushes the verified candidate images to `ghcr.io` and publishes the planned release without files |
+| `actions/release/publish-image` | Pushes the verified candidate images to `ghcr.io`, publishes the planned release without files and records it |
 | `actions/release/check-ci` | Proves that CI succeeded for the exact source commit within one trusted workflow run, including reruns |
 | `actions/release/evidence` | `record`s the hashes of a release candidate per target and uploads them as `release-evidence-<run>-<attempt>-<target>`, together with the candidate files as `release-candidate-<run>-<attempt>-<target>`; `verify` downloads both for every target, restores the candidate files below the policy `root` and verifies the complete set before publication |
 | `actions/release/governance` | verifies the repository at the `release` point of Please Behave and uploads the governance report; `target` is appended to the report name when a matrix of candidate jobs uploads several |
@@ -50,6 +50,8 @@ on:
   with:
     version: ${{ needs.plan.outputs.version }}
     mode: ${{ needs.plan.outputs.mode }}
+    source-sha: ${{ needs.plan.outputs.source_sha }}
+    gateway-url: ${{ secrets.GATEWAY_URL }}
     force: ${{ inputs.force }}
     assets: |
       dist/*.zip
@@ -57,6 +59,15 @@ on:
 ```
 
 `mise run release --force`, `--prerelease` and `--release` set the `force` and `mode` dispatch inputs.
+
+## Recording the release
+
+After a successful publication, `publish-release` and `publish-image` record the release with the Please Behave action
+(`release-version`, CLI v0.24.0): the planned `version` and the planned `source-sha`. Pass `source-sha` from the `plan` output
+and the gateway origin as `gateway-url` from the secret `GATEWAY_URL`, which the other Please Behave steps use, too. The `publish`
+job needs `id-token: write` for the authentication. A development release (`mode: prerelease`) is not recorded. Without `gateway-url`
+the step does not run, so repositories outside the platform are unaffected. A failed or conflicting recording never fails the job;
+it is a warning in the job summary.
 
 ## Reusable workflows
 

@@ -30,7 +30,7 @@ candidate jobs named `release-candidate-<name>`. These invariants decide:
 - Every candidate job (a matrix counts as one job) runs the shared `governance` action and records its files with `evidence`.
   A candidate job has no write permission: only `publish` publishes.
 - `publish` needs every other job, runs only when all of them succeeded, verifies the evidence and publishes exactly once with
-  `publish-release` (files, `contents: write`) or `publish-image` (images; it also attests them and needs `contents`, `packages`,
+  `publish-release` (files, `contents: write`, and `id-token: write` to record the release) or `publish-image` (images; it also attests them and needs `contents`, `packages`,
   `id-token` and `attestations` write permission, and no other).
 - The workflow starts only on `workflow_dispatch`, and no step runs Semantic Release itself.
 
