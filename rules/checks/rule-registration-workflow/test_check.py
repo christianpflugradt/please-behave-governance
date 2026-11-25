@@ -101,6 +101,17 @@ class RegistrationWorkflowTests(unittest.TestCase):
         for message in ("rule.toml must declare a version", "rule.yaml is missing", "push.paths includes an unrelated path"):
             self.assertIn(message, result.stdout)
 
+    def test_requires_rule_set_version_knowledge_and_trigger_paths(self):
+        self.configure()
+        self.write("rulesets/sample/ruleset.toml", 'id = "sample"\n')
+        result = self.run_check()
+        for message in (
+            'rulesets/sample/ruleset.toml must declare a version such as "1.0"',
+            "rulesets/sample/ruleset.yaml is missing",
+            "push.paths must include rulesets/**/ruleset.toml",
+        ):
+            self.assertIn(message, result.stdout)
+
     def test_requires_review_prompt_in_the_push_filters(self):
         self.configure()
         self.write(".please/checks/sample/rule.toml", 'id = "sample"\nversion = "1.0"\n[review]\nprompt = "prompt.md"\n')

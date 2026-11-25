@@ -155,7 +155,9 @@ returns ERROR.
 ## Rule registration
 
 A GitHub repository with its own rules registers the versions it owns. Add
-`version = "1.0"` to a new rule and place `rule.yaml` beside its `rule.toml`.
+`version = "1.0"` to a new rule and place `rule.yaml` beside its `rule.toml`. A Rule Set defined in a
+`ruleset.toml` likewise needs a `version` and a `ruleset.yaml` beside it, and the caller's
+`push.paths` must include them.
 The local `.github/workflows/register-rules.yml` calls the shared
 `rule-registration.yml` at a full commit SHA and passes the gateway URL.
 Follow [Gateway authentication](#gateway-authentication) for permissions and

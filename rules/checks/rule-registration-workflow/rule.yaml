@@ -1,10 +1,10 @@
-purpose: Make versioned repository rules available to the cockpit through the shared registration workflow.
+purpose: Make versioned repository rules and Rule Sets available to the cockpit through the shared registration workflow.
 problem: >-
   A repository can run and attest its own rules before registering their descriptions.
   Without a shared caller, registrations and trigger filters can drift between repositories.
 value: Readers can retrieve the rule details attached to a result, and rule owners see missing registration setup in their checks.
 conditions:
-  - statement: Own rule definitions have a valid version and an adjacent knowledge document.
+  - statement: Own rule and Rule Set definitions have a valid version and an adjacent knowledge document.
     rationale: Registration submits one batch, so a missing input can block every rule in the repository.
   - statement: The caller grants contents read and ID token write, passes the gateway URL by reference, and passes a key by reference for API-key authentication.
     rationale: The shared workflow checks out the owner's commit and can authenticate to the gateway with either supported method.

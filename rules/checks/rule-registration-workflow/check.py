@@ -13,7 +13,7 @@ CATALOG = "christianpflugradt/repository-catalog"
 EXAMPLES = "please-behave/docs"
 ORIGIN = re.compile(r"(?:https://github\.com/|git@github\.com:|ssh://git@github\.com/)([^/]+/[^/]+)", re.IGNORECASE)
 VERSION = re.compile(r"(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)")
-STANDARD_ROOTS = (".please/checks", "rules/checks", "rules/reviews")
+STANDARD_ROOTS = (".please/checks", "rules/checks", "rules/reviews", "rulesets")
 GATEWAY_URL = {"GATEWAY_URL": "${{ secrets.GATEWAY_URL }}"}
 GATEWAY_KEY = {"GATEWAY_KEY": "${{ secrets.GATEWAY_KEY }}"}
 PERMISSIONS = {"contents": "read", "id-token": "write"}
@@ -30,7 +30,7 @@ def repository():
 
 def rule_files():
     candidates = subprocess.check_output(
-        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z", "--", ":(glob)**/rule.toml"],
+        ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z", "--", ":(glob)**/rule.toml", ":(glob)**/ruleset.toml"],
         text=True,
     )
     return [Path(name) for name in sorted(set(candidates.split("\0")) - {""}) if Path(name).is_file()]
@@ -57,7 +57,7 @@ def check_rules(rules):
         version = definition.get("version")
         if not isinstance(version, str) or not VERSION.fullmatch(version):
             failures.append(f'{rule} must declare a version such as "1.0"')
-        knowledge = rule.with_name("rule.yaml")
+        knowledge = rule.with_suffix(".yaml")
         if not knowledge.is_file():
             failures.append(f"{knowledge} is missing")
         required.update((required_path(rule), required_path(knowledge)))
