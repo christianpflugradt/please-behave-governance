@@ -11,7 +11,7 @@ runs:
       shell: bash
       run: please trust https://github.com/christianpflugradt/repository-catalog.git
     - name: Verify the repository at the release point
-      uses: please-behave/action@dbe320b7c8d59af2e13bd72f58909cc0a09e506a # v1.9.0
+      uses: please-behave/action@0d9c81df1e374603a643223fb1c82c97c9688dc4 # v1.10.0
       with:
         install: 'false'
         sync: 'true'
