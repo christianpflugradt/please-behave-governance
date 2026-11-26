@@ -80,7 +80,7 @@ runs:
     - name: Record the release
       if: inputs.gateway-url != ''
       continue-on-error: true
-      uses: please-behave/action@dbe320b7c8d59af2e13bd72f58909cc0a09e506a # v1.9.0
+      uses: please-behave/action@0d9c81df1e374603a643223fb1c82c97c9688dc4 # v1.10.0
       with:
         version: v0.24.0
         run: 'false'
