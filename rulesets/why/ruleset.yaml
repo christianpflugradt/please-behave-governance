@@ -12,7 +12,10 @@ admission:
   - The rules verify shared expectations of the Why standard.
   - Their verdicts are independent of the repository's implementation language, build and test systems.
 excluded:
-  - description: Ownership of code, dependencies inferred from source code and requirement citations in tests.
+  - description: Ownership of code, dependencies inferred from source code and requirement areas.
+    rationale: They need to know where the code lives, which the set cannot take as a parameter and stay importable by repositories without code.
+    ruleset: why-components
+  - description: Requirement citations in tests.
     rationale: Their meaning and evidence depend on the consumer repository.
 complements:
   - ruleset: repository-conventions

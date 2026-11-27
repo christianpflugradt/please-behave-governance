@@ -53,3 +53,5 @@ Without a declaration, local links still need to resolve and qualified
 references fail. Links to GitHub are then treated as external links. The
 check uses only the repository snapshot. Checkout identification by Git remote
 and verification of targets in other repositories are separate procedures.
+
+For repositories with code, `rulesets/why-components` adds component ownership and requirement areas; see [Why components](why-components.md).

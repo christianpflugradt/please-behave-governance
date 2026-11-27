@@ -13,6 +13,7 @@ tool or version can never reach a repository without it.
 | `private-repositories` | `yq` |
 | `releasable-open-source-software` | `yq` |
 | `why` | `yq`, `pandoc` |
+| `why-components` | `yq` |
 
 Languages, runtimes, formatters of the repository's own sources and the pinned
 `github:please-behave/cli` stay in the repository's `mise.toml`.

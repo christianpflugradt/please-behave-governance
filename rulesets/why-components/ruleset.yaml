@@ -1,0 +1,23 @@
+purpose: Keep the Why components and requirement areas of a repository with code consistent with that code.
+audience: Repositories that document with Why and contain code, in any language, whose components own the compiled files.
+commonality: >-
+  Which files a component owns and how requirements are grouped are shared expectations of Why. The
+  repository declares where its code lives, so the verdict does not depend on its layout, and
+  repositories without code leave the set out.
+rules:
+  - rule: component-consistency
+    role: Verifies ownership of every compiled file, Rust dependencies between components and requirement areas.
+admission:
+  - The Rule verifies a shared expectation of Why and takes the location of the code as a parameter.
+  - It is kept separate from the why set because that set has no parameters and must stay importable by repositories without code.
+excluded:
+  - description: Dependency checks for languages other than Rust.
+    rationale: Their evidence depends on module systems that differ per ecosystem; ownership is still checked.
+complements:
+  - ruleset: why
+    rationale: Its checks validate artifact structure and references, which this set relies on.
+execution_points: >-
+  The Rule runs at pre-commit for early feedback, at pre-push before sharing changes, and at
+  check so CI can validate independently of local hooks.
+references:
+  - docs/why-components.md

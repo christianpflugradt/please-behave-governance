@@ -1,0 +1,14 @@
+id = "component-consistency"
+version = "1.0"
+name = "Component consistency"
+description = "Component ownership of compiled files, Rust dependencies between components and requirement areas match the repository"
+enabled = true
+
+[check]
+command = "python3 @rule/check.py @param/source_roots"
+timeout_seconds = 60
+
+[parameters.source_roots]
+type = "string"
+required = true
+description = "Comma-separated directories that hold the repository's code, for example src,frontend/src; empty when the repository has no code"

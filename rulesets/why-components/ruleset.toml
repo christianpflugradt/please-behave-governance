@@ -1,0 +1,6 @@
+id = "why-components"
+version = "1.0"
+name = "Why components"
+description = "Components own the compiled code, and requirements carry an area, in repositories that document code with Why"
+run_at = ["pre-commit", "pre-push", "check"]
+rules = ["rules/checks/component-consistency"]

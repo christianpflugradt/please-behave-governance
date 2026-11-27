@@ -14,6 +14,7 @@ that apply to a repository; each bundle adds to the others.
 | `rulesets/releasable-open-source-software` | Releasable open-source software | `check`, `pre-push` | `release` task, release workflow structure |
 | `rulesets/security` | Repositories adopting the security policy | `check`, `pre-push` | Sensitive filenames, secret scanning, pinned workflow actions and Dependency Audit workflow structure |
 | `rulesets/why` | Repositories that document with Why | `pre-commit`, `pre-push`, `check` | Why artifacts, repository declarations and documentation links |
+| `rulesets/why-components` | Repositories that document with Why and contain code | `pre-commit`, `pre-push`, `check` | Component ownership of compiled files, Rust dependencies between components, requirement areas |
 
 Repository conventions stay lightweight and work through Git hooks alone; `check` adds the same checks to CI.
 Security is a deliberate domain separation. License checking belongs to the
@@ -92,6 +93,7 @@ the Gemini operations themselves still require network access.
 | Releasable open-source software | none | Python 3.11+, Git |
 | Security | `dependency-audit-workflow.dependencies`, `audited` or `none` | Python 3.9+, Git, `yq`, Gitleaks v8 with `gitleaks dir` |
 | Why | none | Git, Python 3.9+, `yq` v4, Pandoc |
+| Why components | `component-consistency.source_roots` | Python 3.11+, `yq` v4 |
 
 The Gemini adapters accept adapter protocol versions `0` and `1` and return the
 version supplied in the request. Existing version `1` governors remain compatible;
@@ -110,6 +112,7 @@ See complete import examples, parameters, evidence boundaries and limitations:
 - [Release task and policy](docs/releases.md)
 - [Security and scanner configuration](docs/security.md)
 - [Why artifact and link validation](docs/why.md)
+- [Why components and requirement areas](docs/why-components.md)
 - [Compatibility and path migration](docs/migration.md)
 - [Rule versioning and registration](docs/rule-versioning.md)
 - [Shared Renovate governor preset](docs/governor-updates.md)
